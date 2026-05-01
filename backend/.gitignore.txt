@@ -1,0 +1,17 @@
+# Eclipse files
+.classpath
+.factorypath
+.project
+.settings/
+
+# Maven
+target/
+
+# VS Code
+.vscode/
+
+# Sensitive config - NEVER commit this
+application.properties
+
+# Environment
+.env

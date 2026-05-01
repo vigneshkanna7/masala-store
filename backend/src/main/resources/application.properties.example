@@ -1,0 +1,35 @@
+# Oracle DB
+spring.datasource.url=jdbc:oracle:thin:@localhost:1521:xe
+spring.datasource.username=YOUR_DB_USERNAME
+spring.datasource.password=YOUR_DB_PASSWORD
+spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+# JPA
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.open-in-view=false
+
+# JWT
+jwt.secret=YOUR_JWT_SECRET_KEY_MIN_32_CHARS
+jwt.expiration=86400000
+
+# Server
+server.port=8080
+
+# Razorpay
+razorpay.key.id=YOUR_RAZORPAY_KEY_ID
+razorpay.key.secret=YOUR_RAZORPAY_KEY_SECRET
+
+# Mail
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=YOUR_GMAIL_ADDRESS
+spring.mail.password=YOUR_GMAIL_APP_PASSWORD
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# CORS
+app.cors.allowed-origins=http://localhost:3000
+
+jwt.secret=6Y4eXHC3+5cy4Sf2XWZtxdrKCkcd7F1y4IfdblJ/Qms=
+jwt.expiration=86400000

@@ -1,0 +1,22 @@
+# Backend - NEVER commit real credentials
+backend/src/main/resources/application.properties
+
+# Maven
+backend/target/
+
+# Frontend
+frontend/node_modules/
+frontend/build/
+frontend.zip
+
+# IDE
+.metadata/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
