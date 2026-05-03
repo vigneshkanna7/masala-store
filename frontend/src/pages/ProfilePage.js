@@ -5,6 +5,37 @@ import api from '../api/api';
 const font = "'DM Sans', sans-serif";
 const red = '#c0392b';
 
+// ── Moved outside component to avoid recreation on every render ──
+const inp = {
+  width: '100%', padding: '13px 16px', border: '1px solid #e5e7eb',
+  borderRadius: '8px', fontSize: '15px', fontFamily: font,
+  color: '#111', background: '#f5f6fa', outline: 'none',
+  transition: 'border-color 0.18s, background 0.18s',
+};
+const inpDisabled = { ...inp, color: '#888', cursor: 'not-allowed', background: '#f0f0f0' };
+const inpEye = { ...inp, paddingRight: '46px' };
+const lbl = { display: 'block', fontSize: '14px', fontWeight: 500, color: '#111', marginBottom: '8px' };
+const fg = { marginBottom: '22px' };
+const eyeBtn = {
+  position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)',
+  background: 'none', border: 'none', cursor: 'pointer', color: '#666',
+  display: 'flex', alignItems: 'center', padding: '4px',
+};
+
+// ── Moved outside component to avoid recreation on every render ──
+const EyeIcon = ({ open }) => open ? (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <line x1="1" y1="1" x2="23" y2="23" />
+    <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 01-4.24-4.24" />
+    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.5 18.5 0 015.06-5.94" />
+  </svg>
+) : (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
 function ProfilePage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState({ name: '', email: '', phone: '', address: '' });
@@ -30,6 +61,10 @@ function ProfilePage() {
     const hasPasswordChange = passwordData.newPassword || passwordData.confirmPassword;
 
     if (hasPasswordChange) {
+      // ── Password length validation ──
+      if (passwordData.newPassword.length < 8) {
+        showToast('Password must be at least 8 characters!', false); return;
+      }
       if (passwordData.newPassword !== passwordData.confirmPassword) {
         showToast('New passwords do not match!', false); return;
       }
@@ -51,64 +86,25 @@ function ProfilePage() {
 
   const togglePwd = (key) => setShowPwd(p => ({ ...p, [key]: !p[key] }));
 
-  const EyeIcon = ({ open }) => open ? (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <line x1="1" y1="1" x2="23" y2="23" />
-      <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 01-4.24-4.24" />
-      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.5 18.5 0 015.06-5.94" />
-    </svg>
-  ) : (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-
-  const inp = {
-    width: '100%', padding: '13px 16px', border: '1px solid #e5e7eb',
-    borderRadius: '8px', fontSize: '15px', fontFamily: font,
-    color: '#111', background: '#f5f6fa', outline: 'none',
-    transition: 'border-color 0.18s, background 0.18s',
-  };
-  const inpDisabled = { ...inp, color: '#888', cursor: 'not-allowed', background: '#f0f0f0' };
-  const inpEye = { ...inp, paddingRight: '46px' };
-  const lbl = { display: 'block', fontSize: '14px', fontWeight: 500, color: '#111', marginBottom: '8px' };
-  const fg = { marginBottom: '22px' };
-  const eyeBtn = {
-    position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)',
-    background: 'none', border: 'none', cursor: 'pointer', color: '#666',
-    display: 'flex', alignItems: 'center', padding: '4px',
-  };
-
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
         * { box-sizing: border-box; }
-        .prof-inp:focus { border-color: ${red} !important; background: #fff !important; }
+        .prof-inp:focus { border-color: #c0392b !important; background: #fff !important; }
         .save-btn {
-          padding: 13px 40px; background: ${red}; color: #fff; border: none;
+          padding: 13px 40px; background: #c0392b; color: #fff; border: none;
           border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer;
-          font-family: ${font}; transition: background 0.2s;
+          font-family: 'DM Sans', sans-serif; transition: background 0.2s;
         }
         .save-btn:hover { background: #a93226; }
         .toast {
-          position: fixed;
-          top: 28px;
-          right: 28px;
-          z-index: 9999;
-          min-width: 280px;
-          max-width: 400px;
-          padding: 16px 20px;
-          border-radius: 10px;
-          font-family: ${font};
-          font-size: 14px;
-          font-weight: 500;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-          animation: slideIn 0.3s ease;
+          position: fixed; top: 28px; right: 28px; z-index: 9999;
+          min-width: 280px; max-width: 400px; padding: 16px 20px;
+          border-radius: 10px; font-family: 'DM Sans', sans-serif;
+          font-size: 14px; font-weight: 500; display: flex;
+          align-items: center; gap: 10px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.12); animation: slideIn 0.3s ease;
         }
         .toast-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
         .toast-error   { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
@@ -209,7 +205,7 @@ function ProfilePage() {
               <input
                 className="prof-inp" style={inpEye}
                 type={showPwd.new ? 'text' : 'password'}
-                autoComplete="new-password" // ✅ prevents autofill
+                autoComplete="new-password"
                 value={passwordData.newPassword}
                 onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
               />
@@ -226,7 +222,7 @@ function ProfilePage() {
               <input
                 className="prof-inp" style={inpEye}
                 type={showPwd.confirm ? 'text' : 'password'}
-                autoComplete="new-password" // ✅ prevents autofill
+                autoComplete="new-password"
                 value={passwordData.confirmPassword}
                 onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
               />

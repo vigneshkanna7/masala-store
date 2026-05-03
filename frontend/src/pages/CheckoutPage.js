@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/api";
 import Spinner from "../components/Spinner";
 
 if (typeof document !== "undefined" && !document.getElementById("poppins-font")) {
@@ -60,6 +60,42 @@ const FieldError = ({ msg }) =>
     </p>
   ) : null;
 
+// ── Static arrays moved outside component to avoid recreation on every render ──
+const INDIAN_STATES = [
+  "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh",
+  "Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand","Karnataka",
+  "Kerala","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram",
+  "Nagaland","Odisha","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana",
+  "Tripura","Uttar Pradesh","Uttarakhand","West Bengal",
+  "Andaman and Nicobar Islands","Chandigarh","Dadra and Nagar Haveli",
+  "Daman and Diu","Delhi","Jammu and Kashmir","Ladakh","Lakshadweep","Puducherry",
+];
+
+const COUNTRIES = [
+  "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia",
+  "Australia","Austria","Azerbaijan","Bahrain","Bangladesh","Belarus","Belgium",
+  "Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil",
+  "Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Chad",
+  "Chile","China","Colombia","Congo","Costa Rica","Croatia","Cuba","Cyprus",
+  "Czech Republic","Denmark","Djibouti","Dominican Republic","Ecuador","Egypt",
+  "El Salvador","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France",
+  "Gabon","Gambia","Georgia","Germany","Ghana","Greece","Guatemala","Guinea","Haiti",
+  "Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel",
+  "Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kosovo","Kuwait",
+  "Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein",
+  "Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta",
+  "Mauritania","Mauritius","Mexico","Moldova","Monaco","Mongolia","Montenegro",
+  "Morocco","Mozambique","Myanmar","Namibia","Nepal","Netherlands","New Zealand",
+  "Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman",
+  "Pakistan","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines",
+  "Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saudi Arabia","Senegal",
+  "Serbia","Sierra Leone","Singapore","Slovakia","Slovenia","Somalia","South Africa",
+  "South Korea","South Sudan","Spain","Sri Lanka","Sudan","Sweden","Switzerland",
+  "Syria","Taiwan","Tajikistan","Tanzania","Thailand","Togo","Tunisia","Turkey",
+  "Turkmenistan","Uganda","Ukraine","United Arab Emirates","United Kingdom",
+  "United States","Uruguay","Uzbekistan","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe",
+];
+
 const CheckoutPage = () => {
   const [form, setForm] = useState({
     firstName: "",
@@ -90,27 +126,19 @@ const CheckoutPage = () => {
       const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
       setCart(guestCart);
     } else {
-      axios
-        .get("http://localhost:8080/api/cart", {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+      api
+        .get("/cart")
         .then((res) => setCart(res.data))
         .catch(() => setCart([]));
     }
   }, []);
 
-  const subtotal = cart.reduce((sum, item) => sum + (item.price || 0), 0);
-  const total = subtotal + DELIVERY_CHARGE;
-
-  const INDIAN_STATES = [
-    "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh",
-    "Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand","Karnataka",
-    "Kerala","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram",
-    "Nagaland","Odisha","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana",
-    "Tripura","Uttar Pradesh","Uttarakhand","West Bengal",
-    "Andaman and Nicobar Islands","Chandigarh","Dadra and Nagar Haveli",
-    "Daman and Diu","Delhi","Jammu and Kashmir","Ladakh","Lakshadweep","Puducherry",
-  ];
+  // ── Memoized cart calculations to avoid recalculating on every render ──
+  const subtotal = useMemo(
+    () => cart.reduce((sum, item) => sum + (item.price || 0), 0),
+    [cart]
+  );
+  const total = useMemo(() => subtotal + DELIVERY_CHARGE, [subtotal]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -143,7 +171,7 @@ const CheckoutPage = () => {
   const placeOrderInBackend = async (shippingAddress, cartItems) => {
     let res;
     if (isGuest) {
-      res = await axios.post("http://localhost:8080/api/orders/place/guest", {
+      res = await api.post("/orders/place/guest", {
         guestName: `${form.firstName} ${form.lastName}`.trim(),
         guestEmail: form.guestEmail,
         guestPhone: form.guestPhone,
@@ -152,24 +180,24 @@ const CheckoutPage = () => {
         cartItems,
       });
     } else {
-      res = await axios.post(
-        "http://localhost:8080/api/orders/place",
-        { shippingAddress, paymentMethod: form.paymentMethod, cartItems },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      res = await api.post("/orders/place", {
+        shippingAddress,
+        paymentMethod: form.paymentMethod,
+        cartItems,
+      });
     }
     return res.data;
   };
 
   // ── Step 2: Create Razorpay order via your backend ────────────────────────
   const createRazorpayOrder = async (amount) => {
-    const res = await axios.post("http://localhost:8080/api/payment/create-order", { amount });
+    const res = await api.post("/payment/create-order", { amount });
     return res.data;
   };
 
   // ── Step 3: Verify payment signature via your backend ─────────────────────
   const verifyPayment = async (paymentResponse) => {
-    const res = await axios.post("http://localhost:8080/api/payment/verify", {
+    const res = await api.post("/payment/verify", {
       razorpay_order_id: paymentResponse.razorpay_order_id,
       razorpay_payment_id: paymentResponse.razorpay_payment_id,
       razorpay_signature: paymentResponse.razorpay_signature,
@@ -216,7 +244,7 @@ const CheckoutPage = () => {
 
       // 3. Open Razorpay checkout popup
       const options = {
-        key: "rzp_test_SfRyMA3ioVY7De",
+        key: process.env.REACT_APP_RAZORPAY_KEY,
         amount: total * 100,
         currency: "INR",
         name: "Masala Store",
@@ -300,7 +328,7 @@ const CheckoutPage = () => {
                   padding: "10px 14px", fontSize: "13px", color: "#c2410c",
                   fontFamily: font, marginBottom: "20px",
                 }}>
-                  👋 Ordering as <strong>{localStorage.getItem("name")}</strong>
+Ordering as <strong>{localStorage.getItem("userName")}</strong>
                 </div>
               )}
 
@@ -322,7 +350,7 @@ const CheckoutPage = () => {
               <div style={{ marginBottom: "16px" }}>
                 <label style={labelStyle}>Country / Region <span style={requiredStar}>*</span></label>
                 <select style={{ ...inputStyle, cursor: "pointer" }} name="country" value={form.country} onChange={handleChange}>
-                  {["Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahrain","Bangladesh","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Chad","Chile","China","Colombia","Congo","Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominican Republic","Ecuador","Egypt","El Salvador","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Guatemala","Guinea","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Mauritania","Mauritius","Mexico","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saudi Arabia","Senegal","Serbia","Sierra Leone","Singapore","Slovakia","Slovenia","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Togo","Tunisia","Turkey","Turkmenistan","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"].map((c) => (
+                  {COUNTRIES.map((c) => (
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>

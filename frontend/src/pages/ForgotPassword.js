@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/api";
 
 if (typeof document !== "undefined" && !document.getElementById("poppins-font")) {
   const link = document.createElement("link");
@@ -12,6 +12,7 @@ if (typeof document !== "undefined" && !document.getElementById("poppins-font"))
 
 const font = "'Poppins', sans-serif";
 
+// ── Already outside component ✅ ──
 const inputStyle = {
   width: "100%",
   border: "1px solid #d1d5db",
@@ -42,7 +43,6 @@ const btnStyle = {
 };
 
 const ForgotPassword = () => {
-  // step: 1 = enter email, 2 = enter OTP, 3 = enter new password, 4 = success
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -52,15 +52,14 @@ const ForgotPassword = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // ── Step 1: Send OTP ────────────────────────────────────────────────────────
+  // ── Step 1: Send OTP ──
   const handleSendOtp = async () => {
     if (!email.trim()) return setError("Please enter your email.");
     if (!/\S+@\S+\.\S+/.test(email)) return setError("Enter a valid email address.");
-
     setError("");
     setLoading(true);
     try {
-      await axios.post("http://localhost:8080/api/auth/forgot-password", { email });
+      await api.post("/auth/forgot-password", { email });
       setStep(2);
     } catch {
       setError("Something went wrong. Please try again.");
@@ -69,15 +68,14 @@ const ForgotPassword = () => {
     }
   };
 
-  // ── Step 2: Verify OTP ──────────────────────────────────────────────────────
+  // ── Step 2: Verify OTP ──
   const handleVerifyOtp = async () => {
     if (!otp.trim()) return setError("Please enter the OTP.");
     if (otp.length !== 6) return setError("OTP must be 6 digits.");
-
     setError("");
     setLoading(true);
     try {
-      await axios.post("http://localhost:8080/api/auth/verify-otp", { email, otp });
+      await api.post("/auth/verify-otp", { email, otp });
       setStep(3);
     } catch (err) {
       setError(err.response?.data?.message || "Invalid OTP. Please try again.");
@@ -86,20 +84,15 @@ const ForgotPassword = () => {
     }
   };
 
-  // ── Step 3: Reset Password ──────────────────────────────────────────────────
+  // ── Step 3: Reset Password ──
   const handleResetPassword = async () => {
     if (!newPassword.trim()) return setError("Please enter a new password.");
     if (newPassword.length < 6) return setError("Password must be at least 6 characters.");
     if (newPassword !== confirmPassword) return setError("Passwords do not match.");
-
     setError("");
     setLoading(true);
     try {
-      await axios.post("http://localhost:8080/api/auth/reset-password", {
-        email,
-        otp,
-        newPassword,
-      });
+      await api.post("/auth/reset-password", { email, otp, newPassword });
       setStep(4);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to reset password. Please try again.");
@@ -108,13 +101,7 @@ const ForgotPassword = () => {
     }
   };
 
-  const stepTitles = {
-    1: "Forgot Password",
-    2: "Enter OTP",
-    3: "New Password",
-    4: "All Done!",
-  };
-
+  const stepTitles    = { 1: "Forgot Password", 2: "Enter OTP", 3: "New Password", 4: "All Done!" };
   const stepSubtitles = {
     1: "Enter your email and we'll send you an OTP.",
     2: `We sent a 6-digit OTP to ${email}`,
@@ -144,7 +131,6 @@ const ForgotPassword = () => {
           ))}
         </div>
 
-        {/* Title */}
         <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#1f2937", fontFamily: font, marginBottom: "6px" }}>
           {stepTitles[step]}
         </h2>
@@ -152,7 +138,6 @@ const ForgotPassword = () => {
           {stepSubtitles[step]}
         </p>
 
-        {/* Error message */}
         {error && (
           <div style={{
             background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px",
@@ -169,29 +154,19 @@ const ForgotPassword = () => {
             <label style={{ fontSize: "13px", fontWeight: 500, color: "#374151", fontFamily: font }}>
               Email address
             </label>
-            <input
-              style={inputStyle}
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+            <input style={inputStyle} type="email" placeholder="you@example.com"
+              value={email} onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSendOtp()}
             />
-            <button
-              style={btnStyle}
-              onClick={handleSendOtp}
-              disabled={loading}
+            <button style={btnStyle} onClick={handleSendOtp} disabled={loading}
               onMouseOver={(e) => e.target.style.background = "#dc2626"}
-              onMouseOut={(e) => e.target.style.background = "#1f2937"}
-            >
+              onMouseOut={(e) => e.target.style.background = "#1f2937"}>
               {loading ? "Sending OTP..." : "Send OTP →"}
             </button>
             <p style={{ textAlign: "center", marginTop: "16px", fontSize: "13px", color: "#6b7280", fontFamily: font }}>
               Remember your password?{" "}
-              <span
-                onClick={() => navigate("/login")}
-                style={{ color: "#dc2626", cursor: "pointer", fontWeight: 600 }}
-              >
+              <span onClick={() => navigate("/")}
+                style={{ color: "#dc2626", cursor: "pointer", fontWeight: 600 }}>
                 Sign in
               </span>
             </p>
@@ -204,28 +179,19 @@ const ForgotPassword = () => {
             <label style={{ fontSize: "13px", fontWeight: 500, color: "#374151", fontFamily: font }}>
               6-digit OTP
             </label>
-            <input
-              style={{ ...inputStyle, letterSpacing: "0.2em", fontSize: "20px", textAlign: "center" }}
-              type="text"
-              placeholder="• • • • • •"
-              value={otp}
-              maxLength={6}
+            <input style={{ ...inputStyle, letterSpacing: "0.2em", fontSize: "20px", textAlign: "center" }}
+              type="text" placeholder="• • • • • •"
+              value={otp} maxLength={6}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
               onKeyDown={(e) => e.key === "Enter" && handleVerifyOtp()}
             />
-            <button
-              style={btnStyle}
-              onClick={handleVerifyOtp}
-              disabled={loading}
+            <button style={btnStyle} onClick={handleVerifyOtp} disabled={loading}
               onMouseOver={(e) => e.target.style.background = "#dc2626"}
-              onMouseOut={(e) => e.target.style.background = "#1f2937"}
-            >
+              onMouseOut={(e) => e.target.style.background = "#1f2937"}>
               {loading ? "Verifying..." : "Verify OTP →"}
             </button>
-            <p
-              onClick={() => { setStep(1); setOtp(""); setError(""); }}
-              style={{ textAlign: "center", marginTop: "14px", fontSize: "13px", color: "#dc2626", cursor: "pointer", fontFamily: font }}
-            >
+            <p onClick={() => { setStep(1); setOtp(""); setError(""); }}
+              style={{ textAlign: "center", marginTop: "14px", fontSize: "13px", color: "#dc2626", cursor: "pointer", fontFamily: font }}>
               ← Resend OTP
             </p>
           </>
@@ -237,31 +203,19 @@ const ForgotPassword = () => {
             <label style={{ fontSize: "13px", fontWeight: 500, color: "#374151", fontFamily: font }}>
               New Password
             </label>
-            <input
-              style={inputStyle}
-              type="password"
-              placeholder="Min. 6 characters"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+            <input style={inputStyle} type="password" placeholder="Min. 6 characters"
+              value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
             />
             <label style={{ fontSize: "13px", fontWeight: 500, color: "#374151", fontFamily: font, display: "block", marginTop: "14px" }}>
               Confirm Password
             </label>
-            <input
-              style={inputStyle}
-              type="password"
-              placeholder="Repeat your password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+            <input style={inputStyle} type="password" placeholder="Repeat your password"
+              value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleResetPassword()}
             />
-            <button
-              style={btnStyle}
-              onClick={handleResetPassword}
-              disabled={loading}
+            <button style={btnStyle} onClick={handleResetPassword} disabled={loading}
               onMouseOver={(e) => e.target.style.background = "#dc2626"}
-              onMouseOut={(e) => e.target.style.background = "#1f2937"}
-            >
+              onMouseOut={(e) => e.target.style.background = "#1f2937"}>
               {loading ? "Resetting..." : "Reset Password →"}
             </button>
           </>
@@ -274,12 +228,9 @@ const ForgotPassword = () => {
             <p style={{ fontSize: "14px", color: "#374151", fontFamily: font, marginBottom: "24px" }}>
               You can now sign in with your new password.
             </p>
-            <button
-              style={btnStyle}
-              onClick={() => navigate("/login")}
+            <button style={btnStyle} onClick={() => navigate("/")}
               onMouseOver={(e) => e.target.style.background = "#dc2626"}
-              onMouseOut={(e) => e.target.style.background = "#1f2937"}
-            >
+              onMouseOut={(e) => e.target.style.background = "#1f2937"}>
               Go to Login →
             </button>
           </div>

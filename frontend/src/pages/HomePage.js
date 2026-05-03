@@ -1,16 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/api";
 import { MdEco } from "react-icons/md";
 import { RiSecurePaymentLine } from "react-icons/ri";
 import { BiSupport } from "react-icons/bi";
-import {
-  FaInstagram,
-  FaFacebookF,
-  FaTwitter,
-  FaLinkedinIn,
-  FaPinterestP,
-} from "react-icons/fa";
 
 /* ─── Inject Poppins once ─── */
 if (typeof document !== "undefined" && !document.getElementById("poppins-font")) {
@@ -60,8 +53,8 @@ const HomePage = () => {
 
   /* fetch products */
   useEffect(() => {
-    axios
-      .get("http://localhost:8080/api/products")
+    api
+      .get("/products")
       .then((res) => {
         setProducts(res.data.slice(0, 10));
         setLoading(false);
@@ -96,10 +89,9 @@ const HomePage = () => {
     } else {
       setLoadingMap((prev) => ({ ...prev, [product.id]: true }));
       try {
-        await axios.post(
-          "http://localhost:8080/api/cart/add",
-          { productId: product.id, quantity: 1, weight: "250g" },
-          { headers: { Authorization: `Bearer ${token}` } }
+        await api.post(
+          "/cart/add",
+          { productId: product.id, quantity: 1, weight: "250g" }
         );
         window.dispatchEvent(new Event("cartUpdated"));
         setAddedMap((p) => ({ ...p, [product.id]: true }));
@@ -128,9 +120,9 @@ const HomePage = () => {
       <div style={{ background: "#fff", padding: "24px 0 0" }}>
         <div
           style={{
-            maxWidth: "1400px",   /* ↑ was 1300px — wider container */
+            maxWidth: "1400px",
             margin: "0 auto",
-            padding: "0 48px",    /* ↑ was 0 110px — less side padding = more width */
+            padding: "0 48px",
             position: "relative",
           }}
         >
@@ -149,7 +141,7 @@ const HomePage = () => {
                   style={{
                     width: `${100 / slides.length}%`,
                     flexShrink: 0,
-                    aspectRatio: "16/7",  /* ↑ was 16/6 — smaller denominator = taller */
+                    aspectRatio: "16/7",
                   }}
                 >
                   <img

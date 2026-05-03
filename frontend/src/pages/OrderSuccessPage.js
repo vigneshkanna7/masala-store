@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
+const font = "'Poppins', sans-serif";
+
 const OrderSuccessPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [countdown, setCountdown] = useState(5);
 
-  // ─── Get order details passed from CheckoutPage ───────────
   const orderDetails = location.state || {};
   const isGuest = !localStorage.getItem("token");
 
-  // ─── Auto redirect after 5 seconds ───────────────────────
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -21,79 +21,86 @@ const OrderSuccessPage = () => {
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(timer);
   }, [navigate]);
 
-  // ─── UI ───────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-orange-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md text-center">
+    <div style={{
+      minHeight: "100vh", background: "#fff7ed",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      padding: "24px", fontFamily: font,
+    }}>
+      <div style={{
+        background: "#fff", borderRadius: "16px",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+        padding: "40px 32px", width: "100%", maxWidth: "440px",
+        textAlign: "center",
+      }}>
 
         {/* Success Icon */}
-        <div className="flex justify-center mb-4">
-          <div className="bg-green-100 rounded-full p-5">
-            <svg
-              className="h-16 w-16 text-green-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M5 13l4 4L19 7"
-              />
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+          <div style={{
+            background: "#dcfce7", borderRadius: "50%",
+            padding: "20px", display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <svg style={{ width: "64px", height: "64px", color: "#22c55e" }}
+              fill="none" viewBox="0 0 24 24" stroke="#22c55e" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
         </div>
 
         {/* Title */}
-        <h2 className="text-3xl font-bold text-green-600 mb-2">
+        <h2 style={{ fontSize: "28px", fontWeight: 700, color: "#16a34a", marginBottom: "8px", fontFamily: font }}>
           Order Placed! 🎉
         </h2>
-        <p className="text-gray-500 mb-6">
+        <p style={{ color: "#6b7280", marginBottom: "24px", fontSize: "14px", fontFamily: font }}>
           Thank you for your order. We'll deliver fresh masalas to you soon!
         </p>
 
         {/* Order Summary */}
         {orderDetails.orderId && (
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 text-left">
-            <h3 className="font-semibold text-orange-600 mb-2">Order Summary</h3>
-            <div className="text-sm text-gray-600 flex flex-col gap-1">
+          <div style={{
+            background: "#fff7ed", border: "1px solid #fed7aa",
+            borderRadius: "10px", padding: "16px", marginBottom: "24px", textAlign: "left",
+          }}>
+            <h3 style={{ fontWeight: 600, color: "#ea580c", marginBottom: "10px", fontSize: "14px", fontFamily: font }}>
+              Order Summary
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "13px", color: "#6b7280", fontFamily: font }}>
               {orderDetails.orderId && (
-                <div className="flex justify-between">
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span>Order ID:</span>
-                  <span className="font-medium">#{orderDetails.orderId}</span>
+                  <span style={{ fontWeight: 600, color: "#1f2937" }}>#{orderDetails.orderId}</span>
                 </div>
               )}
               {orderDetails.name && (
-                <div className="flex justify-between">
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span>Name:</span>
-                  <span className="font-medium">{orderDetails.name}</span>
+                  <span style={{ fontWeight: 600, color: "#1f2937" }}>{orderDetails.name}</span>
                 </div>
               )}
               {orderDetails.phone && (
-                <div className="flex justify-between">
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span>Phone:</span>
-                  <span className="font-medium">{orderDetails.phone}</span>
+                  <span style={{ fontWeight: 600, color: "#1f2937" }}>{orderDetails.phone}</span>
                 </div>
               )}
               {orderDetails.address && (
-                <div className="flex justify-between">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <span>Address:</span>
-                  <span className="font-medium text-right max-w-[60%]">
+                  <span style={{ fontWeight: 600, color: "#1f2937", textAlign: "right", maxWidth: "60%" }}>
                     {orderDetails.address}
                   </span>
                 </div>
               )}
               {orderDetails.total && (
-                <div className="flex justify-between border-t border-orange-200 pt-2 mt-1">
-                  <span className="font-semibold">Total:</span>
-                  <span className="font-bold text-orange-600">
-                    ₹{orderDetails.total}
-                  </span>
+                <div style={{
+                  display: "flex", justifyContent: "space-between",
+                  borderTop: "1px solid #fed7aa", paddingTop: "8px", marginTop: "4px",
+                }}>
+                  <span style={{ fontWeight: 600, color: "#1f2937" }}>Total:</span>
+                  <span style={{ fontWeight: 700, color: "#ea580c" }}>₹{orderDetails.total}</span>
                 </div>
               )}
             </div>
@@ -102,23 +109,33 @@ const OrderSuccessPage = () => {
 
         {/* Guest nudge */}
         {isGuest && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6 text-sm text-yellow-700">
-            💡 Create an account with the same phone number to track all your
-            orders anytime!
+          <div style={{
+            background: "#fefce8", border: "1px solid #fde68a",
+            borderRadius: "10px", padding: "12px", marginBottom: "24px",
+            fontSize: "13px", color: "#92400e", fontFamily: font,
+          }}>
+            💡 Create an account to track all your orders anytime!
           </div>
         )}
 
         {/* Countdown */}
-        <p className="text-gray-400 text-sm mb-6">
+        <p style={{ color: "#9ca3af", fontSize: "13px", marginBottom: "24px", fontFamily: font }}>
           Redirecting to home in{" "}
-          <span className="text-orange-500 font-bold">{countdown}s</span>...
+          <span style={{ color: "#f97316", fontWeight: 700 }}>{countdown}s</span>...
         </p>
 
         {/* Buttons */}
-        <div className="flex flex-col gap-3">
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           <button
             onClick={() => navigate("/")}
-            className="bg-orange-500 text-white py-2 rounded-lg font-semibold hover:bg-orange-600 transition"
+            style={{
+              background: "#f97316", color: "#fff", border: "none",
+              borderRadius: "8px", padding: "12px", fontSize: "15px",
+              fontWeight: 600, fontFamily: font, cursor: "pointer",
+              transition: "background 0.2s",
+            }}
+            onMouseOver={(e) => e.target.style.background = "#ea580c"}
+            onMouseOut={(e) => e.target.style.background = "#f97316"}
           >
             Continue Shopping
           </button>
@@ -126,18 +143,16 @@ const OrderSuccessPage = () => {
           {!isGuest && (
             <button
               onClick={() => navigate("/orders")}
-              className="border border-orange-500 text-orange-500 py-2 rounded-lg font-semibold hover:bg-orange-50 transition"
+              style={{
+                background: "transparent", color: "#f97316",
+                border: "1px solid #f97316", borderRadius: "8px",
+                padding: "12px", fontSize: "15px", fontWeight: 600,
+                fontFamily: font, cursor: "pointer", transition: "background 0.2s",
+              }}
+              onMouseOver={(e) => e.target.style.background = "#fff7ed"}
+              onMouseOut={(e) => e.target.style.background = "transparent"}
             >
               View My Orders
-            </button>
-          )}
-
-          {isGuest && (
-            <button
-              onClick={() => navigate("/register")}
-              className="border border-orange-500 text-orange-500 py-2 rounded-lg font-semibold hover:bg-orange-50 transition"
-            >
-              Create Account
             </button>
           )}
         </div>

@@ -12,9 +12,25 @@ if (typeof document !== "undefined" && !document.getElementById("poppins-font"))
 
 const font = "'Poppins', sans-serif";
 const green = "#6abf5e";
-const greenPanel = "#c6dfb4";
 const dark = "#1f2937";
 const red = "#dc2626";
+
+/* ── Static objects moved outside component to avoid recreation on every render ── */
+const statusColors = {
+  PENDING:   { bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
+  CONFIRMED: { bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
+  DELIVERED: { bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
+  CANCELLED: { bg: '#fef2f2', color: red,       border: '#fca5a5' },
+};
+
+const formFields = [
+  { key: 'name',        label: 'Product Name',   type: 'text'   },
+  { key: 'category',    label: 'Category',        type: 'text'   },
+  { key: 'price',       label: 'Price (per 1kg)', type: 'number' },
+  { key: 'stock',       label: 'Stock Quantity',  type: 'number' },
+  { key: 'imageUrl',    label: 'Image URL',       type: 'text'   },
+  { key: 'description', label: 'Description',     type: 'text'   },
+];
 
 /* ─── Spice decorative SVG ─── */
 const SpiceDecor = () => (
@@ -54,7 +70,7 @@ const Badge = ({ label, bg, color, border }) => (
   </span>
 );
 
-/* ─── Pill input style (matches customer pages) ─── */
+/* ─── Pill input style ─── */
 const pillInput = {
   width: "100%",
   padding: "10px 18px",
@@ -81,21 +97,13 @@ function AdminDashboard() {
   const [message, setMessage] = useState({ text: '', type: '' });
   const navigate = useNavigate();
 
-  const adminToken = localStorage.getItem('adminToken');
   const adminName = localStorage.getItem('adminName');
 
   useEffect(() => {
+    const adminToken = localStorage.getItem('adminToken');
     if (!adminToken) { navigate('/admin/login'); return; }
     fetchProducts(); fetchOrders(); fetchUsers();
   }, []);
-
-  const adminApi = async (method, url, data = null) => {
-    const config = { headers: { Authorization: `Bearer ${adminToken}` } };
-    if (method === 'get') return api.get(url, config);
-    if (method === 'post') return api.post(url, data, config);
-    if (method === 'put') return api.put(url, data, config);
-    if (method === 'delete') return api.delete(url, config);
-  };
 
   const showMessage = (text, type = 'success') => {
     setMessage({ text, type });
@@ -105,11 +113,13 @@ function AdminDashboard() {
   const fetchProducts = async () => {
     try { const res = await api.get('/products'); setProducts(res.data); } catch {}
   };
+
   const fetchOrders = async () => {
-    try { const res = await adminApi('get', '/admin/orders'); setOrders(res.data); } catch {}
+    try { const res = await api.get('/admin/orders'); setOrders(res.data); } catch {}
   };
+
   const fetchUsers = async () => {
-    try { const res = await adminApi('get', '/admin/users'); setUsers(res.data); } catch {}
+    try { const res = await api.get('/admin/users'); setUsers(res.data); } catch {}
   };
 
   const handleLogout = () => {
@@ -120,12 +130,19 @@ function AdminDashboard() {
   };
 
   const saveProduct = async () => {
+    // ── Input validation before saving ──
+    const { name, price, stock, category } = productForm;
+    if (!name.trim() || !price || !stock || !category.trim()) {
+      showMessage('❌ Please fill all required fields.', 'error');
+      return;
+    }
+
     try {
       if (editingProduct) {
-        await adminApi('put', `/admin/products/${editingProduct.id}`, productForm);
+        await api.put(`/admin/products/${editingProduct.id}`, productForm);
         showMessage('✅ Product updated successfully!');
       } else {
-        await adminApi('post', '/admin/products', productForm);
+        await api.post('/admin/products', productForm);
         showMessage('✅ Product added successfully!');
       }
       setProductForm({ name: '', description: '', price: '', stock: '', category: '', imageUrl: '' });
@@ -147,7 +164,7 @@ function AdminDashboard() {
   const deleteProduct = async (id) => {
     if (!window.confirm('Delete this product?')) return;
     try {
-      await adminApi('delete', `/admin/products/${id}`);
+      await api.delete(`/admin/products/${id}`);
       showMessage('✅ Product deleted!');
       fetchProducts();
     } catch { showMessage('❌ Failed to delete!', 'error'); }
@@ -155,32 +172,16 @@ function AdminDashboard() {
 
   const updateOrderStatus = async (orderId, status) => {
     try {
-      await adminApi('put', `/admin/orders/${orderId}/status?status=${status}`);
+      await api.put(`/admin/orders/${orderId}/status?status=${status}`);
       showMessage('✅ Order status updated!');
       fetchOrders();
     } catch { showMessage('❌ Failed to update order!', 'error'); }
-  };
-
-  const statusColors = {
-    PENDING:   { bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
-    CONFIRMED: { bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
-    DELIVERED: { bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
-    CANCELLED: { bg: '#fef2f2', color: red,       border: '#fca5a5' },
   };
 
   const tabs = [
     { key: 'products', label: 'Products', count: products.length },
     { key: 'orders',   label: 'Orders',   count: orders.length   },
     { key: 'users',    label: 'Users',    count: users.length    },
-  ];
-
-  const formFields = [
-    { key: 'name',        label: 'Product Name',   type: 'text'   },
-    { key: 'category',    label: 'Category',        type: 'text'   },
-    { key: 'price',       label: 'Price (per 1kg)', type: 'number' },
-    { key: 'stock',       label: 'Stock Quantity',  type: 'number' },
-    { key: 'imageUrl',    label: 'Image URL',       type: 'text'   },
-    { key: 'description', label: 'Description',     type: 'text'   },
   ];
 
   return (
@@ -267,7 +268,6 @@ function AdminDashboard() {
               cursor: 'pointer', transition: 'all 0.15s', marginBottom: '-1px',
             }}
           >
-            
             {tab.label}
             <span style={{
               background: activeTab === tab.key ? '#f0fdf4' : '#f3f4f6',

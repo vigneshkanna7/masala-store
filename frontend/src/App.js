@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import ForgotPassword from "./pages/ForgotPassword";
 import Navbar from "./components/Navbar";
@@ -17,14 +17,16 @@ import ContactPage from "./pages/ContactPage";
 import VideosPage from "./pages/VideosPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 
+
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/" />;
 };
 
 const AdminRoute = ({ children }) => {
+  const adminToken = localStorage.getItem("adminToken");
   const role = localStorage.getItem("role");
-  return role === "ADMIN" ? children : <Navigate to="/admin/login" />;
+  return (adminToken && role === "ADMIN") ? children : <Navigate to="/admin/login" />;
 };
 
 const Layout = ({ children }) => (
@@ -35,8 +37,7 @@ const Layout = ({ children }) => (
 
 function AppContent() {
   const location = useLocation();
-  const isAdminPage = location.pathname.startsWith('/admin');
-
+const isAdminPage = useMemo(() => location.pathname.startsWith('/admin'), [location.pathname]);
   return (
     <>
       {!isAdminPage && <Navbar />}

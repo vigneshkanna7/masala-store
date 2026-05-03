@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/api";
 import { useNavigate } from "react-router-dom";
 import { CartSkeleton } from "../components/SkeletonCard";
 
 const WEIGHT_OPTIONS = ["250g", "500g", "750g", "1kg"];
+
+// ── Moved outside component to avoid recreation on every render ──
+const WEIGHT_MULTIPLIERS = { "250g": 0.25, "500g": 0.50, "750g": 0.75, "1kg": 1.0 };
 
 if (typeof document !== "undefined" && !document.getElementById("poppins-font")) {
   const link = document.createElement("link");
@@ -44,7 +47,6 @@ const styles = {
     color: active ? "#fff" : "#374151",
     borderRadius: "6px", cursor: "pointer", marginRight: "6px", transition: "all 0.15s",
   }),
-  // ✅ Only this changed
   removeBtn: {
     background: "#dc2626",
     color: "#fff",
@@ -85,8 +87,6 @@ const CartPage = () => {
   const token = localStorage.getItem("token");
   const isGuest = !token;
 
-  const WEIGHT_MULTIPLIERS = { "250g": 0.25, "500g": 0.50, "750g": 0.75, "1kg": 1.0 };
-
   const attachBasePrice = (items) =>
     items.map((item) => {
       if (item.basePrice) return item;
@@ -100,10 +100,8 @@ const CartPage = () => {
       setCartItems(attachBasePrice(guestCart));
       setLoading(false);
     } else {
-      axios
-        .get("http://localhost:8080/api/cart", {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+      api
+        .get("/cart")
         .then((res) => { setCartItems(attachBasePrice(res.data)); setLoading(false); })
         .catch(() => setLoading(false));
     }
@@ -124,18 +122,12 @@ const CartPage = () => {
       updated[index] = { ...item, quantity: newQty, price: item.basePrice * multiplier * newQty };
       saveGuestCart(updated);
     } else {
-      const freshToken = localStorage.getItem("token");
       const item = cartItems[index];
       const newQty = Math.max(1, item.quantity + delta);
-      axios
-        .put(
-          `http://localhost:8080/api/cart/update/${item.id}`,
-          null,
-          {
-            params: { quantity: newQty, weight: item.weight || "250g" },
-            headers: { Authorization: `Bearer ${freshToken}` },
-          }
-        )
+      api
+        .put(`/cart/update/${item.id}`, null, {
+          params: { quantity: newQty, weight: item.weight || "250g" },
+        })
         .then((res) => {
           const updated = [...cartItems];
           updated[index] = { ...res.data, basePrice: item.basePrice };
@@ -155,17 +147,11 @@ const CartPage = () => {
       updated[index] = { ...item, weight, price: item.basePrice * newMultiplier * qty };
       saveGuestCart(updated);
     } else {
-      const freshToken = localStorage.getItem("token");
       const item = cartItems[index];
-      axios
-        .put(
-          `http://localhost:8080/api/cart/update/${item.id}`,
-          null,
-          {
-            params: { quantity: item.quantity || 1, weight },
-            headers: { Authorization: `Bearer ${freshToken}` },
-          }
-        )
+      api
+        .put(`/cart/update/${item.id}`, null, {
+          params: { quantity: item.quantity || 1, weight },
+        })
         .then((res) => {
           const updated = [...cartItems];
           updated[index] = { ...res.data, basePrice: item.basePrice };
@@ -180,12 +166,9 @@ const CartPage = () => {
       const updated = cartItems.filter((_, i) => i !== index);
       saveGuestCart(updated);
     } else {
-      const freshToken = localStorage.getItem("token");
       const item = cartItems[index];
-      axios
-        .delete(`http://localhost:8080/api/cart/remove/${item.id}`, {
-          headers: { Authorization: `Bearer ${freshToken}` },
-        })
+      api
+        .delete(`/cart/remove/${item.id}`)
         .then(() => {
           setCartItems(cartItems.filter((_, i) => i !== index));
           window.dispatchEvent(new Event("cartUpdated"));
@@ -234,14 +217,14 @@ const CartPage = () => {
           return (
             <div key={index} style={styles.card}>
               {(item.imageUrl || item.product?.imageUrl) ? (
-  <img src={item.imageUrl || item.product?.imageUrl}alt={item.productName || item.name} style={styles.productImage} />
+                <img src={item.imageUrl || item.product?.imageUrl} alt={item.productName || item.name} style={styles.productImage} />
               ) : (
                 <div style={styles.productImagePlaceholder}>🛒</div>
               )}
 
               <div style={styles.cardBody}>
                 <div style={styles.cardTop}>
-<p style={styles.productName}>{item.productName || item.product?.name}</p>
+                  <p style={styles.productName}>{item.productName || item.product?.name}</p>
                   <span style={styles.priceTag}>₹{(item.price || 0).toFixed(2)}</span>
                 </div>
 
@@ -273,7 +256,6 @@ const CartPage = () => {
                   </div>
                 </div>
 
-                {/* ✅ Added hover effect on Remove button */}
                 <button
                   style={styles.removeBtn}
                   onMouseOver={(e) => (e.target.style.background = "#b91c1c")}

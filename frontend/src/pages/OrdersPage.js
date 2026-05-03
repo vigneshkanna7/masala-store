@@ -5,6 +5,16 @@ import api from "../api/api";
 const font = "'DM Sans', sans-serif";
 const red = '#c0392b';
 
+// ── Moved outside component to avoid recreation on every render ──
+const statusConfig = {
+  PENDING:   { bg: '#fff8e1', color: '#b45309', label: 'Pending' },
+  CONFIRMED: { bg: '#eff6ff', color: '#1d4ed8', label: 'Confirmed' },
+  DELIVERED: { bg: '#f0fdf4', color: '#15803d', label: 'Delivered' },
+  CANCELLED: { bg: '#fef2f2', color: '#b91c1c', label: 'Cancelled' },
+};
+
+const getStatus = (s) => statusConfig[s] || { bg: '#f5f5f5', color: '#555', label: s };
+
 function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,15 +32,6 @@ function OrdersPage() {
       setLoading(false);
     }
   };
-
-  const statusConfig = {
-    PENDING:   { bg: '#fff8e1', color: '#b45309', label: 'Pending' },
-    CONFIRMED: { bg: '#eff6ff', color: '#1d4ed8', label: 'Confirmed' },
-    DELIVERED: { bg: '#f0fdf4', color: '#15803d', label: 'Delivered' },
-    CANCELLED: { bg: '#fef2f2', color: '#b91c1c', label: 'Cancelled' },
-  };
-
-  const getStatus = (s) => statusConfig[s] || { bg: '#f5f5f5', color: '#555', label: s };
 
   // ── Skeleton ──
   const Skeleton = () => (
@@ -61,7 +62,23 @@ function OrdersPage() {
   // ── Empty ──
   if (orders.length === 0) return (
     <>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap'); * { box-sizing: border-box; } .shop-btn { padding: 13px 36px; background: ${red}; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: ${font}; transition: background 0.2s; } .shop-btn:hover { background: #a93226; }`}</style>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+        * { box-sizing: border-box; }
+        .shop-btn {
+          padding: 13px 36px;
+          background: #c0392b;
+          color: #fff;
+          border: none;
+          border-radius: 8px;
+          font-size: 15px;
+          font-weight: 600;
+          cursor: pointer;
+          font-family: 'DM Sans', sans-serif;
+          transition: background 0.2s;
+        }
+        .shop-btn:hover { background: #a93226; }
+      `}</style>
       <div style={{ fontFamily: font, textAlign: 'center', padding: '80px 24px', color: '#111' }}>
         <p style={{ fontSize: '18px', color: '#777', marginBottom: '24px' }}>No orders placed yet.</p>
         <button className="shop-btn" onClick={() => navigate('/')}>Shop Now</button>
@@ -76,8 +93,10 @@ function OrdersPage() {
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; }
         .order-card {
-          border: 1px solid #e5e7eb; border-radius: '10px';
-          padding: 20px 22px; margin-bottom: 14px;
+          border: 1px solid #e5e7eb;
+          border-radius: 10px;
+          padding: 20px 22px;
+          margin-bottom: 14px;
           transition: border-color 0.18s, box-shadow 0.18s;
           background: #fff;
         }
@@ -92,7 +111,7 @@ function OrdersPage() {
             fontSize: '28px', fontWeight: 800, letterSpacing: '0.06em',
             textTransform: 'uppercase', marginBottom: '32px',
           }}>
-             Orders
+            Orders
           </h1>
 
           {orders.map((order) => {
@@ -146,7 +165,7 @@ function OrdersPage() {
                 {/* Footer */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
                   <span style={{ fontSize: '13px', color: '#aaa' }}>
-                    {order.orderItems?.length || 0} item{order.orderItems?.length !== 1 ? 's' : ''}
+                  {order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''}
                   </span>
                   <span style={{ fontWeight: 800, fontSize: '16px', color: red }}>
                     ₹{order.totalAmount.toFixed(2)}

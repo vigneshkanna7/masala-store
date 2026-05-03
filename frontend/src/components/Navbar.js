@@ -1,11 +1,19 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FiShoppingCart, FiUser, FiMenu, FiX, FiChevronDown } from "react-icons/fi";
-import axios from "axios";
+import api from "../api/api";
 import LoginModal from "../pages/LoginModal";
 
 const font = "'Poppins', sans-serif";
 const red = "#dc2626";
+
+// ── Moved outside component to avoid recreation on every render ──
+const navLinks = [
+  { label: "Home", path: "/" },
+  { label: "Products", path: "/products" },
+  { label: "About Us", path: "/about" },
+  { label: "Contact Us", path: "/contact" },
+];
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -26,17 +34,16 @@ const Navbar = () => {
   const openRegister = () => { setModalMode("register"); setModalOpen(true); setDropdownOpen(false); setMenuOpen(false); };
 
   const [cartCount, setCartCount] = useState(0);
+
   useEffect(() => {
     const update = () => {
       if (isLoggedIn) {
-        axios.get("http://localhost:8080/api/cart", {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((res) => {
-          const count = (res.data || []).reduce((s, i) => s + (i.quantity || 1), 0);
-          setCartCount(count);
-        })
-        .catch(() => setCartCount(0));
+        api.get("/cart")
+          .then((res) => {
+            const count = (res.data || []).reduce((s, i) => s + (i.quantity || 1), 0);
+            setCartCount(count);
+          })
+          .catch(() => setCartCount(0));
       } else {
         const cart = JSON.parse(localStorage.getItem("guestCart")) || [];
         setCartCount(cart.reduce((s, i) => s + (i.quantity || 1), 0));
@@ -67,17 +74,12 @@ const Navbar = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userName");
     localStorage.removeItem("userId");
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
     setDropdownOpen(false);
     navigate("/");
     window.location.reload();
   };
-
-  const navLinks = [
-    { label: "Home", path: "/" },
-    { label: "Products", path: "/products" },
-    { label: "About Us", path: "/about" },
-    { label: "Contact Us", path: "/contact" },
-  ];
 
   const isActive = (path) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
@@ -113,7 +115,7 @@ const Navbar = () => {
                 <Link to={path} style={{
                   fontFamily: font,
                   fontWeight: isActive(path) ? 700 : 500,
-                  fontSize: "16px", // ← was 14px
+                  fontSize: "16px",
                   color: isActive(path) ? red : "#111827",
                   textDecoration: "none",
                   padding: "6px 14px",
@@ -142,7 +144,7 @@ const Navbar = () => {
                     display: "flex", alignItems: "center", gap: "6px",
                     padding: "6px 4px", background: "transparent",
                     color: "#111827", border: "none", fontFamily: font,
-                    fontWeight: 600, fontSize: "16px", // ← was 14px
+                    fontWeight: 600, fontSize: "16px",
                     cursor: "pointer",
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = red)}
@@ -164,7 +166,7 @@ const Navbar = () => {
                     padding: "8px 16px", background: "transparent",
                     color: "#111827", border: "none",
                     borderRadius: "8px", fontFamily: font, fontWeight: 600,
-                    fontSize: "16px", // ← was 14px
+                    fontSize: "16px",
                     cursor: "pointer", transition: "border-color 0.2s",
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.borderColor = red)}
@@ -210,7 +212,7 @@ const Navbar = () => {
               {cartCount > 0 && (
                 <span style={{
                   position: "absolute", top: "-4px", right: "-4px",
-                  background: "#111827", color: "#fff", fontSize: "12px", // ← was 10px
+                  background: "#111827", color: "#fff", fontSize: "12px",
                   fontWeight: 700, minWidth: "18px", height: "18px",
                   borderRadius: "50%", display: "flex", alignItems: "center",
                   justifyContent: "center", fontFamily: font, padding: "0 3px",
@@ -240,7 +242,7 @@ const Navbar = () => {
               <Link key={path} to={path} onClick={() => setMenuOpen(false)}
                 style={{
                   display: "block", padding: "12px 0", fontFamily: font,
-                  fontWeight: isActive(path) ? 700 : 500, fontSize: "17px", // ← was 15px
+                  fontWeight: isActive(path) ? 700 : 500, fontSize: "17px",
                   color: isActive(path) ? red : "#111827",
                   textDecoration: "none", borderBottom: "1px solid #f3f4f6",
                 }}
@@ -253,22 +255,22 @@ const Navbar = () => {
               {!isLoggedIn ? (
                 <>
                   <button onClick={openLogin}
-                    style={{ flex: 1, padding: "10px", background: red, color: "#fff", border: "none", borderRadius: "8px", fontFamily: font, fontWeight: 600, fontSize: "16px", cursor: "pointer" }}> {/* ← was 14px */}
+                    style={{ flex: 1, padding: "10px", background: red, color: "#fff", border: "none", borderRadius: "8px", fontFamily: font, fontWeight: 600, fontSize: "16px", cursor: "pointer" }}>
                     Login
                   </button>
                   <button onClick={openRegister}
-                    style={{ flex: 1, padding: "10px", background: "transparent", color: red, border: `2px solid ${red}`, borderRadius: "8px", fontFamily: font, fontWeight: 600, fontSize: "16px", cursor: "pointer" }}> {/* ← was 14px */}
+                    style={{ flex: 1, padding: "10px", background: "transparent", color: red, border: `2px solid ${red}`, borderRadius: "8px", fontFamily: font, fontWeight: 600, fontSize: "16px", cursor: "pointer" }}>
                     Register
                   </button>
                 </>
               ) : (
                 <>
                   <button onClick={() => { navigate("/profile"); setMenuOpen(false); }}
-                    style={{ flex: 1, padding: "10px", background: red, color: "#fff", border: "none", borderRadius: "8px", fontFamily: font, fontWeight: 600, fontSize: "16px", cursor: "pointer" }}> {/* ← was 14px */}
+                    style={{ flex: 1, padding: "10px", background: red, color: "#fff", border: "none", borderRadius: "8px", fontFamily: font, fontWeight: 600, fontSize: "16px", cursor: "pointer" }}>
                     Profile
                   </button>
                   <button onClick={handleLogout}
-                    style={{ flex: 1, padding: "10px", background: "transparent", color: "#374151", border: "1px solid #e5e7eb", borderRadius: "8px", fontFamily: font, fontWeight: 600, fontSize: "16px", cursor: "pointer" }}> {/* ← was 14px */}
+                    style={{ flex: 1, padding: "10px", background: "transparent", color: "#374151", border: "1px solid #e5e7eb", borderRadius: "8px", fontFamily: font, fontWeight: 600, fontSize: "16px", cursor: "pointer" }}>
                     Logout
                   </button>
                 </>
@@ -309,7 +311,7 @@ const DropItem = ({ onClick, label, danger }) => {
         color: danger ? "#dc2626" : "#111827",
         border: "none", textAlign: "left",
         fontFamily: "'Poppins', sans-serif",
-        fontWeight: 500, fontSize: "15px", // ← was 13px
+        fontWeight: 500, fontSize: "15px",
         cursor: "pointer", transition: "background 0.15s",
       }}
     >

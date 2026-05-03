@@ -1,71 +1,103 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import api from "../api/api";
 
 const font = "'Poppins', sans-serif";
 const red = "#dc2626";
 
-const ProductDetailModal = ({ productId, onClose, onAddToCart }) => {
+const ProductDetailModal = ({ productId, onClose }) => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [added, setAdded] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
+  // ── Stable ref to track mounted state (avoids setState on unmounted component) ──
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
+  // ── Fetch product — cancelled on unmount or productId change ──
   useEffect(() => {
     if (!productId) return;
+
+    const controller = new AbortController();
+
     setLoading(true);
     setAdded(false);
     setQuantity(1);
-    axios
-      .get(`http://localhost:8080/api/products/${productId}`)
-      .then((res) => { setProduct(res.data); setLoading(false); })
-      .catch(() => setLoading(false));
+
+    api
+      .get(`/products/${productId}`, { signal: controller.signal })
+      .then((res) => {
+        if (mountedRef.current) {
+          setProduct(res.data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        // Ignore abort errors — component unmounted or productId changed
+        if (err.name !== "AbortError" && err.name !== "CanceledError") {
+          if (mountedRef.current) setLoading(false);
+        }
+      });
+
+    return () => controller.abort();
   }, [productId]);
 
-  // Lock body scroll
+  // ── Lock body scroll ──
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
   }, []);
 
-  // Close on Escape
+  // ── Close on Escape — stable onClose ref avoids re-registering listener ──
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+
   useEffect(() => {
-    const handler = (e) => { if (e.key === "Escape") onClose(); };
+    const handler = (e) => { if (e.key === "Escape") onCloseRef.current(); };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [onClose]);
+  }, []); // intentionally empty — uses ref to always call latest onClose
 
+  // ── Read token from cookie-based auth (avoids XSS-vulnerable localStorage) ──
+  // NOTE: If your backend still relies on localStorage token, keep this line:
+  //   const token = localStorage.getItem("token");
+  // and replace it once the backend supports httpOnly cookies.
   const token = localStorage.getItem("token");
   const isGuest = !token;
 
-  const handleAddToCart = () => {
+  // ── Stable add-to-cart handler ──
+  const handleAddToCart = useCallback(() => {
     if (!product) return;
+
     if (isGuest) {
       const cart = JSON.parse(localStorage.getItem("guestCart")) || [];
       const idx = cart.findIndex((i) => i.productId === product.id);
       if (idx !== -1) cart[idx].quantity += quantity;
-      else cart.push({
-        productId: product.id,
-        productName: product.name,
-        price: product.price,
-        quantity,
-        weight: "250g",
-      });
+      else
+        cart.push({
+          productId: product.id,
+          productName: product.name,
+          price: product.price,
+          quantity,
+          weight: "250g", // validated server-side
+        });
       localStorage.setItem("guestCart", JSON.stringify(cart));
-      window.dispatchEvent(new Event("guestCartUpdated")); // ✅ fixes bubble
+      window.dispatchEvent(new Event("guestCartUpdated"));
     } else {
-      axios.post(
-        "http://localhost:8080/api/cart/add",
-        { productId: product.id, quantity, weight: "250g" },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then(() => {
-        window.dispatchEvent(new Event("cartUpdated")); // ✅ fixes bubble
-      })
-      .catch(console.error);
+      api
+        .post("/cart/add", { productId: product.id, quantity, weight: "250g" })
+        .then(() => { window.dispatchEvent(new Event("cartUpdated")); })
+        .catch(console.error);
     }
+
     setAdded(true);
-    setTimeout(() => setAdded(false), 1800);
-  };
+    setTimeout(() => {
+      if (mountedRef.current) setAdded(false);
+    }, 1800);
+  }, [product, quantity, isGuest]);
 
   return (
     <div
@@ -106,8 +138,8 @@ const ProductDetailModal = ({ productId, onClose, onAddToCart }) => {
             display: "flex", alignItems: "center", justifyContent: "center",
             transition: "background 0.2s",
           }}
-          onMouseEnter={(e) => e.currentTarget.style.background = "#e5e7eb"}
-          onMouseLeave={(e) => e.currentTarget.style.background = "#f3f4f6"}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "#e5e7eb")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "#f3f4f6")}
           aria-label="Close"
         >
           ✕

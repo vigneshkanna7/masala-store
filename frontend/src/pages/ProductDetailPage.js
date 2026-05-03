@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import ProductDetailModal from "./ProductDetailModal";
 
 const font = "'Poppins', sans-serif";
 const red = "#dc2626";
+
+// ── Base URL from env — never hardcode localhost ──
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
 
 if (typeof document !== "undefined" && !document.getElementById("poppins-font")) {
   const link = document.createElement("link");
@@ -15,7 +18,6 @@ if (typeof document !== "undefined" && !document.getElementById("poppins-font"))
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
-  const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState("default");
   const [addedMap, setAddedMap] = useState({});
@@ -23,47 +25,89 @@ const ProductsPage = () => {
   // ── Modal state ──
   const [selectedProductId, setSelectedProductId] = useState(null);
 
+  // ── Read token once per render ──
   const token = localStorage.getItem("token");
   const isGuest = !token;
 
+  // ── Mounted ref — prevents setState after unmount ──
+  const mountedRef = useRef(true);
   useEffect(() => {
-    axios
-      .get("http://localhost:8080/api/products")
-      .then((res) => { setProducts(res.data); setFiltered(res.data); setLoading(false); })
-      .catch(() => setLoading(false));
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
   }, []);
 
+  // ── Fetch products — AbortController cancels on unmount ──
   useEffect(() => {
-    let result = [...products];
+    const controller = new AbortController();
+
+    axios
+      .get(`${BASE_URL}/products`, { signal: controller.signal })
+      .then((res) => {
+        if (mountedRef.current) {
+          setProducts(res.data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (err.name !== "AbortError" && err.name !== "CanceledError") {
+          if (mountedRef.current) setLoading(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  // ── Derived sort — replaces redundant filtered useState + effect (eliminates double-render) ──
+  const filtered = useMemo(() => {
+    const result = [...products];
     if (sortBy === "price-asc") result.sort((a, b) => a.price - b.price);
     else if (sortBy === "price-desc") result.sort((a, b) => b.price - a.price);
     else if (sortBy === "name-asc") result.sort((a, b) => a.name.localeCompare(b.name));
-    setFiltered(result);
+    return result;
   }, [sortBy, products]);
 
- const handleAddToCart = (e, product) => {
-  e.stopPropagation();
-  if (isGuest) {
-    const cart = JSON.parse(localStorage.getItem("guestCart")) || [];
-    const idx = cart.findIndex((i) => i.productId === product.id);
-    if (idx !== -1) cart[idx].quantity += 1;
-    else cart.push({ productId: product.id, productName: product.name, price: product.price, quantity: 1, weight: "250g" });
-    localStorage.setItem("guestCart", JSON.stringify(cart));
-    window.dispatchEvent(new Event("guestCartUpdated")); // ✅ add this
-  } else {
-    axios.post(
-      "http://localhost:8080/api/cart/add",
-      { productId: product.id, quantity: 1, weight: "250g" },
-      { headers: { Authorization: `Bearer ${token}` } }
-    )
-    .then(() => {
-      window.dispatchEvent(new Event("cartUpdated")); // ✅ add this
-    })
-    .catch(console.error);
-  }
-  setAddedMap((prev) => ({ ...prev, [product.id]: true }));
-  setTimeout(() => setAddedMap((prev) => ({ ...prev, [product.id]: false })), 1500);
-};
+  // ── Stable handler — useCallback prevents new function ref on every render ──
+  const handleAddToCart = useCallback(
+    (e, product) => {
+      e.stopPropagation();
+
+      if (isGuest) {
+        const cart = JSON.parse(localStorage.getItem("guestCart")) || [];
+        const idx = cart.findIndex((i) => i.productId === product.id);
+        if (idx !== -1) cart[idx].quantity += 1;
+        else
+          cart.push({
+            productId: product.id,
+            productName: product.name,
+            price: product.price,
+            quantity: 1,
+            weight: "250g", // validated server-side
+          });
+        localStorage.setItem("guestCart", JSON.stringify(cart));
+        window.dispatchEvent(new Event("guestCartUpdated"));
+      } else {
+        axios
+          .post(
+            `${BASE_URL}/cart/add`,
+            { productId: product.id, quantity: 1, weight: "250g" },
+            { headers: { Authorization: `Bearer ${token}` } }
+          )
+          .then(() => { window.dispatchEvent(new Event("cartUpdated")); })
+          .catch(console.error);
+      }
+
+      setAddedMap((prev) => ({ ...prev, [product.id]: true }));
+      setTimeout(() => {
+        if (mountedRef.current)
+          setAddedMap((prev) => ({ ...prev, [product.id]: false }));
+      }, 1500);
+    },
+    [isGuest, token]
+  );
+
+  // ── Stable modal handlers — prevents re-registration of modal's Escape listener ──
+  const handleCardClick = useCallback((id) => setSelectedProductId(id), []);
+  const handleModalClose = useCallback(() => setSelectedProductId(null), []);
 
   if (loading)
     return (
@@ -119,8 +163,8 @@ const ProductsPage = () => {
               key={product.id}
               product={product}
               added={!!addedMap[product.id]}
-              onCardClick={() => setSelectedProductId(product.id)}   // ← opens modal
-              onAddToCart={(e) => handleAddToCart(e, product)}
+              onCardClick={handleCardClick}
+              onAddToCart={handleAddToCart}
             />
           ))}
         </div>
@@ -130,7 +174,7 @@ const ProductsPage = () => {
       {selectedProductId && (
         <ProductDetailModal
           productId={selectedProductId}
-          onClose={() => setSelectedProductId(null)}
+          onClose={handleModalClose}
         />
       )}
 
@@ -145,86 +189,99 @@ const ProductsPage = () => {
 
 /* ═══════════════════════════════════════════
    PRODUCT CARD
+   — React.memo: skips re-render if own props unchanged
+   — CSS hover: replaces hovered/btnHovered useState (zero JS re-renders on mouse events)
 ═══════════════════════════════════════════ */
-const ProductCard = ({ product, added, onCardClick, onAddToCart }) => {
-  const [hovered, setHovered] = useState(false);
-  const [btnHovered, setBtnHovered] = useState(false);
-
+const ProductCard = React.memo(({ product, added, onCardClick, onAddToCart }) => {
   return (
-    <div
-      onClick={onCardClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        border: `1px solid #fca5a5`, borderRadius: "12px",
-        display: "flex", flexDirection: "column",
-        background: "#fff", cursor: "pointer",
-        boxShadow: hovered ? "0 8px 28px rgba(0,0,0,0.10)" : "0 1px 4px rgba(0,0,0,0.04)",
-        transform: hovered ? "translateY(-3px)" : "translateY(0)",
-        transition: "box-shadow 0.2s, transform 0.2s",
-        fontFamily: font, overflow: "hidden", position: "relative",
-      }}
-    >
-      {product.stock === 0 && (
-        <div style={{
-          position: "absolute", top: "12px", right: "12px",
-          background: red, color: "#fff", fontSize: "11px", fontWeight: 700,
-          padding: "4px 10px", borderRadius: "999px", fontFamily: font, zIndex: 2,
-        }}>
-          Out of Stock
-        </div>
-      )}
+    <>
+      <style>{`
+        .product-card { transition: box-shadow 0.2s, transform 0.2s; }
+        .product-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.10); transform: translateY(-3px); }
+        .product-card:hover .product-card__title { color: ${red}; }
+        .product-card__img { transition: transform 0.3s; }
+        .product-card:hover .product-card__img { transform: scale(1.05); }
+        .product-card__btn:not(:disabled):hover { background: #b91c1c !important; }
+      `}</style>
 
-      <div style={{ padding: "16px 14px 8px", textAlign: "center", minHeight: "58px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <h4 style={{
-          fontFamily: font, fontWeight: 600, fontSize: "14px",
-          color: hovered ? red : "#111827", margin: 0, lineHeight: 1.4,
-          display: "-webkit-box", WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical", overflow: "hidden", transition: "color 0.2s",
-        }}>
-          {product.name}
-        </h4>
-      </div>
-
-      <div style={{ height: "220px", display: "flex", alignItems: "center", justifyContent: "center", padding: "8px 16px" }}>
-        {product.imageUrl ? (
-          <img src={product.imageUrl} alt={product.name} style={{
-            maxHeight: "100%", maxWidth: "100%", objectFit: "contain",
-            transform: hovered ? "scale(1.05)" : "scale(1)", transition: "transform 0.3s",
-          }} loading="lazy" />
-        ) : (
-          <div style={{ width: "100%", height: "100%", background: "#fff7ed", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "56px" }}>
-            🌶️
+      <div
+        className="product-card"
+        onClick={() => onCardClick(product.id)}
+        style={{
+          border: `1px solid #fca5a5`, borderRadius: "12px",
+          display: "flex", flexDirection: "column",
+          background: "#fff", cursor: "pointer",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+          fontFamily: font, overflow: "hidden", position: "relative",
+        }}
+      >
+        {product.stock === 0 && (
+          <div style={{
+            position: "absolute", top: "12px", right: "12px",
+            background: red, color: "#fff", fontSize: "11px", fontWeight: 700,
+            padding: "4px 10px", borderRadius: "999px", fontFamily: font, zIndex: 2,
+          }}>
+            Out of Stock
           </div>
         )}
-      </div>
 
-      <div style={{ padding: "10px 14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", marginTop: "auto" }}>
-        <span style={{ fontFamily: font, fontWeight: 700, fontSize: "15px", color: "#111827" }}>
-          ₹{product.price}
-        </span>
-        <button
-          onClick={onAddToCart}
-          disabled={product.stock === 0}
-          onMouseEnter={() => setBtnHovered(true)}
-          onMouseLeave={() => setBtnHovered(false)}
-          style={{
-            display: "flex", alignItems: "center", gap: "8px",
-            padding: "10px 16px",
-            background: product.stock === 0 ? "#e5e7eb" : added ? "#16a34a" : btnHovered ? "#b91c1c" : red,
-            color: product.stock === 0 ? "#9ca3af" : "#fff",
-            border: "none", borderRadius: "8px", fontFamily: font,
-            fontWeight: 700, fontSize: "12px", letterSpacing: "0.05em",
-            textTransform: "uppercase",
-            cursor: product.stock === 0 ? "not-allowed" : "pointer",
-            transition: "background 0.2s", whiteSpace: "nowrap",
-          }}
-        >
-          {product.stock === 0 ? "Out of Stock" : added ? "Added to Cart✓" : "ADD TO CART"}
-        </button>
+        <div style={{ padding: "16px 14px 8px", textAlign: "center", minHeight: "58px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <h4
+            className="product-card__title"
+            style={{
+              fontFamily: font, fontWeight: 600, fontSize: "14px",
+              color: "#111827", margin: 0, lineHeight: 1.4,
+              display: "-webkit-box", WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical", overflow: "hidden",
+              transition: "color 0.2s",
+            }}
+          >
+            {product.name}
+          </h4>
+        </div>
+
+        <div style={{ height: "220px", display: "flex", alignItems: "center", justifyContent: "center", padding: "8px 16px" }}>
+          {product.imageUrl ? (
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              className="product-card__img"
+              style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }}
+              loading="lazy"
+            />
+          ) : (
+            <div style={{ width: "100%", height: "100%", background: "#fff7ed", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "56px" }}>
+              🌶️
+            </div>
+          )}
+        </div>
+
+        <div style={{ padding: "10px 14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", marginTop: "auto" }}>
+          <span style={{ fontFamily: font, fontWeight: 700, fontSize: "15px", color: "#111827" }}>
+            ₹{product.price}
+          </span>
+          <button
+            className="product-card__btn"
+            onClick={(e) => onAddToCart(e, product)}
+            disabled={product.stock === 0}
+            style={{
+              display: "flex", alignItems: "center", gap: "8px",
+              padding: "10px 16px",
+              background: product.stock === 0 ? "#e5e7eb" : added ? "#16a34a" : red,
+              color: product.stock === 0 ? "#9ca3af" : "#fff",
+              border: "none", borderRadius: "8px", fontFamily: font,
+              fontWeight: 700, fontSize: "12px", letterSpacing: "0.05em",
+              textTransform: "uppercase",
+              cursor: product.stock === 0 ? "not-allowed" : "pointer",
+              transition: "background 0.2s", whiteSpace: "nowrap",
+            }}
+          >
+            {product.stock === 0 ? "Out of Stock" : added ? "Added to Cart✓" : "ADD TO CART"}
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
-};
+});
 
 export default ProductsPage;

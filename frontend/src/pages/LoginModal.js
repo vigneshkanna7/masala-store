@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import api from "../api/api";
 import Spinner from "../components/Spinner";
 import { FiUser, FiLock, FiMail, FiPhone, FiEye, FiEyeOff } from "react-icons/fi";
@@ -13,6 +12,68 @@ if (typeof document !== "undefined" && !document.getElementById("poppins-font"))
 }
 
 const font = "'Poppins', sans-serif";
+
+// ── Moved outside component to avoid recreation on every render ──
+const inputStyle = {
+  width: "100%",
+  padding: "11px 16px 11px 44px",
+  background: "#f1f5f0",
+  border: "1.5px solid transparent",
+  borderRadius: "50px",
+  fontSize: "13px",
+  fontFamily: font,
+  color: "#1f2937",
+  outline: "none",
+  boxSizing: "border-box",
+  transition: "border-color 0.2s",
+};
+
+const submitBtn = {
+  width: "100%",
+  padding: "11px",
+  background: "#6abf5e",
+  color: "#fff",
+  border: "none",
+  borderRadius: "50px",
+  fontSize: "14px",
+  fontWeight: 700,
+  fontFamily: font,
+  cursor: "pointer",
+  marginTop: "6px",
+  transition: "background 0.2s",
+};
+
+const outlineBtn = {
+  padding: "9px 32px",
+  background: "transparent",
+  color: "#1f2937",
+  border: "2px solid #1f2937",
+  borderRadius: "50px",
+  fontSize: "13px",
+  fontWeight: 600,
+  fontFamily: font,
+  cursor: "pointer",
+  marginTop: "18px",
+  transition: "background 0.2s",
+};
+
+const eyeBtn = {
+  position: "absolute", right: "14px", top: "50%",
+  transform: "translateY(-50%)", cursor: "pointer",
+  fontSize: "16px", color: "#9ca3af",
+  background: "none", border: "none", padding: 0,
+  display: "flex", alignItems: "center",
+};
+
+const whitePanel = {
+  flex: 1,
+  background: "#fff",
+  padding: "48px 44px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+};
 
 const SpiceDecor = () => (
   <svg width="100%" height="100%" viewBox="0 0 280 420" fill="none"
@@ -46,20 +107,6 @@ const SpiceDecor = () => (
   </svg>
 );
 
-const inputStyle = {
-  width: "100%",
-  padding: "11px 16px 11px 44px",
-  background: "#f1f5f0",
-  border: "1.5px solid transparent",
-  borderRadius: "50px",
-  fontSize: "13px",
-  fontFamily: font,
-  color: "#1f2937",
-  outline: "none",
-  boxSizing: "border-box",
-  transition: "border-color 0.2s",
-};
-
 const InputWrapper = ({ icon: Icon, children }) => (
   <div style={{ position: "relative", marginBottom: "12px" }}>
     <span style={{
@@ -78,18 +125,18 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // ── Login state ──────────────────────────────────────────────────────────────
+  // ── Login state ──
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
 
-  // ── Register state ───────────────────────────────────────────────────────────
+  // ── Register state ──
   const [regForm, setRegForm] = useState({ name: "", email: "", password: "", confirmPassword: "", phone: "" });
   const [regError, setRegError] = useState("");
   const [regLoading, setRegLoading] = useState(false);
 
-  // ── Forgot Password state ────────────────────────────────────────────────────
-  const [fpStep, setFpStep] = useState(1); // 1=email, 2=otp, 3=newpass, 4=success
+  // ── Forgot Password state ──
+  const [fpStep, setFpStep] = useState(1);
   const [fpEmail, setFpEmail] = useState("");
   const [fpOtp, setFpOtp] = useState("");
   const [fpNewPassword, setFpNewPassword] = useState("");
@@ -118,19 +165,20 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  // ── Handlers ─────────────────────────────────────────────────────────────────
+  // ── Handlers ──
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError("");
     setLoginLoading(true);
     try {
       const res = await api.post("/auth/login", loginForm);
-localStorage.setItem("token", res.data.token);
-localStorage.setItem("user", JSON.stringify({
-    name: res.data.name,
-    email: res.data.email,
-    role: res.data.role
-}));
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userName", res.data.name);
+      localStorage.setItem("user", JSON.stringify({
+        name: res.data.name,
+        email: res.data.email,
+        role: res.data.role,
+      }));
       onClose();
       window.location.reload();
     } catch {
@@ -147,12 +195,13 @@ localStorage.setItem("user", JSON.stringify({
     if (regForm.password.length < 6) { setRegError("Password must be at least 6 characters!"); return; }
     setRegLoading(true);
     try {
-      const res = await axios.post("http://localhost:8080/api/auth/register", {
+      const res = await api.post("/auth/register", {
         name: regForm.name, email: regForm.email,
         password: regForm.password, phone: regForm.phone,
       });
       const { token, name, email, role } = res.data;
       localStorage.setItem("token", token);
+      localStorage.setItem("userName", name);
       localStorage.setItem("user", JSON.stringify({ name, email, role }));
       localStorage.removeItem("guestCart");
       onClose();
@@ -169,7 +218,7 @@ localStorage.setItem("user", JSON.stringify({
       return setFpError("Enter a valid email address.");
     setFpError(""); setFpLoading(true);
     try {
-      await axios.post("http://localhost:8080/api/auth/forgot-password", { email: fpEmail });
+      await api.post("/auth/forgot-password", { email: fpEmail });
       setFpStep(2);
     } catch {
       setFpError("Something went wrong. Please try again.");
@@ -182,7 +231,7 @@ localStorage.setItem("user", JSON.stringify({
     if (fpOtp.length !== 6) return setFpError("OTP must be 6 digits.");
     setFpError(""); setFpLoading(true);
     try {
-      await axios.post("http://localhost:8080/api/auth/verify-otp", { email: fpEmail, otp: fpOtp });
+      await api.post("/auth/verify-otp", { email: fpEmail, otp: fpOtp });
       setFpStep(3);
     } catch (err) {
       setFpError(err.response?.data?.message || "Invalid OTP. Please try again.");
@@ -196,7 +245,7 @@ localStorage.setItem("user", JSON.stringify({
     if (fpNewPassword !== fpConfirmPassword) return setFpError("Passwords do not match.");
     setFpError(""); setFpLoading(true);
     try {
-      await axios.post("http://localhost:8080/api/auth/reset-password", {
+      await api.post("/auth/reset-password", {
         email: fpEmail, otp: fpOtp, newPassword: fpNewPassword,
       });
       setFpStep(4);
@@ -217,7 +266,7 @@ localStorage.setItem("user", JSON.stringify({
 
   if (!isOpen) return null;
 
-  // ── Shared styles ─────────────────────────────────────────────────────────────
+  // ── Mode-dependent styles (depend on mode so stay inside) ──
   const greenPanel = {
     flex: "0 0 320px",
     background: "#c6dfb4",
@@ -232,56 +281,18 @@ localStorage.setItem("user", JSON.stringify({
     order: mode === "login" ? 0 : 1,
   };
 
-  const whitePanel = {
-    flex: 1,
-    background: "#fff",
+  const loginWhitePanel = {
+    ...whitePanel,
     borderRadius: mode === "login" ? "0 16px 16px 0" : "16px 0 0 16px",
-    padding: "48px 44px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
   };
 
-  const submitBtn = {
-    width: "100%",
-    padding: "11px",
-    background: "#6abf5e",
-    color: "#fff",
-    border: "none",
-    borderRadius: "50px",
-    fontSize: "14px",
-    fontWeight: 700,
-    fontFamily: font,
-    cursor: "pointer",
-    marginTop: "6px",
-    transition: "background 0.2s",
+  const fpTitles    = { 1: "Forgot Password", 2: "Enter OTP", 3: "New Password", 4: "All Done!" };
+  const fpSubtitles = {
+    1: "Enter your email and we'll send you an OTP.",
+    2: `We sent a 6-digit OTP to ${fpEmail}`,
+    3: "Choose a strong new password.",
+    4: "Your password has been reset successfully!",
   };
-
-  const outlineBtn = {
-    padding: "9px 32px",
-    background: "transparent",
-    color: "#1f2937",
-    border: "2px solid #1f2937",
-    borderRadius: "50px",
-    fontSize: "13px",
-    fontWeight: 600,
-    fontFamily: font,
-    cursor: "pointer",
-    marginTop: "18px",
-    transition: "background 0.2s",
-  };
-
-  const eyeBtn = {
-    position: "absolute", right: "14px", top: "50%",
-    transform: "translateY(-50%)", cursor: "pointer",
-    fontSize: "16px", color: "#9ca3af",
-    background: "none", border: "none", padding: 0,
-    display: "flex", alignItems: "center",
-  };
-
-  const fpTitles    = { 1: "Forgot Password", 2: "Enter OTP",     3: "New Password",          4: "All Done!" };
-  const fpSubtitles = { 1: "Enter your email and we'll send you an OTP.", 2: `We sent a 6-digit OTP to ${fpEmail}`, 3: "Choose a strong new password.", 4: "Your password has been reset successfully!" };
 
   return (
     <div
@@ -323,7 +334,7 @@ localStorage.setItem("user", JSON.stringify({
           ✕
         </button>
 
-        {/* ══ LOGIN MODE ══════════════════════════════════════════════════════════ */}
+        {/* ══ LOGIN MODE ══ */}
         {mode === "login" && (<>
           <div style={greenPanel}>
             <SpiceDecor />
@@ -340,7 +351,7 @@ localStorage.setItem("user", JSON.stringify({
             </div>
           </div>
 
-          <div style={whitePanel}>
+          <div style={loginWhitePanel}>
             <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#1f2937", fontFamily: font, marginBottom: "20px" }}>
               Sign In
             </h2>
@@ -372,7 +383,6 @@ localStorage.setItem("user", JSON.stringify({
                 </button>
               </InputWrapper>
 
-              {/* ── Forgot Password link ── */}
               <div style={{ textAlign: "right", marginBottom: "14px" }}>
                 <span
                   onClick={() => { setMode("forgotPassword"); setFpStep(1); setFpError(""); }}
@@ -393,9 +403,9 @@ localStorage.setItem("user", JSON.stringify({
           </div>
         </>)}
 
-        {/* ══ REGISTER MODE ═══════════════════════════════════════════════════════ */}
+        {/* ══ REGISTER MODE ══ */}
         {mode === "register" && (<>
-          <div style={whitePanel}>
+          <div style={loginWhitePanel}>
             <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#1f2937", fontFamily: font, marginBottom: "16px" }}>
               Register
             </h2>
@@ -473,14 +483,13 @@ localStorage.setItem("user", JSON.stringify({
           </div>
         </>)}
 
-        {/* ══ FORGOT PASSWORD MODE ════════════════════════════════════════════════ */}
+        {/* ══ FORGOT PASSWORD MODE ══ */}
         {mode === "forgotPassword" && (
           <div style={{
             flex: 1, background: "#fff", borderRadius: "16px",
             padding: "48px 44px",
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
           }}>
-            {/* Progress dots */}
             {fpStep < 4 && (
               <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
                 {[1, 2, 3].map((s) => (
@@ -511,137 +520,92 @@ localStorage.setItem("user", JSON.stringify({
               </div>
             )}
 
-            {/* Step 1 — Email */}
             {fpStep === 1 && (
               <>
                 <InputWrapper icon={FiMail}>
-                  <input
-                    style={inputStyle}
-                    type="email"
-                    placeholder="you@example.com"
-                    value={fpEmail}
-                    onChange={(e) => setFpEmail(e.target.value)}
+                  <input style={inputStyle} type="email" placeholder="you@example.com"
+                    value={fpEmail} onChange={(e) => setFpEmail(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleFpSendOtp()}
                     onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
                     onBlur={(e) => e.target.style.borderColor = "transparent"}
                   />
                 </InputWrapper>
-                <button
-                  onClick={handleFpSendOtp}
-                  disabled={fpLoading}
+                <button onClick={handleFpSendOtp} disabled={fpLoading}
                   style={{ ...submitBtn, marginTop: "4px" }}
                   onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
-                  onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}
-                >
+                  onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
                   {fpLoading ? "Sending OTP..." : "Send OTP →"}
                 </button>
-                <span
-                  onClick={() => { setMode("login"); setFpError(""); }}
-                  style={{ marginTop: "16px", fontSize: "12px", color: "#6abf5e", cursor: "pointer", fontFamily: font }}
-                >
+                <span onClick={() => { setMode("login"); setFpError(""); }}
+                  style={{ marginTop: "16px", fontSize: "12px", color: "#6abf5e", cursor: "pointer", fontFamily: font }}>
                   ← Back to Sign In
                 </span>
               </>
             )}
 
-            {/* Step 2 — OTP */}
             {fpStep === 2 && (
               <>
-                <input
-                  style={{
-                    ...inputStyle,
-                    paddingLeft: "16px",
-                    letterSpacing: "0.25em",
-                    fontSize: "22px",
-                    textAlign: "center",
-                    width: "100%",
-                    marginBottom: "12px",
-                  }}
-                  type="text"
-                  placeholder="• • • • • •"
-                  value={fpOtp}
-                  maxLength={6}
+                <input style={{ ...inputStyle, paddingLeft: "16px", letterSpacing: "0.25em", fontSize: "22px", textAlign: "center", width: "100%", marginBottom: "12px" }}
+                  type="text" placeholder="• • • • • •"
+                  value={fpOtp} maxLength={6}
                   onChange={(e) => setFpOtp(e.target.value.replace(/\D/g, ""))}
                   onKeyDown={(e) => e.key === "Enter" && handleFpVerifyOtp()}
                   onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
                   onBlur={(e) => e.target.style.borderColor = "transparent"}
                 />
-                <button
-                  onClick={handleFpVerifyOtp}
-                  disabled={fpLoading}
-                  style={submitBtn}
+                <button onClick={handleFpVerifyOtp} disabled={fpLoading} style={submitBtn}
                   onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
-                  onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}
-                >
+                  onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
                   {fpLoading ? "Verifying..." : "Verify OTP →"}
                 </button>
-                <span
-                  onClick={() => { setFpStep(1); setFpOtp(""); setFpError(""); }}
-                  style={{ marginTop: "14px", fontSize: "12px", color: "#6abf5e", cursor: "pointer", fontFamily: font }}
-                >
+                <span onClick={() => { setFpStep(1); setFpOtp(""); setFpError(""); }}
+                  style={{ marginTop: "14px", fontSize: "12px", color: "#6abf5e", cursor: "pointer", fontFamily: font }}>
                   ← Resend OTP
                 </span>
               </>
             )}
 
-            {/* Step 3 — New Password */}
             {fpStep === 3 && (
               <>
                 <InputWrapper icon={FiLock}>
-                  <input
-                    style={inputStyle}
-                    type="password"
-                    placeholder="New password (min. 6 chars)"
-                    value={fpNewPassword}
-                    onChange={(e) => setFpNewPassword(e.target.value)}
+                  <input style={inputStyle} type="password" placeholder="New password (min. 6 chars)"
+                    value={fpNewPassword} onChange={(e) => setFpNewPassword(e.target.value)}
                     onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
                     onBlur={(e) => e.target.style.borderColor = "transparent"}
                   />
                 </InputWrapper>
                 <InputWrapper icon={FiLock}>
-                  <input
-                    style={inputStyle}
-                    type="password"
-                    placeholder="Confirm new password"
-                    value={fpConfirmPassword}
-                    onChange={(e) => setFpConfirmPassword(e.target.value)}
+                  <input style={inputStyle} type="password" placeholder="Confirm new password"
+                    value={fpConfirmPassword} onChange={(e) => setFpConfirmPassword(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleFpReset()}
                     onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
                     onBlur={(e) => e.target.style.borderColor = "transparent"}
                   />
                 </InputWrapper>
-                <button
-                  onClick={handleFpReset}
-                  disabled={fpLoading}
-                  style={submitBtn}
+                <button onClick={handleFpReset} disabled={fpLoading} style={submitBtn}
                   onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
-                  onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}
-                >
+                  onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
                   {fpLoading ? "Resetting..." : "Reset Password →"}
                 </button>
               </>
             )}
 
-            {/* Step 4 — Success */}
             {fpStep === 4 && (
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: "52px", marginBottom: "16px" }}>✅</div>
                 <p style={{ fontSize: "14px", color: "#374151", fontFamily: font, marginBottom: "24px" }}>
                   You can now sign in with your new password.
                 </p>
-                <button
-                  onClick={resetFpAndGoLogin}
+                <button onClick={resetFpAndGoLogin}
                   style={{ ...submitBtn, width: "auto", padding: "11px 36px" }}
                   onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
-                  onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}
-                >
+                  onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
                   Go to Sign In →
                 </button>
               </div>
             )}
           </div>
         )}
-
       </div>
     </div>
   );
