@@ -119,4 +119,19 @@ public class PasswordResetController {
 
     // ── OTP Entry record ──────────────────────────────────────────────────────
     private record OtpEntry(String otp, LocalDateTime expiry) {}
+    
+    @GetMapping("/test-email")
+    public ResponseEntity<?> testEmail() {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo("kannavignesh19@gmail.com");
+            message.setSubject("Test Email from Masala Store");
+            message.setText("If you receive this, email is working!");
+            mailSender.send(message);
+            return ResponseEntity.ok(Map.of("message", "Email sent successfully!"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
 }
