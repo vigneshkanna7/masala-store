@@ -1,8 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080/api',
-  timeout: 10000,
+  baseURL: "https://masala-store-production.up.railway.app/api",
 });
 
 api.interceptors.request.use((config) => {
