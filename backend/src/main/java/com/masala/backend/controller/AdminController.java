@@ -8,19 +8,19 @@ import com.masala.backend.repository.ProductRepository;
 import com.masala.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
-
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
 
-    // ✅ Products
     @GetMapping("/products")
     public List<Product> getAllProducts() {
         return productRepository.findAll();
@@ -50,7 +50,6 @@ public class AdminController {
         return ResponseEntity.ok("Product deleted!");
     }
 
-    // ✅ Orders
     @GetMapping("/orders")
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
@@ -64,7 +63,6 @@ public class AdminController {
         return ResponseEntity.ok(orderRepository.save(order));
     }
 
-    // ✅ Users
     @GetMapping("/users")
     public List<User> getAllUsers() {
         return userRepository.findAll();
