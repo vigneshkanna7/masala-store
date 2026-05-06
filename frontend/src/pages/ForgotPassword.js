@@ -91,7 +91,7 @@ const ForgotPassword = () => {
   // ── Step 3: Reset Password ──
   const handleResetPassword = async () => {
     if (!newPassword.trim()) return showToast("Please enter a new password.", false);
-    if (newPassword.length < 6) return showToast("Password must be at least 6 characters.", false);
+    if (newPassword.length < 8) return showToast("Password must be at least 8 characters.", false);
     if (newPassword !== confirmPassword) return showToast("Passwords do not match.", false);
     setLoading(true);
     try {
@@ -223,7 +223,7 @@ const ForgotPassword = () => {
               <label style={{ fontSize: "13px", fontWeight: 500, color: "#374151", fontFamily: font }}>
                 New Password
               </label>
-              <input style={inputStyle} type="password" placeholder="Min. 6 characters"
+              <input style={inputStyle} type="password" placeholder="Min. 8 characters"
                 value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
               />
               <label style={{ fontSize: "13px", fontWeight: 500, color: "#374151", fontFamily: font, display: "block", marginTop: "14px" }}>
