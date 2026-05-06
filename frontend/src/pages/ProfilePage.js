@@ -5,7 +5,6 @@ import api from '../api/api';
 const font = "'DM Sans', sans-serif";
 const red = '#c0392b';
 
-// ── Moved outside component to avoid recreation on every render ──
 const inp = {
   width: '100%', padding: '13px 16px', border: '1px solid #e5e7eb',
   borderRadius: '8px', fontSize: '15px', fontFamily: font,
@@ -22,7 +21,6 @@ const eyeBtn = {
   display: 'flex', alignItems: 'center', padding: '4px',
 };
 
-// ── Moved outside component to avoid recreation on every render ──
 const EyeIcon = ({ open }) => open ? (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <line x1="1" y1="1" x2="23" y2="23" />
@@ -40,9 +38,9 @@ function ProfilePage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState({ name: '', email: '', phone: '', address: '' });
   const [passwordData, setPasswordData] = useState({
-    newPassword: '', confirmPassword: ''
+    currentPassword: '', newPassword: '', confirmPassword: ''
   });
-  const [showPwd, setShowPwd] = useState({ new: false, confirm: false });
+  const [showPwd, setShowPwd] = useState({ current: false, new: false, confirm: false });
   const [toast, setToast] = useState({ visible: false, message: '', success: true });
 
   useEffect(() => { fetchProfile(); }, []);
@@ -61,7 +59,9 @@ function ProfilePage() {
     const hasPasswordChange = passwordData.newPassword || passwordData.confirmPassword;
 
     if (hasPasswordChange) {
-      // ── Password length validation ──
+      if (!passwordData.currentPassword) {
+        showToast('Please enter your current password!', false); return;
+      }
       if (passwordData.newPassword.length < 8) {
         showToast('Password must be at least 8 characters!', false); return;
       }
@@ -71,10 +71,11 @@ function ProfilePage() {
       try {
         await api.put('/user/profile', { name: profile.name, phone: profile.phone, address: profile.address });
         await api.put('/user/change-password', {
+          currentPassword: passwordData.currentPassword,
           newPassword: passwordData.newPassword,
         });
         showToast('Profile and password updated successfully!', true);
-        setPasswordData({ newPassword: '', confirmPassword: '' });
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       } catch { showToast('Failed to save. Check your password.', false); }
     } else {
       try {
@@ -114,7 +115,6 @@ function ProfilePage() {
         }
       `}</style>
 
-      {/* ── Toast ── */}
       {toast.visible && (
         <div className={`toast ${toast.success ? 'toast-success' : 'toast-error'}`}>
           <span style={{ fontSize: '18px' }}>{toast.success ? '✅' : '❌'}</span>
@@ -125,7 +125,6 @@ function ProfilePage() {
       <div style={{ fontFamily: font, background: '#fff', minHeight: '100vh', color: '#111' }}>
         <div style={{ maxWidth: '960px', margin: '0 auto', padding: '40px 24px 60px' }}>
 
-          {/* ── Heading ── */}
           <h1 style={{
             fontSize: '28px', fontWeight: 800, letterSpacing: '0.06em',
             textTransform: 'uppercase', marginBottom: '32px',
@@ -133,7 +132,6 @@ function ProfilePage() {
             Profile Details
           </h1>
 
-          {/* ── First + Last name ── */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '22px' }}>
             <div>
               <label style={lbl}>First name <span style={{ color: red }}>*</span></label>
@@ -161,7 +159,6 @@ function ProfilePage() {
             </div>
           </div>
 
-          {/* ── Display name ── */}
           <div style={fg}>
             <label style={lbl}>Display name <span style={{ color: red }}>*</span></label>
             <input
@@ -175,13 +172,11 @@ function ProfilePage() {
             </p>
           </div>
 
-          {/* ── Email ── */}
           <div style={fg}>
             <label style={lbl}>Email address <span style={{ color: red }}>*</span></label>
             <input className="prof-inp" style={inpDisabled} value={profile.email} disabled autoComplete="off" />
           </div>
 
-          {/* ── Phone ── */}
           <div style={fg}>
             <label style={lbl}>Phone</label>
             <input
@@ -193,10 +188,27 @@ function ProfilePage() {
             />
           </div>
 
-          {/* ── Password Change ── */}
           <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#111', margin: '36px 0 20px', letterSpacing: '0.02em' }}>
             Password change
           </h3>
+
+          {/* ── Current Password ── */}
+          <div style={fg}>
+            <label style={lbl}>Current password</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                className="prof-inp" style={inpEye}
+                type={showPwd.current ? 'text' : 'password'}
+                autoComplete="current-password"
+                placeholder="Enter current password"
+                value={passwordData.currentPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+              />
+              <button style={eyeBtn} onClick={() => togglePwd('current')}>
+                <EyeIcon open={showPwd.current} />
+              </button>
+            </div>
+          </div>
 
           {/* ── New Password ── */}
           <div style={fg}>
@@ -232,7 +244,6 @@ function ProfilePage() {
             </div>
           </div>
 
-          {/* ── Save ── */}
           <button className="save-btn" onClick={handleSave}>
             Save changes
           </button>
