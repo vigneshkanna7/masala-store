@@ -2,11 +2,10 @@ package com.masala.backend.controller;
 
 import com.masala.backend.repository.UserRepository;
 import com.masala.backend.model.User;
+import com.masala.backend.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PasswordResetController {
 
     private final UserRepository userRepository;
-    private final JavaMailSender mailSender;
+    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
 
     private final ConcurrentHashMap<String, OtpEntry> otpStore = new ConcurrentHashMap<>();
@@ -41,19 +40,8 @@ public class PasswordResetController {
         log.info("OTP generated for: {}", email);
 
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(email);
-            message.setFrom("vigneshkannabs@gmail.com");
-            message.setSubject("Masala Store - Password Reset OTP");
-            message.setText(
-                "Hello,\n\n" +
-                "Your OTP for password reset is: " + otp + "\n\n" +
-                "This OTP is valid for 10 minutes.\n\n" +
-                "If you did not request this, please ignore this email.\n\n" +
-                "- Masala Store Team"
-            );
             log.info("Attempting to send OTP email to: {}", email);
-            mailSender.send(message);
+            emailService.sendOtpEmail(email, otp);
             log.info("OTP email sent successfully to: {}", email);
         } catch (Exception e) {
             log.error("Failed to send OTP email to {}: {}", email, e.getMessage(), e);
@@ -116,12 +104,7 @@ public class PasswordResetController {
     public ResponseEntity<?> testEmail() {
         log.info("Test email endpoint called");
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo("kannavignesh19@gmail.com");
-            message.setFrom("vigneshkannabs@gmail.com");
-            message.setSubject("Test Email from Masala Store");
-            message.setText("If you receive this, email is working!");
-            mailSender.send(message);
+            emailService.sendOtpEmail("kannavignesh19@gmail.com", "123456");
             log.info("Test email sent successfully!");
             return ResponseEntity.ok(Map.of("message", "Email sent successfully!"));
         } catch (Exception e) {
