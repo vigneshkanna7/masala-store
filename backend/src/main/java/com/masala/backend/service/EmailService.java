@@ -18,8 +18,9 @@ public class EmailService {
         message.setText("Your OTP is: " + otp + "\n\nThis OTP expires in 5 minutes.");
         try {
             mailSender.send(message);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to send email. Please try again.");
+        }  catch (Exception e) {
+            e.printStackTrace(); // This will show real error in Railway logs
+            throw new RuntimeException("Failed to send email: " + e.getMessage());
         }
     }
 }
