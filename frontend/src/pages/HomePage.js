@@ -17,11 +17,10 @@ if (typeof document !== "undefined" && !document.getElementById("poppins-font"))
 
 /* ─── DATA ─── */
 const slides = [
-  { id: 1, image: "https://melam.com/wp-content/uploads/2025/05/banner-new.jpeg", alt: "Banner 1" },
-  { id: 2, image: "https://melam.com/wp-content/uploads/2023/03/banner_spices_2-2-1-1.jpg", alt: "Banner 2" },
-  { id: 3, image: "https://melam.com/wp-content/uploads/2023/02/banner_puttupodi.jpg", alt: "Banner 3" },
-  { id: 4, image: "https://melam.com/wp-content/uploads/2023/02/banner_fishmasala.jpg", alt: "Banner 4" },
-  { id: 5, image: "https://melam.com/wp-content/uploads/2023/03/banner_chicken-2-1-1.jpg", alt: "Banner 5" },
+  { id: 1, image: "/banners/banner1.jpg", alt: "Banner 1" },
+  { id: 2, image: "/banners/banner2.jpg", alt: "Banner 2" },
+  { id: 3, image: "/banners/banner3.jpg", alt: "Banner 3" },
+  { id: 4, image: "/banners/banner4.jpg", alt: "Banner 4" },
 ];
 
 const font = "'Poppins', sans-serif";
