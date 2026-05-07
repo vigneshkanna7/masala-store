@@ -323,7 +323,6 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
 
       {toast.visible && (
         <div className={`fp-toast ${toast.success ? "fp-toast-success" : "fp-toast-error"}`}>
-          <span style={{ fontSize: "18px" }}>{toast.success ? "✅" : "❌"}</span>
           {toast.message}
         </div>
       )}
