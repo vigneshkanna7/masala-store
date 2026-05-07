@@ -614,7 +614,6 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
 
               {fpStep === 4 && (
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: "52px", marginBottom: "16px" }}>✅</div>
                   <p style={{ fontSize: "14px", color: "#374151", fontFamily: font, marginBottom: "24px" }}>
                     You can now sign in with your new password.
                   </p>
