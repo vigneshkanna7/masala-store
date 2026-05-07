@@ -13,7 +13,6 @@ if (typeof document !== "undefined" && !document.getElementById("poppins-font"))
 
 const font = "'Poppins', sans-serif";
 
-// ── Moved outside component to avoid recreation on every render ──
 const inputStyle = {
   width: "100%",
   padding: "11px 16px 11px 44px",
@@ -142,7 +141,14 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
   const [fpNewPassword, setFpNewPassword] = useState("");
   const [fpConfirmPassword, setFpConfirmPassword] = useState("");
   const [fpLoading, setFpLoading] = useState(false);
-  const [fpError, setFpError] = useState("");
+
+  // ── Toast state ──
+  const [toast, setToast] = useState({ visible: false, message: "", success: true });
+
+  const showToast = (message, success = true) => {
+    setToast({ visible: true, message, success });
+    setTimeout(() => setToast({ visible: false, message: "", success: true }), 3000);
+  };
 
   useEffect(() => {
     setMode(defaultMode);
@@ -215,42 +221,45 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
 
   const handleFpSendOtp = async () => {
     if (!fpEmail.trim() || !/\S+@\S+\.\S+/.test(fpEmail))
-      return setFpError("Enter a valid email address.");
-    setFpError(""); setFpLoading(true);
+      return showToast("Enter a valid email address.", false);
+    setFpLoading(true);
     try {
       await api.post("/auth/forgot-password", { email: fpEmail });
+      showToast("OTP sent to your email!", true);
       setFpStep(2);
     } catch {
-      setFpError("Something went wrong. Please try again.");
+      showToast("Something went wrong. Please try again.", false);
     } finally {
       setFpLoading(false);
     }
   };
 
   const handleFpVerifyOtp = async () => {
-    if (fpOtp.length !== 6) return setFpError("OTP must be 6 digits.");
-    setFpError(""); setFpLoading(true);
+    if (fpOtp.length !== 6) return showToast("OTP must be 6 digits.", false);
+    setFpLoading(true);
     try {
       await api.post("/auth/verify-otp", { email: fpEmail, otp: fpOtp });
+      showToast("OTP verified successfully!", true);
       setFpStep(3);
     } catch (err) {
-      setFpError(err.response?.data?.message || "Invalid OTP. Please try again.");
+      showToast(err.response?.data?.message || "Invalid OTP. Please try again.", false);
     } finally {
       setFpLoading(false);
     }
   };
 
   const handleFpReset = async () => {
-    if (fpNewPassword.length < 6) return setFpError("Password must be at least 6 characters.");
-    if (fpNewPassword !== fpConfirmPassword) return setFpError("Passwords do not match.");
-    setFpError(""); setFpLoading(true);
+    if (fpNewPassword.length < 8) return showToast("Password must be at least 8 characters.", false);
+    if (fpNewPassword !== fpConfirmPassword) return showToast("Passwords do not match.", false);
+    setFpLoading(true);
     try {
       await api.post("/auth/reset-password", {
         email: fpEmail, otp: fpOtp, newPassword: fpNewPassword,
       });
+      showToast("Password reset successfully!", true);
       setFpStep(4);
     } catch (err) {
-      setFpError(err.response?.data?.message || "Failed to reset password. Please try again.");
+      showToast(err.response?.data?.message || "Failed to reset password. Please try again.", false);
     } finally {
       setFpLoading(false);
     }
@@ -261,12 +270,10 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
     setFpStep(1);
     setFpEmail(""); setFpOtp("");
     setFpNewPassword(""); setFpConfirmPassword("");
-    setFpError("");
   };
 
   if (!isOpen) return null;
 
-  // ── Mode-dependent styles (depend on mode so stay inside) ──
   const greenPanel = {
     flex: "0 0 320px",
     background: "#c6dfb4",
@@ -295,319 +302,335 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
   };
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed", inset: 0,
-        background: "rgba(0,0,0,0.5)",
-        zIndex: 1000,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "24px",
-        backdropFilter: "blur(2px)",
-      }}
-    >
+    <>
+      {/* ── Toast ── */}
+      <style>{`
+        @keyframes fpSlideIn {
+          from { opacity: 0; transform: translateX(60px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        .fp-toast {
+          position: fixed; top: 28px; right: 28px; z-index: 9999;
+          min-width: 280px; max-width: 400px; padding: 16px 20px;
+          border-radius: 10px; font-family: 'Poppins', sans-serif;
+          font-size: 14px; font-weight: 500; display: flex;
+          align-items: center; gap: 10px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.12); animation: fpSlideIn 0.3s ease;
+        }
+        .fp-toast-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .fp-toast-error   { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+      `}</style>
+
+      {toast.visible && (
+        <div className={`fp-toast ${toast.success ? "fp-toast-success" : "fp-toast-error"}`}>
+          <span style={{ fontSize: "18px" }}>{toast.success ? "✅" : "❌"}</span>
+          {toast.message}
+        </div>
+      )}
+
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={onClose}
         style={{
-          display: "flex",
-          width: "100%",
-          maxWidth: mode === "forgotPassword" ? "480px" : "860px",
-          borderRadius: "16px",
-          overflow: "hidden",
-          boxShadow: "0 24px 64px rgba(0,0,0,0.22)",
-          minHeight: "500px",
-          position: "relative",
-          fontFamily: font,
-          transition: "max-width 0.3s ease",
+          position: "fixed", inset: 0,
+          background: "rgba(0,0,0,0.5)",
+          zIndex: 1000,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "24px",
+          backdropFilter: "blur(2px)",
         }}
       >
-        {/* Close button */}
-        <button
-          onClick={onClose}
+        <div
+          onClick={(e) => e.stopPropagation()}
           style={{
-            position: "absolute", top: "14px", right: "16px", zIndex: 10,
-            background: "transparent", border: "none", fontSize: "20px",
-            color: "#6b7280", cursor: "pointer", lineHeight: 1,
+            display: "flex",
+            width: "100%",
+            maxWidth: mode === "forgotPassword" ? "480px" : "860px",
+            borderRadius: "16px",
+            overflow: "hidden",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.22)",
+            minHeight: "500px",
+            position: "relative",
+            fontFamily: font,
+            transition: "max-width 0.3s ease",
           }}
-          aria-label="Close"
         >
-          ✕
-        </button>
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            style={{
+              position: "absolute", top: "14px", right: "16px", zIndex: 10,
+              background: "transparent", border: "none", fontSize: "20px",
+              color: "#6b7280", cursor: "pointer", lineHeight: 1,
+            }}
+            aria-label="Close"
+          >
+            ✕
+          </button>
 
-        {/* ══ LOGIN MODE ══ */}
-        {mode === "login" && (<>
-          <div style={greenPanel}>
-            <SpiceDecor />
-            <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-              <h2 style={{ fontSize: "26px", fontWeight: 800, color: "#1a2e1a", fontFamily: font, lineHeight: 1.2, marginBottom: "14px" }}>
-                Hey Buddy!
-              </h2>
-              <p style={{ fontSize: "13px", color: "#4b5563", fontFamily: font, lineHeight: 1.7, marginBottom: "28px" }}>
-                Thank you for shopping with us,<br />please register your account :)
-              </p>
-              <button style={outlineBtn} onClick={() => { setMode("register"); setLoginError(""); }}>
-                Register
-              </button>
-            </div>
-          </div>
-
-          <div style={loginWhitePanel}>
-            <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#1f2937", fontFamily: font, marginBottom: "20px" }}>
-              Sign In
-            </h2>
-            {loginError && (
-              <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", color: "#dc2626", borderRadius: "8px", padding: "9px 13px", marginBottom: "14px", fontSize: "13px", fontFamily: font, width: "100%", boxSizing: "border-box" }}>
-                {loginError}
-              </div>
-            )}
-            <form onSubmit={handleLogin} style={{ width: "100%" }}>
-              <InputWrapper icon={FiUser}>
-                <input style={inputStyle} type="email" placeholder="Email address"
-                  value={loginForm.email}
-                  onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-                  required
-                  onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
-                  onBlur={(e) => e.target.style.borderColor = "transparent"}
-                />
-              </InputWrapper>
-              <InputWrapper icon={FiLock}>
-                <input style={inputStyle} type={showPass ? "text" : "password"} placeholder="Password"
-                  value={loginForm.password}
-                  onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                  required
-                  onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
-                  onBlur={(e) => e.target.style.borderColor = "transparent"}
-                />
-                <button type="button" onClick={() => setShowPass(!showPass)} style={eyeBtn}>
-                  {showPass ? <FiEyeOff /> : <FiEye />}
-                </button>
-              </InputWrapper>
-
-              <div style={{ textAlign: "right", marginBottom: "14px" }}>
-                <span
-                  onClick={() => { setMode("forgotPassword"); setFpStep(1); setFpError(""); }}
-                  style={{ fontSize: "12px", color: "#6abf5e", cursor: "pointer", fontFamily: font }}
-                >
-                  Forgot Password?
-                </span>
-              </div>
-
-              <button type="submit" disabled={loginLoading} style={submitBtn}
-                onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
-                onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
-                {loginLoading
-                  ? <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}><Spinner size="sm" color="white" /> Signing in...</span>
-                  : "Submit"}
-              </button>
-            </form>
-          </div>
-        </>)}
-
-        {/* ══ REGISTER MODE ══ */}
-        {mode === "register" && (<>
-          <div style={loginWhitePanel}>
-            <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#1f2937", fontFamily: font, marginBottom: "16px" }}>
-              Register
-            </h2>
-            {regError && (
-              <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", color: "#dc2626", borderRadius: "8px", padding: "9px 13px", marginBottom: "10px", fontSize: "13px", fontFamily: font, width: "100%", boxSizing: "border-box" }}>
-                {regError}
-              </div>
-            )}
-            <form onSubmit={handleRegister} style={{ width: "100%" }}>
-              <InputWrapper icon={FiUser}>
-                <input style={inputStyle} type="text" placeholder="Name"
-                  value={regForm.name} onChange={(e) => setRegForm({ ...regForm, name: e.target.value })} required
-                  onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
-                  onBlur={(e) => e.target.style.borderColor = "transparent"}
-                />
-              </InputWrapper>
-              <InputWrapper icon={FiMail}>
-                <input style={inputStyle} type="email" placeholder="Email address"
-                  value={regForm.email} onChange={(e) => setRegForm({ ...regForm, email: e.target.value })} required
-                  onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
-                  onBlur={(e) => e.target.style.borderColor = "transparent"}
-                />
-              </InputWrapper>
-              <InputWrapper icon={FiPhone}>
-                <input style={inputStyle} type="tel" placeholder="Phone number"
-                  value={regForm.phone} onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
-                  maxLength={10} required
-                  onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
-                  onBlur={(e) => e.target.style.borderColor = "transparent"}
-                />
-              </InputWrapper>
-              <InputWrapper icon={FiLock}>
-                <input style={inputStyle} type={showPass ? "text" : "password"} placeholder="Password"
-                  value={regForm.password} onChange={(e) => setRegForm({ ...regForm, password: e.target.value })} required
-                  onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
-                  onBlur={(e) => e.target.style.borderColor = "transparent"}
-                />
-                <button type="button" onClick={() => setShowPass(!showPass)} style={eyeBtn}>
-                  {showPass ? <FiEyeOff /> : <FiEye />}
-                </button>
-              </InputWrapper>
-              <InputWrapper icon={FiLock}>
-                <input style={inputStyle} type={showConfirm ? "text" : "password"} placeholder="Confirm password"
-                  value={regForm.confirmPassword} onChange={(e) => setRegForm({ ...regForm, confirmPassword: e.target.value })} required
-                  onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
-                  onBlur={(e) => e.target.style.borderColor = "transparent"}
-                />
-                <button type="button" onClick={() => setShowConfirm(!showConfirm)} style={eyeBtn}>
-                  {showConfirm ? <FiEyeOff /> : <FiEye />}
-                </button>
-              </InputWrapper>
-              <button type="submit" disabled={regLoading} style={submitBtn}
-                onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
-                onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
-                {regLoading
-                  ? <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}><Spinner size="sm" color="white" /> Registering...</span>
-                  : "Register"}
-              </button>
-            </form>
-          </div>
-
-          <div style={greenPanel}>
-            <SpiceDecor />
-            <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-              <h2 style={{ fontSize: "26px", fontWeight: 800, color: "#1a2e1a", fontFamily: font, lineHeight: 1.2, marginBottom: "14px" }}>
-                Welcome<br />Back
-              </h2>
-              <p style={{ fontSize: "13px", color: "#4b5563", fontFamily: font, lineHeight: 1.7, marginBottom: "28px" }}>
-                Thank you for shopping with us,<br />please login your account :)
-              </p>
-              <button style={outlineBtn} onClick={() => { setMode("login"); setRegError(""); }}>
-                Sign In
-              </button>
-            </div>
-          </div>
-        </>)}
-
-        {/* ══ FORGOT PASSWORD MODE ══ */}
-        {mode === "forgotPassword" && (
-          <div style={{
-            flex: 1, background: "#fff", borderRadius: "16px",
-            padding: "48px 44px",
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-          }}>
-            {fpStep < 4 && (
-              <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
-                {[1, 2, 3].map((s) => (
-                  <div key={s} style={{
-                    width: "10px", height: "10px", borderRadius: "50%",
-                    background: fpStep > s ? "#6abf5e" : fpStep === s ? "#dc2626" : "#e5e7eb",
-                    transition: "background 0.3s",
-                  }} />
-                ))}
-              </div>
-            )}
-
-            <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#1f2937", fontFamily: font, marginBottom: "6px" }}>
-              {fpTitles[fpStep]}
-            </h2>
-            <p style={{ fontSize: "13px", color: "#6b7280", fontFamily: font, marginBottom: "20px", textAlign: "center" }}>
-              {fpSubtitles[fpStep]}
-            </p>
-
-            {fpError && (
-              <div style={{
-                background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px",
-                padding: "10px 14px", marginBottom: "14px",
-                fontSize: "13px", color: "#dc2626", fontFamily: font,
-                width: "100%", boxSizing: "border-box",
-              }}>
-                {fpError}
-              </div>
-            )}
-
-            {fpStep === 1 && (
-              <>
-                <InputWrapper icon={FiMail}>
-                  <input style={inputStyle} type="email" placeholder="you@example.com"
-                    value={fpEmail} onChange={(e) => setFpEmail(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleFpSendOtp()}
-                    onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
-                    onBlur={(e) => e.target.style.borderColor = "transparent"}
-                  />
-                </InputWrapper>
-                <button onClick={handleFpSendOtp} disabled={fpLoading}
-                  style={{ ...submitBtn, marginTop: "4px" }}
-                  onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
-                  onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
-                  {fpLoading ? "Sending OTP..." : "Send OTP →"}
-                </button>
-                <span onClick={() => { setMode("login"); setFpError(""); }}
-                  style={{ marginTop: "16px", fontSize: "12px", color: "#6abf5e", cursor: "pointer", fontFamily: font }}>
-                  ← Back to Sign In
-                </span>
-              </>
-            )}
-
-            {fpStep === 2 && (
-              <>
-                <input style={{ ...inputStyle, paddingLeft: "16px", letterSpacing: "0.25em", fontSize: "22px", textAlign: "center", width: "100%", marginBottom: "12px" }}
-                  type="text" placeholder="• • • • • •"
-                  value={fpOtp} maxLength={6}
-                  onChange={(e) => setFpOtp(e.target.value.replace(/\D/g, ""))}
-                  onKeyDown={(e) => e.key === "Enter" && handleFpVerifyOtp()}
-                  onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
-                  onBlur={(e) => e.target.style.borderColor = "transparent"}
-                />
-                <button onClick={handleFpVerifyOtp} disabled={fpLoading} style={submitBtn}
-                  onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
-                  onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
-                  {fpLoading ? "Verifying..." : "Verify OTP →"}
-                </button>
-                <span onClick={() => { setFpStep(1); setFpOtp(""); setFpError(""); }}
-                  style={{ marginTop: "14px", fontSize: "12px", color: "#6abf5e", cursor: "pointer", fontFamily: font }}>
-                  ← Resend OTP
-                </span>
-              </>
-            )}
-
-            {fpStep === 3 && (
-              <>
-                <InputWrapper icon={FiLock}>
-                  <input style={inputStyle} type="password" placeholder="New password (min. 6 chars)"
-                    value={fpNewPassword} onChange={(e) => setFpNewPassword(e.target.value)}
-                    onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
-                    onBlur={(e) => e.target.style.borderColor = "transparent"}
-                  />
-                </InputWrapper>
-                <InputWrapper icon={FiLock}>
-                  <input style={inputStyle} type="password" placeholder="Confirm new password"
-                    value={fpConfirmPassword} onChange={(e) => setFpConfirmPassword(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleFpReset()}
-                    onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
-                    onBlur={(e) => e.target.style.borderColor = "transparent"}
-                  />
-                </InputWrapper>
-                <button onClick={handleFpReset} disabled={fpLoading} style={submitBtn}
-                  onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
-                  onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
-                  {fpLoading ? "Resetting..." : "Reset Password →"}
-                </button>
-              </>
-            )}
-
-            {fpStep === 4 && (
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: "52px", marginBottom: "16px" }}>✅</div>
-                <p style={{ fontSize: "14px", color: "#374151", fontFamily: font, marginBottom: "24px" }}>
-                  You can now sign in with your new password.
+          {/* ══ LOGIN MODE ══ */}
+          {mode === "login" && (<>
+            <div style={greenPanel}>
+              <SpiceDecor />
+              <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
+                <h2 style={{ fontSize: "26px", fontWeight: 800, color: "#1a2e1a", fontFamily: font, lineHeight: 1.2, marginBottom: "14px" }}>
+                  Hey Buddy!
+                </h2>
+                <p style={{ fontSize: "13px", color: "#4b5563", fontFamily: font, lineHeight: 1.7, marginBottom: "28px" }}>
+                  Thank you for shopping with us,<br />please register your account :)
                 </p>
-                <button onClick={resetFpAndGoLogin}
-                  style={{ ...submitBtn, width: "auto", padding: "11px 36px" }}
-                  onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
-                  onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
-                  Go to Sign In →
+                <button style={outlineBtn} onClick={() => { setMode("register"); setLoginError(""); }}>
+                  Register
                 </button>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+
+            <div style={loginWhitePanel}>
+              <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#1f2937", fontFamily: font, marginBottom: "20px" }}>
+                Sign In
+              </h2>
+              {loginError && (
+                <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", color: "#dc2626", borderRadius: "8px", padding: "9px 13px", marginBottom: "14px", fontSize: "13px", fontFamily: font, width: "100%", boxSizing: "border-box" }}>
+                  {loginError}
+                </div>
+              )}
+              <form onSubmit={handleLogin} style={{ width: "100%" }}>
+                <InputWrapper icon={FiUser}>
+                  <input style={inputStyle} type="email" placeholder="Email address"
+                    value={loginForm.email}
+                    onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                    required
+                    onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
+                    onBlur={(e) => e.target.style.borderColor = "transparent"}
+                  />
+                </InputWrapper>
+                <InputWrapper icon={FiLock}>
+                  <input style={inputStyle} type={showPass ? "text" : "password"} placeholder="Password"
+                    value={loginForm.password}
+                    onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                    required
+                    onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
+                    onBlur={(e) => e.target.style.borderColor = "transparent"}
+                  />
+                  <button type="button" onClick={() => setShowPass(!showPass)} style={eyeBtn}>
+                    {showPass ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </InputWrapper>
+
+                <div style={{ textAlign: "right", marginBottom: "14px" }}>
+                  <span
+                    onClick={() => { setMode("forgotPassword"); setFpStep(1); }}
+                    style={{ fontSize: "12px", color: "#6abf5e", cursor: "pointer", fontFamily: font }}
+                  >
+                    Forgot Password?
+                  </span>
+                </div>
+
+                <button type="submit" disabled={loginLoading} style={submitBtn}
+                  onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
+                  onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
+                  {loginLoading
+                    ? <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}><Spinner size="sm" color="white" /> Signing in...</span>
+                    : "Submit"}
+                </button>
+              </form>
+            </div>
+          </>)}
+
+          {/* ══ REGISTER MODE ══ */}
+          {mode === "register" && (<>
+            <div style={loginWhitePanel}>
+              <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#1f2937", fontFamily: font, marginBottom: "16px" }}>
+                Register
+              </h2>
+              {regError && (
+                <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", color: "#dc2626", borderRadius: "8px", padding: "9px 13px", marginBottom: "10px", fontSize: "13px", fontFamily: font, width: "100%", boxSizing: "border-box" }}>
+                  {regError}
+                </div>
+              )}
+              <form onSubmit={handleRegister} style={{ width: "100%" }}>
+                <InputWrapper icon={FiUser}>
+                  <input style={inputStyle} type="text" placeholder="Name"
+                    value={regForm.name} onChange={(e) => setRegForm({ ...regForm, name: e.target.value })} required
+                    onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
+                    onBlur={(e) => e.target.style.borderColor = "transparent"}
+                  />
+                </InputWrapper>
+                <InputWrapper icon={FiMail}>
+                  <input style={inputStyle} type="email" placeholder="Email address"
+                    value={regForm.email} onChange={(e) => setRegForm({ ...regForm, email: e.target.value })} required
+                    onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
+                    onBlur={(e) => e.target.style.borderColor = "transparent"}
+                  />
+                </InputWrapper>
+                <InputWrapper icon={FiPhone}>
+                  <input style={inputStyle} type="tel" placeholder="Phone number"
+                    value={regForm.phone} onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
+                    maxLength={10} required
+                    onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
+                    onBlur={(e) => e.target.style.borderColor = "transparent"}
+                  />
+                </InputWrapper>
+                <InputWrapper icon={FiLock}>
+                  <input style={inputStyle} type={showPass ? "text" : "password"} placeholder="Password"
+                    value={regForm.password} onChange={(e) => setRegForm({ ...regForm, password: e.target.value })} required
+                    onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
+                    onBlur={(e) => e.target.style.borderColor = "transparent"}
+                  />
+                  <button type="button" onClick={() => setShowPass(!showPass)} style={eyeBtn}>
+                    {showPass ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </InputWrapper>
+                <InputWrapper icon={FiLock}>
+                  <input style={inputStyle} type={showConfirm ? "text" : "password"} placeholder="Confirm password"
+                    value={regForm.confirmPassword} onChange={(e) => setRegForm({ ...regForm, confirmPassword: e.target.value })} required
+                    onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
+                    onBlur={(e) => e.target.style.borderColor = "transparent"}
+                  />
+                  <button type="button" onClick={() => setShowConfirm(!showConfirm)} style={eyeBtn}>
+                    {showConfirm ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </InputWrapper>
+                <button type="submit" disabled={regLoading} style={submitBtn}
+                  onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
+                  onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
+                  {regLoading
+                    ? <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}><Spinner size="sm" color="white" /> Registering...</span>
+                    : "Register"}
+                </button>
+              </form>
+            </div>
+
+            <div style={greenPanel}>
+              <SpiceDecor />
+              <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
+                <h2 style={{ fontSize: "26px", fontWeight: 800, color: "#1a2e1a", fontFamily: font, lineHeight: 1.2, marginBottom: "14px" }}>
+                  Welcome<br />Back
+                </h2>
+                <p style={{ fontSize: "13px", color: "#4b5563", fontFamily: font, lineHeight: 1.7, marginBottom: "28px" }}>
+                  Thank you for shopping with us,<br />please login your account :)
+                </p>
+                <button style={outlineBtn} onClick={() => { setMode("login"); setRegError(""); }}>
+                  Sign In
+                </button>
+              </div>
+            </div>
+          </>)}
+
+          {/* ══ FORGOT PASSWORD MODE ══ */}
+          {mode === "forgotPassword" && (
+            <div style={{
+              flex: 1, background: "#fff", borderRadius: "16px",
+              padding: "48px 44px",
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            }}>
+              {fpStep < 4 && (
+                <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
+                  {[1, 2, 3].map((s) => (
+                    <div key={s} style={{
+                      width: "10px", height: "10px", borderRadius: "50%",
+                      background: fpStep > s ? "#6abf5e" : fpStep === s ? "#dc2626" : "#e5e7eb",
+                      transition: "background 0.3s",
+                    }} />
+                  ))}
+                </div>
+              )}
+
+              <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#1f2937", fontFamily: font, marginBottom: "6px" }}>
+                {fpTitles[fpStep]}
+              </h2>
+              <p style={{ fontSize: "13px", color: "#6b7280", fontFamily: font, marginBottom: "20px", textAlign: "center" }}>
+                {fpSubtitles[fpStep]}
+              </p>
+
+              {fpStep === 1 && (
+                <>
+                  <InputWrapper icon={FiMail}>
+                    <input style={inputStyle} type="email" placeholder="you@example.com"
+                      value={fpEmail} onChange={(e) => setFpEmail(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleFpSendOtp()}
+                      onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
+                      onBlur={(e) => e.target.style.borderColor = "transparent"}
+                    />
+                  </InputWrapper>
+                  <button onClick={handleFpSendOtp} disabled={fpLoading}
+                    style={{ ...submitBtn, marginTop: "4px" }}
+                    onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
+                    onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
+                    {fpLoading ? "Sending OTP..." : "Send OTP →"}
+                  </button>
+                  <span onClick={() => { setMode("login"); }}
+                    style={{ marginTop: "16px", fontSize: "12px", color: "#6abf5e", cursor: "pointer", fontFamily: font }}>
+                    ← Back to Sign In
+                  </span>
+                </>
+              )}
+
+              {fpStep === 2 && (
+                <>
+                  <input style={{ ...inputStyle, paddingLeft: "16px", letterSpacing: "0.25em", fontSize: "22px", textAlign: "center", width: "100%", marginBottom: "12px" }}
+                    type="text" placeholder="• • • • • •"
+                    value={fpOtp} maxLength={6}
+                    onChange={(e) => setFpOtp(e.target.value.replace(/\D/g, ""))}
+                    onKeyDown={(e) => e.key === "Enter" && handleFpVerifyOtp()}
+                    onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
+                    onBlur={(e) => e.target.style.borderColor = "transparent"}
+                  />
+                  <button onClick={handleFpVerifyOtp} disabled={fpLoading} style={submitBtn}
+                    onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
+                    onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
+                    {fpLoading ? "Verifying..." : "Verify OTP →"}
+                  </button>
+                  <span onClick={() => { setFpStep(1); setFpOtp(""); }}
+                    style={{ marginTop: "14px", fontSize: "12px", color: "#6abf5e", cursor: "pointer", fontFamily: font }}>
+                    ← Resend OTP
+                  </span>
+                </>
+              )}
+
+              {fpStep === 3 && (
+                <>
+                  <InputWrapper icon={FiLock}>
+                    <input style={inputStyle} type="password" placeholder="New password (min. 8 chars)"
+                      value={fpNewPassword} onChange={(e) => setFpNewPassword(e.target.value)}
+                      onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
+                      onBlur={(e) => e.target.style.borderColor = "transparent"}
+                    />
+                  </InputWrapper>
+                  <InputWrapper icon={FiLock}>
+                    <input style={inputStyle} type="password" placeholder="Confirm new password"
+                      value={fpConfirmPassword} onChange={(e) => setFpConfirmPassword(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleFpReset()}
+                      onFocus={(e) => e.target.style.borderColor = "#6abf5e"}
+                      onBlur={(e) => e.target.style.borderColor = "transparent"}
+                    />
+                  </InputWrapper>
+                  <button onClick={handleFpReset} disabled={fpLoading} style={submitBtn}
+                    onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
+                    onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
+                    {fpLoading ? "Resetting..." : "Reset Password →"}
+                  </button>
+                </>
+              )}
+
+              {fpStep === 4 && (
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: "52px", marginBottom: "16px" }}>✅</div>
+                  <p style={{ fontSize: "14px", color: "#374151", fontFamily: font, marginBottom: "24px" }}>
+                    You can now sign in with your new password.
+                  </p>
+                  <button onClick={resetFpAndGoLogin}
+                    style={{ ...submitBtn, width: "auto", padding: "11px 36px" }}
+                    onMouseOver={(e) => e.currentTarget.style.background = "#52a847"}
+                    onMouseOut={(e) => e.currentTarget.style.background = "#6abf5e"}>
+                    Go to Sign In →
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
