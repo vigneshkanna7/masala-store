@@ -36,19 +36,16 @@ const Navbar = () => {
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
-    const update = () => {
-      if (isLoggedIn) {
-        api.get("/cart")
-          .then((res) => {
-            const count = (res.data || []).reduce((s, i) => s + (i.quantity || 1), 0);
-            setCartCount(count);
-          })
-          .catch(() => setCartCount(0));
-      } else {
-        const cart = JSON.parse(localStorage.getItem("guestCart")) || [];
-        setCartCount(cart.reduce((s, i) => s + (i.quantity || 1), 0));
-      }
-    };
+const update = () => {
+  if (isLoggedIn) {
+    api.get("/cart")
+      .then((res) => setCartCount((res.data || []).length))  // unique products
+      .catch(() => setCartCount(0));
+  } else {
+    const cart = JSON.parse(localStorage.getItem("guestCart")) || [];
+    setCartCount(cart.length);  // unique products
+  }
+};
     update();
     window.addEventListener("storage", update);
     window.addEventListener("cartUpdated", update);
