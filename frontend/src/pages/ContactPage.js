@@ -54,38 +54,14 @@ const FieldError = ({ msg }) =>
     </p>
   ) : null;
 
-/* ─── Toast component ─── */
-const Toast = ({ message, type, visible }) => (
-  <div
-    style={{
-      position: "fixed",
-      bottom: "32px",
-      right: "32px",
-      zIndex: 9999,
-      display: "flex",
-      alignItems: "center",
-      gap: "10px",
-      padding: "14px 20px",
-      borderRadius: "10px",
-      background: type === "success" ? "#f0fdf4" : "#fef2f2",
-      border: `1px solid ${type === "success" ? "#bbf7d0" : "#fecaca"}`,
-      boxShadow: "0 4px 20px rgba(0,0,0,0.10)",
-      fontFamily: font,
-      fontSize: "14px",
-      color: type === "success" ? "#15803d" : red,
-      fontWeight: 500,
-      minWidth: "280px",
-      maxWidth: "380px",
-      transition: "opacity 0.3s, transform 0.3s",
-      opacity: visible ? 1 : 0,
-      transform: visible ? "translateY(0)" : "translateY(16px)",
-      pointerEvents: "none",
-    }}
-  >
-    <span style={{ fontSize: "18px" }}>{type === "success" ? "✓" : "⚠"}</span>
-    {message}
-  </div>
-);
+/* ─── Toast component (matches ForgotPassword style) ─── */
+const Toast = ({ message, type, visible }) =>
+  visible ? (
+    <div className={`toast ${type === "success" ? "toast-success" : "toast-error"}`}>
+      <span style={{ fontSize: "18px" }}>{type === "success" ? "✅" : "❌"}</span>
+      {message}
+    </div>
+  ) : null;
 
 const ContactPage = () => {
   const [form, setForm] = useState({
@@ -154,6 +130,27 @@ const ContactPage = () => {
 
   return (
     <div style={{ background: "#fff", fontFamily: font }}>
+
+      {/* ── Toast styles ── */}
+      <style>{`
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateX(60px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        .toast {
+          position: fixed; top: 28px; right: 28px; z-index: 9999;
+          min-width: 280px; max-width: 400px; padding: 16px 20px;
+          border-radius: 10px; font-family: 'Poppins', sans-serif;
+          font-size: 14px; font-weight: 500; display: flex;
+          align-items: center; gap: 10px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.12); animation: slideIn 0.3s ease;
+        }
+        .toast-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .toast-error   { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+        @media (max-width: 640px) {
+          .contact-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
 
       {/* ── Main Content ── */}
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 48px" }}>
@@ -265,8 +262,8 @@ const ContactPage = () => {
               cursor: loading ? "not-allowed" : "pointer",
               transition: "background 0.2s",
             }}
-            onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = red; }}
-            onMouseLeave={(e) => { if (!loading) e.currentTarget.style.background = "#1f2937"; }}
+            onMouseOver={(e) => (e.target.style.background = "#b91c1c")}
+            onMouseOut={(e) => (e.target.style.background = "#dc2626")}
           >
             {loading ? "Sending..." : "Send"}
           </button>
@@ -277,12 +274,6 @@ const ContactPage = () => {
       {/* ── Toast ── */}
       <Toast message={toast.message} type={toast.type} visible={toast.visible} />
 
-      {/* Responsive styles */}
-      <style>{`
-        @media (max-width: 640px) {
-          .contact-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </div>
   );
 };

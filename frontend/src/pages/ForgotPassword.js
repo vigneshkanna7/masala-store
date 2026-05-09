@@ -107,7 +107,7 @@ const ForgotPassword = () => {
 
   const stepTitles    = { 1: "Forgot Password", 2: "Enter OTP", 3: "New Password", 4: "All Done!" };
   const stepSubtitles = {
-    1: "Enter your email and we'll send you an OTP.",
+    1: "Enter your Registered email",
     2: `We sent a 6-digit OTP to ${email}`,
     3: "Choose a strong new password.",
     4: "Your password has been reset successfully!",
@@ -179,8 +179,8 @@ const ForgotPassword = () => {
                 onKeyDown={(e) => e.key === "Enter" && handleSendOtp()}
               />
               <button style={btnStyle} onClick={handleSendOtp} disabled={loading}
-                onMouseOver={(e) => e.target.style.background = "#dc2626"}
-                onMouseOut={(e) => e.target.style.background = "#1f2937"}>
+            onMouseOver={(e) => (e.target.style.background = "#b91c1c")}
+            onMouseOut={(e) => (e.target.style.background = "#dc2626")}>
                 {loading ? "Sending OTP..." : "Send OTP →"}
               </button>
               <p style={{ textAlign: "center", marginTop: "16px", fontSize: "13px", color: "#6b7280", fontFamily: font }}>
@@ -206,8 +206,8 @@ const ForgotPassword = () => {
                 onKeyDown={(e) => e.key === "Enter" && handleVerifyOtp()}
               />
               <button style={btnStyle} onClick={handleVerifyOtp} disabled={loading}
-                onMouseOver={(e) => e.target.style.background = "#dc2626"}
-                onMouseOut={(e) => e.target.style.background = "#1f2937"}>
+            onMouseOver={(e) => (e.target.style.background = "#b91c1c")}
+            onMouseOut={(e) => (e.target.style.background = "#dc2626")}>
                 {loading ? "Verifying..." : "Verify OTP →"}
               </button>
               <p onClick={() => { setStep(1); setOtp(""); }}
@@ -234,8 +234,8 @@ const ForgotPassword = () => {
                 onKeyDown={(e) => e.key === "Enter" && handleResetPassword()}
               />
               <button style={btnStyle} onClick={handleResetPassword} disabled={loading}
-                onMouseOver={(e) => e.target.style.background = "#dc2626"}
-                onMouseOut={(e) => e.target.style.background = "#1f2937"}>
+            onMouseOver={(e) => (e.target.style.background = "#b91c1c")}
+            onMouseOut={(e) => (e.target.style.background = "#dc2626")}>
                 {loading ? "Resetting..." : "Reset Password →"}
               </button>
             </>
@@ -244,13 +244,12 @@ const ForgotPassword = () => {
           {/* ── Step 4: Success ── */}
           {step === 4 && (
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "56px", marginBottom: "16px" }}>✅</div>
               <p style={{ fontSize: "14px", color: "#374151", fontFamily: font, marginBottom: "24px" }}>
                 You can now sign in with your new password.
               </p>
               <button style={btnStyle} onClick={() => navigate("/")}
-                onMouseOver={(e) => e.target.style.background = "#dc2626"}
-                onMouseOut={(e) => e.target.style.background = "#1f2937"}>
+            onMouseOver={(e) => (e.target.style.background = "#b91c1c")}
+            onMouseOut={(e) => (e.target.style.background = "#dc2626")}>
                 Go to Login →
               </button>
             </div>

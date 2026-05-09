@@ -528,8 +528,8 @@ Ordering as <strong>{localStorage.getItem("userName")}</strong>
                       fontFamily: font, cursor: loading ? "not-allowed" : "pointer",
                       transition: "background 0.2s",
                     }}
-                    onMouseOver={(e) => { if (!loading) e.target.style.background = "#dc2626"; }}
-                    onMouseOut={(e) => { if (!loading) e.target.style.background = "#1f2937"; }}
+                        onMouseOver={(e) => (e.target.style.background = "#b91c1c")}
+                        onMouseOut={(e) => (e.target.style.background = "#dc2626")}
                   >
                     {loading ? (
                       <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
