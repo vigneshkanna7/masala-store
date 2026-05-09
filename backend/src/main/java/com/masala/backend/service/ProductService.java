@@ -33,6 +33,7 @@ public class ProductService {
         product.setImageUrl(updated.getImageUrl());
         product.setStock(updated.getStock());
         product.setCategory(updated.getCategory());
+        product.setIngredients(updated.getIngredients());
         return productRepository.save(product);
     }
 
