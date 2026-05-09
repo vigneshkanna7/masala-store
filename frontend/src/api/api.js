@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  baseURL: "https://masala-store-production-911e.up.railway.app/api",
 });
 
 api.interceptors.request.use((config) => {
