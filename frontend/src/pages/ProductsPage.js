@@ -89,6 +89,9 @@ const ProductsPage = () => {
         }
         localStorage.setItem("guestCart", JSON.stringify(cart));
         window.dispatchEvent(new Event("cartUpdated"));
+        window.dispatchEvent(new CustomEvent("showCartDrawer", {
+  detail: { name: product.name, price: product.price, imageUrl: product.imageUrl, weight: "250g" }
+}));
       } else {
         // ── Logged-in: save to DB ──
         setLoadingMap((prev) => ({ ...prev, [product.id]: true }));
@@ -96,6 +99,9 @@ const ProductsPage = () => {
           await api.post("/cart/add", { productId: product.id, quantity: 1, weight: "250g" });
 
           window.dispatchEvent(new Event("cartUpdated"));
+          window.dispatchEvent(new CustomEvent("showCartDrawer", {
+  detail: { name: product.name, price: product.price, imageUrl: product.imageUrl, weight: "250g" }
+}));
 
         } catch (err) {
           console.error("Failed to add to cart:", err);
