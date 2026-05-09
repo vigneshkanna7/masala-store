@@ -523,8 +523,8 @@ const CheckoutPage = () => {
                       cursor: loading ? "not-allowed" : "pointer",
                       transition: "background 0.2s",
                     }}
-                    onMouseOver={(e) => { if (!loading) e.target.style.background = "#b91c1c"; }}
-                    onMouseOut={(e) => { if (!loading) e.target.style.background = "#dc2626"; }}
+onMouseOver={(e) => { if (!loading) e.currentTarget.style.background = "#b91c1c"; }}
+onMouseOut={(e) => { if (!loading) e.currentTarget.style.background = "#dc2626"; }}
                   >
                     {loading ? (
                       <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
