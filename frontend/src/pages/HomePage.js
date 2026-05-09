@@ -86,6 +86,7 @@ const HomePage = () => {
       window.dispatchEvent(new CustomEvent("showCartDrawer", {
   detail: { name: product.name, price: product.price, imageUrl: product.imageUrl, weight: "250g" }
 }));
+console.log("imageUrl sent to drawer:", product.imageUrl);
     } else {
       setLoadingMap((prev) => ({ ...prev, [product.id]: true }));
       try {
@@ -97,6 +98,7 @@ const HomePage = () => {
         window.dispatchEvent(new CustomEvent("showCartDrawer", {
   detail: { name: product.name, price: product.price, imageUrl: product.imageUrl, weight: "250g" }
 }));
+console.log("imageUrl sent to drawer:", product.imageUrl);
 
       } catch (err) {
         console.error("Failed to add to cart:", err);
