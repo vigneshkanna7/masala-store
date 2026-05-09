@@ -15,7 +15,6 @@ const green = "#6abf5e";
 const dark = "#1f2937";
 const red = "#dc2626";
 
-/* ── Static objects moved outside component to avoid recreation on every render ── */
 const statusColors = {
   PENDING:   { bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
   CONFIRMED: { bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
@@ -30,9 +29,9 @@ const formFields = [
   { key: 'stock',       label: 'Stock Quantity',  type: 'number' },
   { key: 'imageUrl',    label: 'Image URL',       type: 'text'   },
   { key: 'description', label: 'Description',     type: 'text'   },
+  { key: 'ingredients', label: 'Ingredients',     type: 'text'   },
 ];
 
-/* ─── Spice decorative SVG ─── */
 const SpiceDecor = () => (
   <svg
     width="100%" height="100%"
@@ -59,7 +58,6 @@ const SpiceDecor = () => (
   </svg>
 );
 
-/* ─── Pill badge ─── */
 const Badge = ({ label, bg, color, border }) => (
   <span style={{
     background: bg, color, border: `1px solid ${border}`,
@@ -70,7 +68,6 @@ const Badge = ({ label, bg, color, border }) => (
   </span>
 );
 
-/* ─── Pill input style ─── */
 const pillInput = {
   width: "100%",
   padding: "10px 18px",
@@ -91,7 +88,7 @@ function AdminDashboard() {
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
   const [productForm, setProductForm] = useState({
-    name: '', description: '', price: '', stock: '', category: '', imageUrl: ''
+    name: '', description: '', price: '', stock: '', category: '', imageUrl: '', ingredients: ''
   });
   const [editingProduct, setEditingProduct] = useState(null);
   const [message, setMessage] = useState({ text: '', type: '' });
@@ -130,13 +127,11 @@ function AdminDashboard() {
   };
 
   const saveProduct = async () => {
-    // ── Input validation before saving ──
     const { name, price, stock, category } = productForm;
     if (!name.trim() || !price || !stock || !category.trim()) {
       showMessage('❌ Please fill all required fields.', 'error');
       return;
     }
-
     try {
       if (editingProduct) {
         await api.put(`/admin/products/${editingProduct.id}`, productForm);
@@ -145,7 +140,7 @@ function AdminDashboard() {
         await api.post('/admin/products', productForm);
         showMessage('✅ Product added successfully!');
       }
-      setProductForm({ name: '', description: '', price: '', stock: '', category: '', imageUrl: '' });
+      setProductForm({ name: '', description: '', price: '', stock: '', category: '', imageUrl: '', ingredients: '' });
       setEditingProduct(null);
       fetchProducts();
     } catch { showMessage('❌ Failed to save product!', 'error'); }
@@ -156,7 +151,8 @@ function AdminDashboard() {
     setProductForm({
       name: product.name, description: product.description,
       price: product.price, stock: product.stock,
-      category: product.category || '', imageUrl: product.imageUrl || ''
+      category: product.category || '', imageUrl: product.imageUrl || '',
+      ingredients: product.ingredients || ''
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -187,7 +183,7 @@ function AdminDashboard() {
   return (
     <div style={{ fontFamily: font, minHeight: '100vh', background: '#f3f4f6' }}>
 
-      {/* ── Navbar ── */}
+      {/* Navbar */}
       <nav style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         background: red, padding: '0 40px', height: '72px',
@@ -227,7 +223,6 @@ function AdminDashboard() {
               {adminName}
             </span>
           </div>
-
           <button
             onClick={handleLogout}
             style={{
@@ -249,7 +244,7 @@ function AdminDashboard() {
         </div>
       </nav>
 
-      {/* ── Tabs ── */}
+      {/* Tabs */}
       <div style={{
         background: '#fff', borderBottom: '1px solid #e5e7eb',
         padding: '0 40px', display: 'flex', gap: '4px',
@@ -281,7 +276,7 @@ function AdminDashboard() {
         ))}
       </div>
 
-      {/* ── Toast ── */}
+      {/* Toast */}
       {message.text && (
         <div style={{
           margin: '16px 40px 0', padding: '12px 18px', borderRadius: '50px',
@@ -296,7 +291,7 @@ function AdminDashboard() {
 
       <div style={{ padding: '32px 40px' }}>
 
-        {/* ══ PRODUCTS TAB ══ */}
+        {/* PRODUCTS TAB */}
         {activeTab === 'products' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
@@ -354,7 +349,7 @@ function AdminDashboard() {
                   <button
                     onClick={() => {
                       setEditingProduct(null);
-                      setProductForm({ name: '', description: '', price: '', stock: '', category: '', imageUrl: '' });
+                      setProductForm({ name: '', description: '', price: '', stock: '', category: '', imageUrl: '', ingredients: '' });
                     }}
                     style={{
                       padding: '11px 24px', background: 'transparent', color: dark,
@@ -371,7 +366,7 @@ function AdminDashboard() {
               </div>
             </div>
 
-            {/* Products Table Card */}
+            {/* Products Table */}
             <div style={{
               background: '#fff', borderRadius: '16px',
               padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
@@ -475,7 +470,7 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* ══ ORDERS TAB ══ */}
+        {/* ORDERS TAB */}
         {activeTab === 'orders' && (
           <div style={{
             background: '#fff', borderRadius: '16px',
@@ -554,7 +549,7 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* ══ USERS TAB ══ */}
+        {/* USERS TAB */}
         {activeTab === 'users' && (
           <div style={{
             background: '#fff', borderRadius: '16px',

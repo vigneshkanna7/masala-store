@@ -267,7 +267,7 @@ const ProductDetailModal = ({ productId, onClose }) => {
                   color: "#6b7280", textTransform: "uppercase",
                   letterSpacing: "0.06em", margin: "0 0 6px",
                 }}>
-                  Ingredients - chilli, turmeric and spices
+                  Ingredients
                 </p>
                 <p style={{
                   fontFamily: font, fontSize: "14px", color: "#374151",
