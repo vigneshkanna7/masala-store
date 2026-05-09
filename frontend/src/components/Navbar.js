@@ -40,14 +40,13 @@ const Navbar = () => {
   if (isLoggedIn) {
     api.get("/cart")
       .then((res) => {
-        const count = (res.data || []).reduce((s, i) => s + (i.quantity || 1), 0);
+    const count = (res.data || []).length;
         setCartCount(count);
       })
       .catch(() => setCartCount(0));
   } else {
     const cart = JSON.parse(localStorage.getItem("guestCart")) || [];
-    setCartCount(cart.reduce((s, i) => s + (i.quantity || 1), 0));
-  }
+    setCartCount(cart.length);  }
 };
     update();
     window.addEventListener("storage", update);
