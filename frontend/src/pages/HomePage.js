@@ -83,8 +83,9 @@ const HomePage = () => {
       }
       localStorage.setItem("guestCart", JSON.stringify(cart));
       window.dispatchEvent(new Event("cartUpdated"));
-      setAddedMap((p) => ({ ...p, [product.id]: true }));
-      setTimeout(() => setAddedMap((p) => ({ ...p, [product.id]: false })), 1600);
+      window.dispatchEvent(new CustomEvent("showCartDrawer", {
+  detail: { name: product.name, price: product.price, imageUrl: product.imageUrl, weight: "250g" }
+}));
     } else {
       setLoadingMap((prev) => ({ ...prev, [product.id]: true }));
       try {
@@ -93,8 +94,10 @@ const HomePage = () => {
           { productId: product.id, quantity: 1, weight: "250g" }
         );
         window.dispatchEvent(new Event("cartUpdated"));
-        setAddedMap((p) => ({ ...p, [product.id]: true }));
-        setTimeout(() => setAddedMap((p) => ({ ...p, [product.id]: false })), 1600);
+        window.dispatchEvent(new CustomEvent("showCartDrawer", {
+  detail: { name: product.name, price: product.price, imageUrl: product.imageUrl, weight: "250g" }
+}));
+
       } catch (err) {
         console.error("Failed to add to cart:", err);
         alert("Failed to add to cart. Please try again.");
@@ -375,8 +378,8 @@ const ProductCard = ({ product, added, isLoading, onCardClick, onAddToCart }) =>
             transition: "background 0.2s", whiteSpace: "nowrap",
           }}
         >
-          {getButtonLabel()}
-        </button>
+{isLoading ? "Adding..." : "ADD TO CART"}      
+  </button>
       </div>
     </div>
   );

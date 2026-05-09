@@ -16,6 +16,7 @@ import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import VideosPage from "./pages/VideosPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
+import CartDrawer from "./components/CartDrawer";
 
 
 const ProtectedRoute = ({ children }) => {
@@ -41,7 +42,7 @@ const isAdminPage = useMemo(() => location.pathname.startsWith('/admin'), [locat
   return (
     <>
       {!isAdminPage && <Navbar />}
-
+      {!isAdminPage && <CartDrawer />}
       <Routes>
         <Route path="/" element={<Layout><HomePage /></Layout>} />
 

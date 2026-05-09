@@ -89,12 +89,6 @@ const ProductsPage = () => {
         }
         localStorage.setItem("guestCart", JSON.stringify(cart));
         window.dispatchEvent(new Event("cartUpdated"));
-
-        setAddedMap((prev) => ({ ...prev, [product.id]: true }));
-        setTimeout(() => {
-          if (mountedRef.current)
-            setAddedMap((prev) => ({ ...prev, [product.id]: false }));
-        }, 1500);
       } else {
         // ── Logged-in: save to DB ──
         setLoadingMap((prev) => ({ ...prev, [product.id]: true }));
@@ -103,13 +97,6 @@ const ProductsPage = () => {
 
           window.dispatchEvent(new Event("cartUpdated"));
 
-          if (mountedRef.current) {
-            setAddedMap((prev) => ({ ...prev, [product.id]: true }));
-            setTimeout(() => {
-              if (mountedRef.current)
-                setAddedMap((prev) => ({ ...prev, [product.id]: false }));
-            }, 1500);
-          }
         } catch (err) {
           console.error("Failed to add to cart:", err);
           alert("Failed to add to cart. Please try again.");
@@ -227,11 +214,10 @@ const ProductCard = React.memo(({ product, added, isLoading, onCardClick, onAddT
   };
 
   const getButtonBg = () => {
-    if (product.stock === 0) return "#e5e7eb";
-    if (isLoading) return "#f97316";
-    if (added) return "#16a34a";
-    return red;
-  };
+  if (product.stock === 0) return "#e5e7eb";
+  if (isLoading) return "#f97316";
+  return red;
+};
 
   return (
     <>
@@ -326,7 +312,7 @@ const ProductCard = React.memo(({ product, added, isLoading, onCardClick, onAddT
               transition: "background 0.2s", whiteSpace: "nowrap",
             }}
           >
-            {getButtonLabel()}
+{isLoading ? "Adding..." : "ADD TO CART"}
           </button>
         </div>
       </div>
