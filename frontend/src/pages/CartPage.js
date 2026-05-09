@@ -180,8 +180,7 @@ const CartPage = () => {
   const getTotal = () =>
     cartItems.reduce((sum, item) => sum + (item.price || 0), 0).toFixed(2);
 
-const itemCount = cartItems.length;
-  if (loading)
+const itemCount = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);  if (loading)
     return (
       <div style={styles.page}>
         <div style={styles.container}>

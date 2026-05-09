@@ -36,14 +36,17 @@ const Navbar = () => {
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
-const update = () => {
+    const update = () => {
   if (isLoggedIn) {
     api.get("/cart")
-      .then((res) => setCartCount((res.data || []).length))  // unique products
+      .then((res) => {
+        const count = (res.data || []).reduce((s, i) => s + (i.quantity || 1), 0);
+        setCartCount(count);
+      })
       .catch(() => setCartCount(0));
   } else {
     const cart = JSON.parse(localStorage.getItem("guestCart")) || [];
-    setCartCount(cart.length);  // unique products
+    setCartCount(cart.reduce((s, i) => s + (i.quantity || 1), 0));
   }
 };
     update();
