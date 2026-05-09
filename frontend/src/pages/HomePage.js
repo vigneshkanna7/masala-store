@@ -247,7 +247,7 @@ const HomePage = () => {
                 added={!!addedMap[product.id]}
                 isLoading={!!loadingMap[product.id]}
                 onCardClick={() => {
-                  navigate(`/products/${product.id}`);
+                navigate("/products");
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
                 onAddToCart={(e) => handleAddToCart(e, product)}
