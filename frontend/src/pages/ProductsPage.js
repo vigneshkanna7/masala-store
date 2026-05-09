@@ -84,7 +84,8 @@ const ProductsPage = () => {
             productName: product.name,
             price: product.price,
             quantity: 1,
-            weight: "250g", // validated server-side
+            weight: "250g",
+            imageUrl: product.imageUrl,  // ← add this
           });
         }
         localStorage.setItem("guestCart", JSON.stringify(cart));
