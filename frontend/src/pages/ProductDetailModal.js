@@ -259,6 +259,25 @@ const ProductDetailModal = ({ productId, onClose }) => {
                 </div>
               )}
 
+            {/* Ingredients */}
+            {product.ingredients && (
+              <div>
+                <p style={{
+                  fontFamily: font, fontWeight: 600, fontSize: "13px",
+                  color: "#6b7280", textTransform: "uppercase",
+                  letterSpacing: "0.06em", margin: "0 0 6px",
+                }}>
+                  Ingredients - chilli, turmeric and spices
+                </p>
+                <p style={{
+                  fontFamily: font, fontSize: "14px", color: "#374151",
+                  lineHeight: 1.75, margin: 0,
+                }}>
+                  {product.ingredients}
+                </p>
+              </div>
+            )}
+
               {/* Stock info */}
               <div style={{
                 display: "inline-flex", alignItems: "center", gap: "6px",
@@ -279,8 +298,9 @@ const ProductDetailModal = ({ productId, onClose }) => {
                   {product.stock > 0 ? `${product.stock} in stock` : "Out of Stock"}
                 </span>
               </div>
-
+              
               {/* Quantity selector */}
+              {/*
               {product.stock > 0 && (
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                   <span style={{ fontFamily: font, fontSize: "13px", fontWeight: 600, color: "#374151" }}>
@@ -320,8 +340,10 @@ const ProductDetailModal = ({ productId, onClose }) => {
                   </div>
                 </div>
               )}
-
+                */}
+               
               {/* Add to Cart button */}
+              {/*
               <button
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
@@ -341,10 +363,11 @@ const ProductDetailModal = ({ productId, onClose }) => {
               >
                 {product.stock === 0 ? "Out of Stock" : added ? "✓ Added to Cart" : "ADD TO CART"}
               </button>
-
+              */}
             </div>
           </div>
         )}
+        
 
         {/* Not found */}
         {!loading && !product && (
