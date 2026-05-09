@@ -6,7 +6,9 @@ import com.masala.backend.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -14,18 +16,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CartController {
 
-	private final CartService cartService;
+    private final CartService cartService;
+
     @PostMapping("/add")
     public ResponseEntity<CartItem> addToCart(
-            @AuthenticationPrincipal String email,
+            @AuthenticationPrincipal UserDetails userDetails,  // ← changed
             @RequestBody CartRequest request) {
-        return ResponseEntity.ok(cartService.addToCart(email, request));
+        return ResponseEntity.ok(cartService.addToCart(userDetails.getUsername(), request));  // ← .getUsername()
     }
 
     @GetMapping
     public ResponseEntity<List<CartItem>> getCart(
-            @AuthenticationPrincipal String email) {
-        return ResponseEntity.ok(cartService.getUserCart(email));
+            @AuthenticationPrincipal UserDetails userDetails) {  // ← changed
+        return ResponseEntity.ok(cartService.getUserCart(userDetails.getUsername()));  // ← .getUsername()
     }
 
     @DeleteMapping("/remove/{id}")
@@ -33,6 +36,7 @@ public class CartController {
         cartService.removeFromCart(id);
         return ResponseEntity.ok("Item removed from cart!");
     }
+
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateQuantity(
             @PathVariable Long id,
