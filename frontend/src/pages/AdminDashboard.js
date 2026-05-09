@@ -87,6 +87,8 @@ function AdminDashboard() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
+  const [contacts, setContacts] = useState([]);                // ← NEW
+  const [selectedContact, setSelectedContact] = useState(null); // ← NEW
   const [productForm, setProductForm] = useState({
     name: '', description: '', price: '', stock: '', category: '', imageUrl: '', ingredients: ''
   });
@@ -99,7 +101,7 @@ function AdminDashboard() {
   useEffect(() => {
     const adminToken = localStorage.getItem('adminToken');
     if (!adminToken) { navigate('/admin/login'); return; }
-    fetchProducts(); fetchOrders(); fetchUsers();
+    fetchProducts(); fetchOrders(); fetchUsers(); fetchContacts(); // ← NEW
   }, []);
 
   const showMessage = (text, type = 'success') => {
@@ -117,6 +119,11 @@ function AdminDashboard() {
 
   const fetchUsers = async () => {
     try { const res = await api.get('/admin/users'); setUsers(res.data); } catch {}
+  };
+
+  // ── NEW: fetch contact submissions ──
+  const fetchContacts = async () => {
+    try { const res = await api.get('/contact'); setContacts(res.data); } catch {}
   };
 
   const handleLogout = () => {
@@ -174,10 +181,19 @@ function AdminDashboard() {
     } catch { showMessage('❌ Failed to update order!', 'error'); }
   };
 
+  // ── NEW: format date ──
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+      + ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+  };
+
   const tabs = [
     { key: 'products', label: 'Products', count: products.length },
     { key: 'orders',   label: 'Orders',   count: orders.length   },
     { key: 'users',    label: 'Users',    count: users.length    },
+    { key: 'contacts', label: 'Contacts', count: contacts.length }, // ← NEW
   ];
 
   return (
@@ -252,7 +268,7 @@ function AdminDashboard() {
         {tabs.map(tab => (
           <button
             key={tab.key}
-            onClick={() => { setActiveTab(tab.key); setMessage({ text: '', type: '' }); }}
+            onClick={() => { setActiveTab(tab.key); setMessage({ text: '', type: '' }); setSelectedContact(null); }}
             style={{
               display: 'flex', alignItems: 'center', gap: '8px',
               padding: '16px 20px', background: 'none', border: 'none',
@@ -294,8 +310,6 @@ function AdminDashboard() {
         {/* PRODUCTS TAB */}
         {activeTab === 'products' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-
-            {/* Form Card */}
             <div style={{
               background: '#fff', borderRadius: '16px',
               padding: '32px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
@@ -303,7 +317,6 @@ function AdminDashboard() {
               <h3 style={{ margin: '0 0 24px', fontFamily: font, fontWeight: 800, fontSize: '18px', color: dark }}>
                 {editingProduct ? 'Edit Product' : 'Add New Product'}
               </h3>
-
               <div style={{
                 display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
                 gap: '16px 24px', marginBottom: '24px',
@@ -329,7 +342,6 @@ function AdminDashboard() {
                   </div>
                 ))}
               </div>
-
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button
                   onClick={saveProduct}
@@ -366,7 +378,6 @@ function AdminDashboard() {
               </div>
             </div>
 
-            {/* Products Table */}
             <div style={{
               background: '#fff', borderRadius: '16px',
               padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
@@ -377,7 +388,6 @@ function AdminDashboard() {
                 </h3>
                 <Badge label={`${products.length} items`} bg="#f0fdf4" color={green} border="#bbf7d0" />
               </div>
-
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #f3f4f6' }}>
@@ -482,7 +492,6 @@ function AdminDashboard() {
               </h3>
               <Badge label={`${orders.length} orders`} bg="#f0fdf4" color={green} border="#bbf7d0" />
             </div>
-
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #f3f4f6' }}>
@@ -561,7 +570,6 @@ function AdminDashboard() {
               </h3>
               <Badge label={`${users.length} users`} bg="#f0fdf4" color={green} border="#bbf7d0" />
             </div>
-
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #f3f4f6' }}>
@@ -617,6 +625,220 @@ function AdminDashboard() {
             </table>
           </div>
         )}
+
+        {/* ── CONTACTS TAB (NEW) ── */}
+        {activeTab === 'contacts' && (
+          <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+
+            {/* Contacts Table */}
+            <div style={{
+              flex: 1,
+              background: '#fff', borderRadius: '16px',
+              padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <h3 style={{ margin: 0, fontFamily: font, fontWeight: 800, fontSize: '18px', color: dark }}>
+                  Contact Submissions
+                </h3>
+                <Badge label={`${contacts.length} messages`} bg="#f0fdf4" color={green} border="#bbf7d0" />
+              </div>
+
+              {contacts.length === 0 ? (
+                <div style={{
+                  textAlign: 'center', padding: '48px 0',
+                  color: '#9ca3af', fontFamily: font, fontSize: '14px',
+                }}>
+                  📭 No contact submissions yet.
+                </div>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #f3f4f6' }}>
+                      {['#', 'Name', 'Email', 'Phone', 'Subject', 'Date', 'View'].map(h => (
+                        <th key={h} style={{
+                          padding: '10px 14px', textAlign: 'left', fontFamily: font,
+                          fontSize: '11px', fontWeight: 700, color: '#9ca3af',
+                          textTransform: 'uppercase', letterSpacing: '0.07em',
+                        }}>
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {contacts.map((c) => (
+                      <tr
+                        key={c.id}
+                        style={{
+                          borderBottom: '1px solid #f9fafb',
+                          background: selectedContact?.id === c.id ? '#f0fdf4' : 'transparent',
+                          cursor: 'pointer',
+                        }}
+                        onMouseEnter={e => { if (selectedContact?.id !== c.id) e.currentTarget.style.background = '#f9fafb'; }}
+                        onMouseLeave={e => { if (selectedContact?.id !== c.id) e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <td style={{ padding: '14px', fontFamily: font, fontSize: '13px', color: '#9ca3af', fontWeight: 600 }}>
+                          #{c.id}
+                        </td>
+                        <td style={{ padding: '14px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{
+                              width: '32px', height: '32px', borderRadius: '50%', background: dark,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: '#fff', fontFamily: font, fontWeight: 700, fontSize: '13px', flexShrink: 0,
+                            }}>
+                              {c.name?.charAt(0).toUpperCase()}
+                            </div>
+                            <span style={{ fontFamily: font, fontSize: '14px', fontWeight: 600, color: dark }}>
+                              {c.name}
+                            </span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '14px', fontFamily: font, fontSize: '13px', color: '#6b7280' }}>
+                          {c.email}
+                        </td>
+                        <td style={{ padding: '14px', fontFamily: font, fontSize: '13px', color: '#6b7280' }}>
+                          {c.phone || '—'}
+                        </td>
+                        <td style={{ padding: '14px', fontFamily: font, fontSize: '13px', color: '#374151', fontWeight: 500 }}>
+                          {c.subject || '—'}
+                        </td>
+                        <td style={{ padding: '14px', fontFamily: font, fontSize: '12px', color: '#9ca3af' }}>
+                          {formatDate(c.createdAt)}
+                        </td>
+                        <td style={{ padding: '14px' }}>
+                          <button
+                            onClick={() => setSelectedContact(selectedContact?.id === c.id ? null : c)}
+                            style={{
+                              padding: '6px 18px', background: 'transparent',
+                              color: selectedContact?.id === c.id ? green : dark,
+                              border: `2px solid ${selectedContact?.id === c.id ? green : '#e5e7eb'}`,
+                              borderRadius: '50px', fontFamily: font,
+                              fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                              transition: 'all 0.15s',
+                            }}
+                            onMouseOver={e => { e.currentTarget.style.borderColor = green; e.currentTarget.style.color = green; }}
+                            onMouseOut={e => {
+                              if (selectedContact?.id !== c.id) {
+                                e.currentTarget.style.borderColor = '#e5e7eb';
+                                e.currentTarget.style.color = dark;
+                              }
+                            }}
+                          >
+                            {selectedContact?.id === c.id ? 'Close' : 'View'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Message Detail Panel */}
+            {selectedContact && (
+              <div style={{
+                width: '340px', flexShrink: 0,
+                background: '#fff', borderRadius: '16px',
+                padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                position: 'sticky', top: '20px',
+              }}>
+                {/* Header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <h3 style={{ margin: 0, fontFamily: font, fontWeight: 800, fontSize: '16px', color: dark }}>
+                    Message Details
+                  </h3>
+                  <button
+                    onClick={() => setSelectedContact(null)}
+                    style={{
+                      background: '#f3f4f6', border: 'none', borderRadius: '50%',
+                      width: '28px', height: '28px', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '14px', color: '#6b7280',
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Avatar + Name */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                  <div style={{
+                    width: '48px', height: '48px', borderRadius: '50%', background: dark,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#fff', fontFamily: font, fontWeight: 700, fontSize: '18px', flexShrink: 0,
+                  }}>
+                    {selectedContact.name?.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p style={{ margin: 0, fontFamily: font, fontWeight: 700, fontSize: '15px', color: dark }}>
+                      {selectedContact.name}
+                    </p>
+                    <p style={{ margin: 0, fontFamily: font, fontSize: '12px', color: '#6b7280' }}>
+                      {formatDate(selectedContact.createdAt)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Info rows */}
+                {[
+                  { label: 'Email',   value: selectedContact.email,            icon: '✉️' },
+                  { label: 'Phone',   value: selectedContact.phone || '—',     icon: '📞' },
+                  { label: 'Subject', value: selectedContact.subject || '—',   icon: '📌' },
+                ].map(row => (
+                  <div key={row.label} style={{
+                    display: 'flex', alignItems: 'flex-start', gap: '10px',
+                    padding: '10px 0', borderBottom: '1px solid #f3f4f6',
+                  }}>
+                    <span style={{ fontSize: '14px', marginTop: '1px' }}>{row.icon}</span>
+                    <div>
+                      <p style={{ margin: 0, fontFamily: font, fontSize: '10px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                        {row.label}
+                      </p>
+                      <p style={{ margin: '2px 0 0', fontFamily: font, fontSize: '13px', color: dark, fontWeight: 500, wordBreak: 'break-all' }}>
+                        {row.value}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Message */}
+                <div style={{ marginTop: '16px' }}>
+                  <p style={{ margin: '0 0 8px', fontFamily: font, fontSize: '10px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    💬 Message
+                  </p>
+                  <div style={{
+                    background: '#f9fafb', borderRadius: '10px',
+                    padding: '14px', fontFamily: font,
+                    fontSize: '13px', color: '#374151',
+                    lineHeight: '1.6', whiteSpace: 'pre-wrap',
+                    border: '1px solid #f3f4f6',
+                  }}>
+                    {selectedContact.message}
+                  </div>
+                </div>
+
+                {/* Reply button */}
+                <a
+                  href={`mailto:${selectedContact.email}?subject=Re: ${selectedContact.subject || 'Your Message'}`}
+                  style={{
+                    display: 'block', marginTop: '20px', textAlign: 'center',
+                    padding: '11px 0', background: dark, color: '#fff',
+                    borderRadius: '50px', fontFamily: font,
+                    fontSize: '13px', fontWeight: 700,
+                    textDecoration: 'none', letterSpacing: '0.04em',
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseOver={e => e.currentTarget.style.background = green}
+                  onMouseOut={e => e.currentTarget.style.background = dark}
+                >
+                  ✉️ Reply via Email
+                </a>
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
   );

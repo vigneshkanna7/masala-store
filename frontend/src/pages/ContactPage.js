@@ -1,5 +1,7 @@
 // src/pages/ContactPage.js
 import React, { useState } from "react";
+import api from "../api/api"; // ✅ use axios instance
+
 const font = "'Poppins', sans-serif";
 const red = "#dc2626";
 
@@ -39,23 +41,32 @@ const ContactPage = () => {
   const [form, setForm] = useState({ name: "", email: "", subject: "", phone: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(""); // ✅ error state at top level
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = (e) => {
+  // ✅ Clean handleSubmit using api instance
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    setError("");
+
+    try {
+      await api.post("/contact", form); // ✅ → https://masala-store.onrender.com/api/contact
       setSubmitted(true);
-    }, 1200);
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to send message. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div style={{ background: "#fff", fontFamily: font }}>
 
       {/* ── Main Content ── */}
-<div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 48px" }}>
+      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 48px" }}>
+
         {/* ── Page Title ── */}
         <h1 style={{
           textAlign: "center",
@@ -182,6 +193,13 @@ const ContactPage = () => {
               />
             </div>
 
+            {/* ✅ Error message — shown above Submit button */}
+            {error && (
+              <p style={{ color: red, fontFamily: font, fontSize: "14px", marginBottom: "12px" }}>
+                ⚠ {error}
+              </p>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
@@ -208,8 +226,6 @@ const ContactPage = () => {
           </form>
         )}
       </div>
-
-
 
       {/* Responsive styles */}
       <style>{`
