@@ -364,27 +364,24 @@ function OrdersPage() {
                 </div>
 
                 {/* ── Review Section — only for DELIVERED ── */}
-                {isDelivered && (
-                  <div style={{
-                    marginTop: '14px', paddingTop: '14px',
-                    borderTop: '1px solid #f3f4f6',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  }}>
-                    <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>
-                      {alreadyReviewed ? '⭐ Review submitted — thank you!' : '⭐ How was your order?'}
-                    </p>
-                    {alreadyReviewed ? (
-                      <span className="reviewed-badge">✓ Reviewed</span>
-                    ) : (
-                      <button
-                        className="review-btn"
-                        onClick={() => setReviewOrder(order)}
-                      >
-                        Write a Review
-                      </button>
-                    )}
-                  </div>
-                )}
+               {isDelivered && (
+  <div style={{
+    marginTop: '14px', paddingTop: '14px',
+    borderTop: '1px solid #f3f4f6',
+    display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+  }}>
+    {alreadyReviewed ? (
+      <span className="reviewed-badge">✓ Reviewed</span>
+    ) : (
+      <button
+        className="review-btn"
+        onClick={() => setReviewOrder(order)}
+      >
+        Write a Review
+      </button>
+    )}
+  </div>
+)}
 
               </div>
             );
