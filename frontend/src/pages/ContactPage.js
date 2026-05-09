@@ -247,26 +247,28 @@ const ContactPage = () => {
           </div>
 
           {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              padding: "10px 28px",
-              background: loading ? "#9ca3af" : "#dc2626",
-              color: "#fff",
-              border: "none",
-              borderRadius: "6px",
-              fontFamily: font,
-              fontSize: "14px",
-              fontWeight: 500,
-              cursor: loading ? "not-allowed" : "pointer",
-              transition: "background 0.2s",
-            }}
-            onMouseOver={(e) => { if (!loading) e.target.style.background = "#b91c1c"; }}
-            onMouseOut={(e) => { if (!loading) e.target.style.background = "#dc2626"; }}
-          >
-            {loading ? "Sending..." : "Send"}
-          </button>
+          {/* Submit Button */}
+{/* Submit Button */}
+<button
+  type="submit"
+  disabled={loading}
+  style={{
+    background: loading ? "#9ca3af" : "#dc2626",
+    color: "#fff",
+    border: "none",
+    borderRadius: "30px",
+    padding: "12px 32px",
+    fontSize: "15px",
+    fontWeight: 600,
+    fontFamily: font,
+    cursor: loading ? "not-allowed" : "pointer",
+    transition: "background 0.2s",
+  }}
+  onMouseOver={(e) => { if (!loading) e.target.style.background = "#b91c1c"; }}
+  onMouseOut={(e) => { if (!loading) e.target.style.background = "#dc2626"; }}
+>
+  {loading ? "Sending..." : "Send"}
+</button>
 
         </form>
       </div>
