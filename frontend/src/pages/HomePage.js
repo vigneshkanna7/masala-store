@@ -237,8 +237,8 @@ const HomePage = () => {
       {/* ══════════════════════════════════════
           TRUST STRIP
       ══════════════════════════════════════ */}
-      <div style={{ borderBottom: "1px solid #e5e7eb", padding: "40px 0 40px", background: "#fff", marginTop: "20px" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 48px" }}>
+<div style={{ padding: "40px 0 40px", background: "#fff", marginTop: "20px" }}>
+          <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 48px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
             {[
               { Icon: MdEco, title: "100% Natural Ingredients", desc: "Pure & authentic ingredients, no artificial additives." },
@@ -304,8 +304,8 @@ const HomePage = () => {
           CUSTOMER REVIEWS
       ══════════════════════════════════════ */}
       {(reviewsLoading || reviews.length > 0) && (
-<div style={{ background: "#fff", borderTop: "1px solid #e5e7eb", padding: "52px 0" }}>
-            <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 24px" }}>
+              <div style={{ background: "#fff", padding: "52px 0" }}>
+              <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 24px" }}>
 
             {/* Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
