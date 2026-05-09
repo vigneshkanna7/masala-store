@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: "https://masala-store-production.up.railway.app/api",
+  baseURL: process.env.REACT_APP_API_URL,
 });
 
 api.interceptors.request.use((config) => {
@@ -12,7 +12,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// ADD this block after the request interceptor:
 api.interceptors.response.use(
   (response) => response,
   (error) => {
