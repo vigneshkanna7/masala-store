@@ -248,7 +248,7 @@ const HomePage = () => {
               <div key={title} style={{
                 display: "flex", flexDirection: "column", alignItems: "center",
                 textAlign: "center", padding: "0 28px",
-                borderRight: i < 2 ? "1px solid #e5e7eb" : "none",
+                borderRight: "none",
               }}>
                 <Icon style={{ fontSize: "48px", color: "#374151", marginBottom: "14px" }} />
                 <p style={{ fontFamily: font, fontWeight: 600, fontSize: "15px", color: "#111827", margin: "0 0 6px 0" }}>
