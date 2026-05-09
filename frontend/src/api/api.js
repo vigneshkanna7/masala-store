@@ -5,7 +5,13 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+  // ← Check adminToken first for admin routes, then fall back to user token
+  const adminToken = localStorage.getItem('adminToken');
+  const userToken = localStorage.getItem('token');
+  
+  const isAdminRoute = config.url?.startsWith('/admin');
+  const token = isAdminRoute ? adminToken : (userToken || adminToken);
+  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
