@@ -304,8 +304,8 @@ const HomePage = () => {
           CUSTOMER REVIEWS
       ══════════════════════════════════════ */}
       {(reviewsLoading || reviews.length > 0) && (
-        <div style={{ background: "#fafafa", borderTop: "1px solid #e5e7eb", padding: "52px 0" }}>
-          <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 24px" }}>
+<div style={{ background: "#fff", borderTop: "1px solid #e5e7eb", padding: "52px 0" }}>
+            <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 24px" }}>
 
             {/* Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
@@ -318,17 +318,10 @@ const HomePage = () => {
                   What Our Customers Say
                 </h2>
                 {!reviewsLoading && (
-                  <p style={{ fontFamily: font, fontSize: "13px", color: "#6b7280", margin: 0 }}>
-                    {reviews.length} verified review{reviews.length !== 1 ? "s" : ""}
-                    {reviews.length > 0 && (
-                      <span style={{ marginLeft: "8px", color: "#f59e0b", fontWeight: 600 }}>
-                        {"★".repeat(Math.round(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length))}
-                        {" "}
-                        {(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)} avg
-                      </span>
-                    )}
-                  </p>
-                )}
+                <p style={{ fontFamily: font, fontSize: "13px", color: "#6b7280", margin: 0 }}>
+                  {reviews.length} verified review{reviews.length !== 1 ? "s" : ""}
+                </p>
+              )}
               </div>
               {reviews.length > 3 && (
                 <div style={{ display: "flex", gap: "8px" }}>
