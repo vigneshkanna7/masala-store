@@ -6,7 +6,9 @@ import com.masala.backend.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -16,24 +18,22 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    
- // ✅ Add this new endpoint for guest orders
     @PostMapping("/place/guest")
     public ResponseEntity<Order> placeGuestOrder(@RequestBody OrderRequest request) {
         return ResponseEntity.ok(orderService.placeGuestOrder(request));
     }
-    
+
     @PostMapping("/place")
     public ResponseEntity<Order> placeOrder(
-            @AuthenticationPrincipal String email,
+            @AuthenticationPrincipal UserDetails userDetails,  // ← changed
             @RequestBody OrderRequest request) {
-        return ResponseEntity.ok(orderService.placeOrder(email, request));
+        return ResponseEntity.ok(orderService.placeOrder(userDetails.getUsername(), request));  // ← .getUsername()
     }
 
     @GetMapping("/my")
     public ResponseEntity<List<Order>> getMyOrders(
-            @AuthenticationPrincipal String email) {
-        return ResponseEntity.ok(orderService.getUserOrders(email));
+            @AuthenticationPrincipal UserDetails userDetails) {  // ← changed
+        return ResponseEntity.ok(orderService.getUserOrders(userDetails.getUsername()));  // ← .getUsername()
     }
 
     @GetMapping("/{id}")
