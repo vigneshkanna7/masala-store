@@ -15,7 +15,6 @@ if (typeof document !== "undefined" && !document.getElementById("poppins-font"))
   document.head.appendChild(link);
 }
 
-/* ─── DATA ─── */
 const slides = [
   { id: 1, image: "/banners/banner1.jpg", alt: "Banner 1" },
   { id: 2, image: "/banners/banner2.jpg", alt: "Banner 2" },
@@ -27,6 +26,76 @@ const font = "'Poppins', sans-serif";
 const red = "#dc2626";
 
 /* ═══════════════════════════════════════════
+   STAR DISPLAY
+═══════════════════════════════════════════ */
+const Stars = ({ rating }) => (
+  <div style={{ display: "flex", gap: "2px" }}>
+    {[1, 2, 3, 4, 5].map((s) => (
+      <span key={s} style={{ fontSize: "16px", color: s <= rating ? "#f59e0b" : "#d1d5db" }}>
+        ★
+      </span>
+    ))}
+  </div>
+);
+
+/* ═══════════════════════════════════════════
+   REVIEW CARD
+═══════════════════════════════════════════ */
+const ReviewCard = ({ review }) => (
+  <div style={{
+    flexShrink: 0,
+    width: "300px",
+    border: "1px solid #e5e7eb",
+    borderRadius: "12px",
+    padding: "22px 20px",
+    background: "#fff",
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+    fontFamily: font,
+  }}>
+    {/* Top — name + date */}
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        {/* Avatar circle */}
+        <div style={{
+          width: "38px", height: "38px", borderRadius: "50%",
+          background: red, color: "#fff",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontWeight: 700, fontSize: "15px", flexShrink: 0,
+        }}>
+          {review.reviewerName?.charAt(0).toUpperCase() || "?"}
+        </div>
+        <div>
+          <p style={{ margin: 0, fontWeight: 600, fontSize: "14px", color: "#111827" }}>
+            {review.reviewerName}
+          </p>
+          <p style={{ margin: 0, fontSize: "11px", color: "#9ca3af" }}>
+            {new Date(review.createdAt).toLocaleDateString("en-IN", {
+              day: "numeric", month: "short", year: "numeric",
+            })}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {/* Stars */}
+    <Stars rating={review.rating} />
+
+    {/* Comment */}
+    <p style={{
+      margin: 0, fontSize: "13.5px", color: "#4b5563",
+      lineHeight: 1.65,
+      display: "-webkit-box", WebkitLineClamp: 4,
+      WebkitBoxOrient: "vertical", overflow: "hidden",
+    }}>
+      "{review.comment}"
+    </p>
+  </div>
+);
+
+/* ═══════════════════════════════════════════
    HOME PAGE
 ═══════════════════════════════════════════ */
 const HomePage = () => {
@@ -35,7 +104,10 @@ const HomePage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [addedMap, setAddedMap] = useState({});
   const [loadingMap, setLoadingMap] = useState({});
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
   const scrollRef = useRef(null);
+  const reviewScrollRef = useRef(null);
   const navigate = useNavigate();
 
   const token = localStorage.getItem("token");
@@ -61,12 +133,21 @@ const HomePage = () => {
       .catch(() => setLoading(false));
   }, []);
 
+  /* fetch reviews */
+  useEffect(() => {
+    api
+      .get("/reviews")
+      .then((res) => {
+        setReviews(res.data);
+        setReviewsLoading(false);
+      })
+      .catch(() => setReviewsLoading(false));
+  }, []);
+
   /* add to cart */
   const handleAddToCart = async (e, product) => {
     e.stopPropagation();
-
     if (loadingMap[product.id]) return;
-
     if (isGuest) {
       const cart = JSON.parse(localStorage.getItem("guestCart")) || [];
       const idx = cart.findIndex((i) => i.productId === product.id);
@@ -84,20 +165,16 @@ const HomePage = () => {
       localStorage.setItem("guestCart", JSON.stringify(cart));
       window.dispatchEvent(new Event("cartUpdated"));
       window.dispatchEvent(new CustomEvent("showCartDrawer", {
-  detail: { name: product.name, price: product.price, imageUrl: product.imageUrl, weight: "250g" }
-}));
+        detail: { name: product.name, price: product.price, imageUrl: product.imageUrl, weight: "250g" }
+      }));
     } else {
       setLoadingMap((prev) => ({ ...prev, [product.id]: true }));
       try {
-        await api.post(
-          "/cart/add",
-          { productId: product.id, quantity: 1, weight: "250g" }
-        );
+        await api.post("/cart/add", { productId: product.id, quantity: 1, weight: "250g" });
         window.dispatchEvent(new Event("cartUpdated"));
         window.dispatchEvent(new CustomEvent("showCartDrawer", {
-  detail: { name: product.name, price: product.price, imageUrl: product.imageUrl, weight: "250g" }
-}));
-
+          detail: { name: product.name, price: product.price, imageUrl: product.imageUrl, weight: "250g" }
+        }));
       } catch (err) {
         console.error("Failed to add to cart:", err);
         alert("Failed to add to cart. Please try again.");
@@ -108,10 +185,10 @@ const HomePage = () => {
   };
 
   const scroll = (dir) =>
-    scrollRef.current?.scrollBy({
-      left: dir === "left" ? -320 : 320,
-      behavior: "smooth",
-    });
+    scrollRef.current?.scrollBy({ left: dir === "left" ? -320 : 320, behavior: "smooth" });
+
+  const scrollReviews = (dir) =>
+    reviewScrollRef.current?.scrollBy({ left: dir === "left" ? -320 : 320, behavior: "smooth" });
 
   return (
     <div style={{ minHeight: "100vh", background: "#fff", fontFamily: font, color: "#323141" }}>
@@ -120,41 +197,18 @@ const HomePage = () => {
           HERO SLIDER
       ══════════════════════════════════════ */}
       <div style={{ background: "#fff", padding: "24px 0 0" }}>
-        <div
-          style={{
-            maxWidth: "1400px",
-            margin: "0 auto",
-            padding: "0 48px",
-            position: "relative",
-          }}
-        >
+        <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 48px", position: "relative" }}>
           <div style={{ overflow: "hidden", borderRadius: "10px" }}>
-            <div
-              style={{
-                display: "flex",
-                width: `${slides.length * 100}%`,
-                transform: `translateX(-${currentSlide * (100 / slides.length)}%)`,
-                transition: "transform 0.7s ease-in-out",
-              }}
-            >
+            <div style={{
+              display: "flex",
+              width: `${slides.length * 100}%`,
+              transform: `translateX(-${currentSlide * (100 / slides.length)}%)`,
+              transition: "transform 0.7s ease-in-out",
+            }}>
               {slides.map((slide) => (
-                <div
-                  key={slide.id}
-                  style={{
-                    width: `${100 / slides.length}%`,
-                    flexShrink: 0,
-                    aspectRatio: "16/7",
-                  }}
-                >
-                  <img
-                    src={slide.image}
-                    alt={slide.alt}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      display: "block",
-                    }}
+                <div key={slide.id} style={{ width: `${100 / slides.length}%`, flexShrink: 0, aspectRatio: "16/7" }}>
+                  <img src={slide.image} alt={slide.alt}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                     loading="lazy"
                   />
                 </div>
@@ -166,17 +220,12 @@ const HomePage = () => {
         {/* Dots */}
         <div style={{ display: "flex", justifyContent: "center", gap: "8px", padding: "16px 0 0" }}>
           {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentSlide(i)}
-              aria-label={`Slide ${i + 1}`}
+            <button key={i} onClick={() => setCurrentSlide(i)} aria-label={`Slide ${i + 1}`}
               style={{
                 width: i === currentSlide ? "28px" : "10px",
                 height: "10px",
                 borderRadius: i === currentSlide ? "5px" : "50%",
-                border: "none",
-                padding: 0,
-                cursor: "pointer",
+                border: "none", padding: 0, cursor: "pointer",
                 background: i === currentSlide ? red : "#d1d5db",
                 transition: "all 0.3s",
               }}
@@ -196,14 +245,11 @@ const HomePage = () => {
               { Icon: RiSecurePaymentLine, title: "Secure Payment", desc: "Secure Payment via UPI" },
               { Icon: BiSupport, title: "Online Support", desc: "Within 02 days for support." },
             ].map(({ Icon, title, desc }, i) => (
-              <div
-                key={title}
-                style={{
-                  display: "flex", flexDirection: "column", alignItems: "center",
-                  textAlign: "center", padding: "0 28px",
-                  borderRight: i < 2 ? "1px solid #e5e7eb" : "none",
-                }}
-              >
+              <div key={title} style={{
+                display: "flex", flexDirection: "column", alignItems: "center",
+                textAlign: "center", padding: "0 28px",
+                borderRight: i < 2 ? "1px solid #e5e7eb" : "none",
+              }}>
                 <Icon style={{ fontSize: "48px", color: "#374151", marginBottom: "14px" }} />
                 <p style={{ fontFamily: font, fontWeight: 600, fontSize: "15px", color: "#111827", margin: "0 0 6px 0" }}>
                   {title}
@@ -236,29 +282,98 @@ const HomePage = () => {
             {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : (
-          <div
-            ref={scrollRef}
-            style={{
-              display: "flex", gap: "20px", overflowX: "auto",
-              paddingBottom: "8px", scrollbarWidth: "none", msOverflowStyle: "none",
-            }}
-          >
+          <div ref={scrollRef} style={{
+            display: "flex", gap: "20px", overflowX: "auto",
+            paddingBottom: "8px", scrollbarWidth: "none", msOverflowStyle: "none",
+          }}>
             {products.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
                 added={!!addedMap[product.id]}
                 isLoading={!!loadingMap[product.id]}
-                onCardClick={() => {
-                navigate("/products");
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
+                onCardClick={() => { navigate("/products"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                 onAddToCart={(e) => handleAddToCart(e, product)}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* ══════════════════════════════════════
+          CUSTOMER REVIEWS
+      ══════════════════════════════════════ */}
+      {(reviewsLoading || reviews.length > 0) && (
+        <div style={{ background: "#fafafa", borderTop: "1px solid #e5e7eb", padding: "52px 0" }}>
+          <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 24px" }}>
+
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
+              <div>
+                <h2 style={{
+                  fontFamily: font, fontWeight: 800, fontSize: "26px",
+                  letterSpacing: "0.06em", color: "#111827", margin: "0 0 6px",
+                  textTransform: "uppercase",
+                }}>
+                  What Our Customers Say
+                </h2>
+                {!reviewsLoading && (
+                  <p style={{ fontFamily: font, fontSize: "13px", color: "#6b7280", margin: 0 }}>
+                    {reviews.length} verified review{reviews.length !== 1 ? "s" : ""}
+                    {reviews.length > 0 && (
+                      <span style={{ marginLeft: "8px", color: "#f59e0b", fontWeight: 600 }}>
+                        {"★".repeat(Math.round(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length))}
+                        {" "}
+                        {(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)} avg
+                      </span>
+                    )}
+                  </p>
+                )}
+              </div>
+              {reviews.length > 3 && (
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <ArrowBtn onClick={() => scrollReviews("left")} label="Scroll left">←</ArrowBtn>
+                  <ArrowBtn onClick={() => scrollReviews("right")} label="Scroll right">→</ArrowBtn>
+                </div>
+              )}
+            </div>
+
+            {/* Skeleton */}
+            {reviewsLoading ? (
+              <div style={{ display: "flex", gap: "20px", overflow: "hidden" }}>
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} style={{
+                    flexShrink: 0, width: "300px", border: "1px solid #e5e7eb",
+                    borderRadius: "12px", padding: "22px 20px", background: "#fff",
+                  }}>
+                    {[["40px", "40px", "50%", "50%"], ["100%", "12px"], ["100%", "12px"], ["80%", "12px"]].map(([w, h], j) => (
+                      <div key={j} style={{
+                        width: w, height: h, background: "#f0f0f0",
+                        borderRadius: "6px", marginBottom: "12px",
+                        animation: "pulse 1.5s ease-in-out infinite",
+                      }} />
+                    ))}
+                    <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div
+                ref={reviewScrollRef}
+                style={{
+                  display: "flex", gap: "20px", overflowX: "auto",
+                  paddingBottom: "8px", scrollbarWidth: "none", msOverflowStyle: "none",
+                }}
+              >
+                {reviews.map((review) => (
+                  <ReviewCard key={review.id} review={review} />
+                ))}
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
@@ -311,12 +426,6 @@ const ProductCard = ({ product, added, isLoading, onCardClick, onAddToCart }) =>
   const [hovered, setHovered] = useState(false);
   const [btnHovered, setBtnHovered] = useState(false);
 
-  const getButtonLabel = () => {
-    if (isLoading) return "Adding...";
-    if (added) return "✓ Added to Cart";
-    return "ADD TO CART";
-  };
-
   const getButtonBg = () => {
     if (isLoading) return "#f97316";
     if (added) return "#16a34a";
@@ -341,7 +450,12 @@ const ProductCard = ({ product, added, isLoading, onCardClick, onAddToCart }) =>
       }}
     >
       <div style={{ padding: "18px 16px 8px", textAlign: "center", minHeight: "62px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <h4 style={{ fontFamily: font, fontWeight: 600, fontSize: "15px", color: hovered ? red : "#111827", margin: 0, lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", transition: "color 0.2s" }}>
+        <h4 style={{
+          fontFamily: font, fontWeight: 600, fontSize: "15px",
+          color: hovered ? red : "#111827", margin: 0, lineHeight: 1.4,
+          display: "-webkit-box", WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical", overflow: "hidden", transition: "color 0.2s",
+        }}>
           {product.name}
         </h4>
       </div>
@@ -378,8 +492,8 @@ const ProductCard = ({ product, added, isLoading, onCardClick, onAddToCart }) =>
             transition: "background 0.2s", whiteSpace: "nowrap",
           }}
         >
-{isLoading ? "Adding..." : "ADD TO CART"}      
-  </button>
+          {isLoading ? "Adding..." : "ADD TO CART"}
+        </button>
       </div>
     </div>
   );
