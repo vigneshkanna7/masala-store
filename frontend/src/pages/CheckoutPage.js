@@ -120,7 +120,6 @@ const CheckoutPage = () => {
   const token = localStorage.getItem("token");
   const isGuest = !token;
 
-  // ── Fetch cart based on user type ─────────────────────────────────────────
   useEffect(() => {
     if (isGuest) {
       const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
@@ -133,7 +132,6 @@ const CheckoutPage = () => {
     }
   }, []);
 
-  // ── Memoized cart calculations to avoid recalculating on every render ──
   const subtotal = useMemo(
     () => cart.reduce((sum, item) => sum + (item.price || 0), 0),
     [cart]
@@ -167,7 +165,6 @@ const CheckoutPage = () => {
     return errors;
   };
 
-  // ── Step 1: Save order to your Spring Boot DB ─────────────────────────────
   const placeOrderInBackend = async (shippingAddress, cartItems) => {
     let res;
     if (isGuest) {
@@ -189,13 +186,11 @@ const CheckoutPage = () => {
     return res.data;
   };
 
-  // ── Step 2: Create Razorpay order via your backend ────────────────────────
   const createRazorpayOrder = async (amount) => {
     const res = await api.post("/payment/create-order", { amount });
     return res.data;
   };
 
-  // ── Step 3: Verify payment signature via your backend ─────────────────────
   const verifyPayment = async (paymentResponse) => {
     const res = await api.post("/payment/verify", {
       razorpay_order_id: paymentResponse.razorpay_order_id,
@@ -205,7 +200,6 @@ const CheckoutPage = () => {
     return res.data;
   };
 
-  // ── Main submit handler ───────────────────────────────────────────────────
   const handleOrder = async (e) => {
     e.preventDefault();
 
@@ -222,7 +216,6 @@ const CheckoutPage = () => {
       return;
     }
 
-    // ── Map cart items correctly for both guest and logged-in ──
     const cartItems = cart.map((item) => ({
       productId: item.productId || item.product?.id || item.id,
       quantity: item.quantity || 1,
@@ -234,15 +227,11 @@ const CheckoutPage = () => {
 
     setLoading(true);
     try {
-      // 1. Save order in DB
       const orderData = await placeOrderInBackend(shippingAddress, cartItems);
-
-      // 2. Get Razorpay order ID from backend
       const { orderId: razorpayOrderId } = await createRazorpayOrder(total);
 
       setLoading(false);
 
-      // 3. Open Razorpay checkout popup
       const options = {
         key: process.env.REACT_APP_RAZORPAY_KEY,
         amount: total * 100,
@@ -328,7 +317,7 @@ const CheckoutPage = () => {
                   padding: "10px 14px", fontSize: "13px", color: "#c2410c",
                   fontFamily: font, marginBottom: "20px",
                 }}>
-Ordering as <strong>{localStorage.getItem("userName")}</strong>
+                  Ordering as <strong>{localStorage.getItem("userName")}</strong>
                 </div>
               )}
 
@@ -516,20 +505,26 @@ Ordering as <strong>{localStorage.getItem("userName")}</strong>
                   </p>
                 </div>
 
-                {/* Place Order Button */}
+                {/* ── Place Order Button — matches CartPage style ── */}
                 <div style={{ padding: "16px 20px" }}>
                   <button
                     type="submit"
                     disabled={loading}
                     style={{
-                      width: "100%", background: loading ? "#9ca3af" : "#1f2937",
-                      color: "#fff", border: "none", borderRadius: "6px",
-                      padding: "13px", fontSize: "15px", fontWeight: 600,
-                      fontFamily: font, cursor: loading ? "not-allowed" : "pointer",
+                      width: "100%",
+                      background: loading ? "#9ca3af" : "#dc2626",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "30px",
+                      padding: "14px",
+                      fontSize: "16px",
+                      fontWeight: 600,
+                      fontFamily: font,
+                      cursor: loading ? "not-allowed" : "pointer",
                       transition: "background 0.2s",
                     }}
-                        onMouseOver={(e) => (e.target.style.background = "#b91c1c")}
-                        onMouseOut={(e) => (e.target.style.background = "#dc2626")}
+                    onMouseOver={(e) => { if (!loading) e.target.style.background = "#b91c1c"; }}
+                    onMouseOut={(e) => { if (!loading) e.target.style.background = "#dc2626"; }}
                   >
                     {loading ? (
                       <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>

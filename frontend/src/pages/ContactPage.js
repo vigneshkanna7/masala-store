@@ -252,7 +252,7 @@ const ContactPage = () => {
             disabled={loading}
             style={{
               padding: "10px 28px",
-              background: loading ? "#9ca3af" : "#1f2937",
+              background: loading ? "#9ca3af" : "#dc2626",
               color: "#fff",
               border: "none",
               borderRadius: "6px",
@@ -262,8 +262,8 @@ const ContactPage = () => {
               cursor: loading ? "not-allowed" : "pointer",
               transition: "background 0.2s",
             }}
-            onMouseOver={(e) => (e.target.style.background = "#b91c1c")}
-            onMouseOut={(e) => (e.target.style.background = "#dc2626")}
+            onMouseOver={(e) => { if (!loading) e.target.style.background = "#b91c1c"; }}
+            onMouseOut={(e) => { if (!loading) e.target.style.background = "#dc2626"; }}
           >
             {loading ? "Sending..." : "Send"}
           </button>

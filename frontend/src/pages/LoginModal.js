@@ -292,7 +292,7 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
 
   const fpTitles    = { 1: "Forgot Password", 2: "Enter OTP", 3: "New Password", 4: "All Done!" };
   const fpSubtitles = {
-    1: "Enter your email and we'll send you an OTP.",
+    1: "Enter your Registered email and we'll send you an OTP.",
     2: `We sent a 6-digit OTP to ${fpEmail}`,
     3: "Choose a strong new password.",
     4: "Your password has been reset successfully!",
