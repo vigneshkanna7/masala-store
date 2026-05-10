@@ -15,6 +15,46 @@ if (typeof document !== "undefined" && !document.getElementById("poppins-font"))
   document.head.appendChild(link);
 }
 
+/* ─── Inject mobile-only styles once ─── */
+if (typeof document !== "undefined" && !document.getElementById("homepage-mobile-css")) {
+  const s = document.createElement("style");
+  s.id = "homepage-mobile-css";
+  s.textContent = `
+    @media (max-width: 768px) {
+      /* Hero */
+      .hp-hero-wrap { padding: 12px 12px 0 !important; }
+
+      /* Trust strip */
+      .hp-trust-outer { padding: 20px 0 !important; margin-top: 8px !important; }
+      .hp-trust-inner { padding: 12px 16px !important; }
+      .hp-trust-grid  { grid-template-columns: 1fr !important; gap: 20px !important; }
+      .hp-trust-item  { padding: 0 !important; }
+
+      /* Sections */
+      .hp-section    { padding: 28px 12px !important; }
+      .hp-section-hd h2 { font-size: 18px !important; }
+
+      /* Product cards */
+      .hp-product-card     { width: 175px !important; }
+      .hp-product-card-img { height: 165px !important; }
+      .hp-product-name     { font-size: 13px !important; }
+      .hp-product-price    { font-size: 14px !important; }
+      .hp-add-btn          { font-size: 11px !important; padding: 8px 10px !important; }
+
+      /* Review cards */
+      .hp-review-card { width: 260px !important; }
+      .hp-reviews-hd  { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+    }
+
+    @media (max-width: 480px) {
+      .hp-product-card     { width: 150px !important; }
+      .hp-product-card-img { height: 140px !important; }
+      .hp-review-card      { width: 230px !important; }
+    }
+  `;
+  document.head.appendChild(s);
+}
+
 const slides = [
   { id: 1, image: "/banners/banner1.jpg", alt: "Banner 1" },
   { id: 2, image: "/banners/banner2.jpg", alt: "Banner 2" },
@@ -42,7 +82,7 @@ const Stars = ({ rating }) => (
    REVIEW CARD
 ═══════════════════════════════════════════ */
 const ReviewCard = ({ review }) => (
-  <div style={{
+  <div className="hp-review-card" style={{
     flexShrink: 0,
     width: "300px",
     border: "1px solid #e5e7eb",
@@ -55,10 +95,8 @@ const ReviewCard = ({ review }) => (
     boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
     fontFamily: font,
   }}>
-    {/* Top — name + date */}
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        {/* Avatar circle */}
         <div style={{
           width: "38px", height: "38px", borderRadius: "50%",
           background: red, color: "#fff",
@@ -79,11 +117,7 @@ const ReviewCard = ({ review }) => (
         </div>
       </div>
     </div>
-
-    {/* Stars */}
     <Stars rating={review.rating} />
-
-    {/* Comment */}
     <p style={{
       margin: 0, fontSize: "13.5px", color: "#4b5563",
       lineHeight: 1.65,
@@ -113,7 +147,6 @@ const HomePage = () => {
   const token = localStorage.getItem("token");
   const isGuest = !token;
 
-  /* auto-advance slider */
   useEffect(() => {
     const t = setInterval(
       () => setCurrentSlide((p) => (p + 1) % slides.length),
@@ -122,44 +155,31 @@ const HomePage = () => {
     return () => clearInterval(t);
   }, []);
 
-  /* fetch products */
   useEffect(() => {
     api
       .get("/products")
-      .then((res) => {
-        setProducts(res.data.slice(0, 10));
-        setLoading(false);
-      })
+      .then((res) => { setProducts(res.data.slice(0, 10)); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
 
-  /* fetch reviews */
   useEffect(() => {
     api
       .get("/reviews")
-      .then((res) => {
-        setReviews(res.data);
-        setReviewsLoading(false);
-      })
+      .then((res) => { setReviews(res.data); setReviewsLoading(false); })
       .catch(() => setReviewsLoading(false));
   }, []);
 
-  /* add to cart */
   const handleAddToCart = async (e, product) => {
     e.stopPropagation();
     if (loadingMap[product.id]) return;
     if (isGuest) {
       const cart = JSON.parse(localStorage.getItem("guestCart")) || [];
       const idx = cart.findIndex((i) => i.productId === product.id);
-      if (idx !== -1) {
-        cart[idx].quantity += 1;
-      } else {
+      if (idx !== -1) { cart[idx].quantity += 1; }
+      else {
         cart.push({
-          productId: product.id,
-          productName: product.name,
-          price: product.price,
-          quantity: 1,
-          weight: "250g",
+          productId: product.id, productName: product.name,
+          price: product.price, quantity: 1, weight: "250g",
         });
       }
       localStorage.setItem("guestCart", JSON.stringify(cart));
@@ -197,7 +217,7 @@ const HomePage = () => {
           HERO SLIDER
       ══════════════════════════════════════ */}
       <div style={{ background: "#fff", padding: "24px 0 0" }}>
-        <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 48px", position: "relative" }}>
+        <div className="hp-hero-wrap" style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 48px", position: "relative" }}>
           <div style={{ overflow: "hidden", borderRadius: "10px" }}>
             <div style={{
               display: "flex",
@@ -237,15 +257,15 @@ const HomePage = () => {
       {/* ══════════════════════════════════════
           TRUST STRIP
       ══════════════════════════════════════ */}
-<div style={{ padding: "40px 0 40px", background: "#fff", marginTop: "20px" }}>
-          <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 48px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+      <div className="hp-trust-outer" style={{ padding: "40px 0 40px", background: "#fff", marginTop: "20px" }}>
+        <div className="hp-trust-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 48px" }}>
+          <div className="hp-trust-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
             {[
               { Icon: MdEco, title: "100% Natural Ingredients", desc: "Pure & authentic ingredients, no artificial additives." },
               { Icon: RiSecurePaymentLine, title: "Secure Payment", desc: "Secure Payment via UPI" },
               { Icon: BiSupport, title: "Online Support", desc: "Within 02 days for support." },
-            ].map(({ Icon, title, desc }, i) => (
-              <div key={title} style={{
+            ].map(({ Icon, title, desc }) => (
+              <div key={title} className="hp-trust-item" style={{
                 display: "flex", flexDirection: "column", alignItems: "center",
                 textAlign: "center", padding: "0 28px",
                 borderRight: "none",
@@ -266,8 +286,8 @@ const HomePage = () => {
       {/* ══════════════════════════════════════
           BEST SELLERS
       ══════════════════════════════════════ */}
-      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "52px 24px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
+      <div className="hp-section" style={{ maxWidth: "1300px", margin: "0 auto", padding: "52px 24px" }}>
+        <div className="hp-section-hd" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
           <h2 style={{ fontFamily: font, fontWeight: 800, fontSize: "26px", letterSpacing: "0.06em", color: "#111827", margin: 0, textTransform: "uppercase" }}>
             Best Sellers
           </h2>
@@ -304,11 +324,10 @@ const HomePage = () => {
           CUSTOMER REVIEWS
       ══════════════════════════════════════ */}
       {(reviewsLoading || reviews.length > 0) && (
-              <div style={{ background: "#fff", padding: "52px 0" }}>
-              <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 24px" }}>
+        <div style={{ background: "#fff", padding: "52px 0" }}>
+          <div className="hp-section" style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 24px" }}>
 
-            {/* Header */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
+            <div className="hp-reviews-hd hp-section-hd" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
               <div>
                 <h2 style={{
                   fontFamily: font, fontWeight: 800, fontSize: "26px",
@@ -318,10 +337,10 @@ const HomePage = () => {
                   What Our Customers Say
                 </h2>
                 {!reviewsLoading && (
-                <p style={{ fontFamily: font, fontSize: "13px", color: "#6b7280", margin: 0 }}>
-                  {reviews.length} verified review{reviews.length !== 1 ? "s" : ""}
-                </p>
-              )}
+                  <p style={{ fontFamily: font, fontSize: "13px", color: "#6b7280", margin: 0 }}>
+                    {reviews.length} verified review{reviews.length !== 1 ? "s" : ""}
+                  </p>
+                )}
               </div>
               {reviews.length > 3 && (
                 <div style={{ display: "flex", gap: "8px" }}>
@@ -331,7 +350,6 @@ const HomePage = () => {
               )}
             </div>
 
-            {/* Skeleton */}
             {reviewsLoading ? (
               <div style={{ display: "flex", gap: "20px", overflow: "hidden" }}>
                 {[...Array(3)].map((_, i) => (
@@ -339,7 +357,7 @@ const HomePage = () => {
                     flexShrink: 0, width: "300px", border: "1px solid #e5e7eb",
                     borderRadius: "12px", padding: "22px 20px", background: "#fff",
                   }}>
-                    {[["40px", "40px", "50%", "50%"], ["100%", "12px"], ["100%", "12px"], ["80%", "12px"]].map(([w, h], j) => (
+                    {[["40px", "40px"], ["100%", "12px"], ["100%", "12px"], ["80%", "12px"]].map(([w, h], j) => (
                       <div key={j} style={{
                         width: w, height: h, background: "#f0f0f0",
                         borderRadius: "6px", marginBottom: "12px",
@@ -428,6 +446,7 @@ const ProductCard = ({ product, added, isLoading, onCardClick, onAddToCart }) =>
 
   return (
     <div
+      className="hp-product-card"
       onClick={onCardClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -443,7 +462,7 @@ const ProductCard = ({ product, added, isLoading, onCardClick, onAddToCart }) =>
       }}
     >
       <div style={{ padding: "18px 16px 8px", textAlign: "center", minHeight: "62px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <h4 style={{
+        <h4 className="hp-product-name" style={{
           fontFamily: font, fontWeight: 600, fontSize: "15px",
           color: hovered ? red : "#111827", margin: 0, lineHeight: 1.4,
           display: "-webkit-box", WebkitLineClamp: 2,
@@ -453,7 +472,7 @@ const ProductCard = ({ product, added, isLoading, onCardClick, onAddToCart }) =>
         </h4>
       </div>
 
-      <div style={{ height: "260px", display: "flex", alignItems: "center", justifyContent: "center", padding: "8px 20px" }}>
+      <div className="hp-product-card-img" style={{ height: "260px", display: "flex", alignItems: "center", justifyContent: "center", padding: "8px 20px" }}>
         {product.imageUrl ? (
           <img src={product.imageUrl} alt={product.name}
             style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain", transform: hovered ? "scale(1.05)" : "scale(1)", transition: "transform 0.3s" }}
@@ -467,10 +486,11 @@ const ProductCard = ({ product, added, isLoading, onCardClick, onAddToCart }) =>
       </div>
 
       <div style={{ padding: "12px 16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginTop: "auto" }}>
-        <span style={{ fontFamily: font, fontWeight: 700, fontSize: "16px", color: "#111827" }}>
+        <span className="hp-product-price" style={{ fontFamily: font, fontWeight: 700, fontSize: "16px", color: "#111827" }}>
           ₹{product.price}
         </span>
         <button
+          className="hp-add-btn"
           onClick={onAddToCart}
           disabled={isLoading}
           onMouseEnter={() => setBtnHovered(true)}

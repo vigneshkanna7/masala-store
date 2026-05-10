@@ -11,7 +11,6 @@ if (typeof document !== "undefined" && !document.getElementById("poppins-font"))
   document.head.appendChild(link);
 }
 
-// ── Load Razorpay script once ──────────────────────────────────────────────
 if (typeof document !== "undefined" && !document.getElementById("razorpay-script")) {
   const script = document.createElement("script");
   script.id = "razorpay-script";
@@ -20,47 +19,39 @@ if (typeof document !== "undefined" && !document.getElementById("razorpay-script
   document.head.appendChild(script);
 }
 
+/* ─── Mobile-only styles ─── */
+if (typeof document !== "undefined" && !document.getElementById("checkout-mobile-css")) {
+  const s = document.createElement("style");
+  s.id = "checkout-mobile-css";
+  s.textContent = `
+    @media (max-width: 768px) {
+      .ck-outer      { padding: 20px 12px !important; }
+      .ck-grid       { grid-template-columns: 1fr !important; gap: 24px !important; }
+      .ck-name-row   { grid-template-columns: 1fr !important; gap: 12px !important; }
+      .ck-title      { font-size: 20px !important; margin-bottom: 18px !important; }
+      .ck-order-col  { position: static !important; }
+    }
+  `;
+  document.head.appendChild(s);
+}
+
 const font = "'Poppins', sans-serif";
 const DELIVERY_CHARGE = 40;
 
 const inputStyle = {
-  width: "100%",
-  border: "1px solid #d1d5db",
-  borderRadius: "8px",
-  padding: "10px 14px",
-  fontSize: "14px",
-  fontFamily: font,
-  color: "#1f2937",
-  background: "#f9fafb",
-  outline: "none",
-  boxSizing: "border-box",
-  marginTop: "6px",
+  width: "100%", border: "1px solid #d1d5db", borderRadius: "8px",
+  padding: "10px 14px", fontSize: "14px", fontFamily: font,
+  color: "#1f2937", background: "#f9fafb", outline: "none",
+  boxSizing: "border-box", marginTop: "6px",
 };
 
-const errorInputStyle = {
-  ...inputStyle,
-  border: "1.5px solid #dc2626",
-  background: "#fff5f5",
-};
-
-const labelStyle = {
-  fontSize: "13px",
-  fontWeight: 500,
-  color: "#374151",
-  fontFamily: font,
-  display: "block",
-};
-
+const errorInputStyle = { ...inputStyle, border: "1.5px solid #dc2626", background: "#fff5f5" };
+const labelStyle = { fontSize: "13px", fontWeight: 500, color: "#374151", fontFamily: font, display: "block" };
 const requiredStar = { color: "#dc2626", marginLeft: "2px" };
 
 const FieldError = ({ msg }) =>
-  msg ? (
-    <p style={{ color: "#dc2626", fontSize: "12px", fontFamily: font, margin: "4px 0 0" }}>
-      {msg}
-    </p>
-  ) : null;
+  msg ? <p style={{ color: "#dc2626", fontSize: "12px", fontFamily: font, margin: "4px 0 0" }}>{msg}</p> : null;
 
-// ── Static arrays moved outside component to avoid recreation on every render ──
 const INDIAN_STATES = [
   "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh",
   "Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand","Karnataka",
@@ -98,18 +89,9 @@ const COUNTRIES = [
 
 const CheckoutPage = () => {
   const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    streetAddress: "",
-    apartment: "",
-    city: "",
-    state: "Kerala",
-    country: "India",
-    pinCode: "",
-    guestPhone: "",
-    guestEmail: "",
-    orderNotes: "",
-    paymentMethod: "ONLINE",
+    firstName: "", lastName: "", streetAddress: "", apartment: "",
+    city: "", state: "Kerala", country: "India", pinCode: "",
+    guestPhone: "", guestEmail: "", orderNotes: "", paymentMethod: "ONLINE",
   });
 
   const [cart, setCart] = useState([]);
@@ -125,25 +107,17 @@ const CheckoutPage = () => {
       const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
       setCart(guestCart);
     } else {
-      api
-        .get("/cart")
-        .then((res) => setCart(res.data))
-        .catch(() => setCart([]));
+      api.get("/cart").then((res) => setCart(res.data)).catch(() => setCart([]));
     }
   }, []);
 
-  const subtotal = useMemo(
-    () => cart.reduce((sum, item) => sum + (item.price || 0), 0),
-    [cart]
-  );
+  const subtotal = useMemo(() => cart.reduce((sum, item) => sum + (item.price || 0), 0), [cart]);
   const total = useMemo(() => subtotal + DELIVERY_CHARGE, [subtotal]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm({ ...form, [name]: type === "checkbox" ? checked : value });
-    if (fieldErrors[name]) {
-      setFieldErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const validate = () => {
@@ -154,14 +128,12 @@ const CheckoutPage = () => {
     if (!form.city.trim())          errors.city          = "Town / City is required.";
     if (!form.pinCode.trim())       errors.pinCode       = "PIN Code is required.";
     else if (!/^\d{6}$/.test(form.pinCode)) errors.pinCode = "Enter a valid 6-digit PIN Code.";
-
     if (isGuest) {
       if (!form.guestPhone.trim())  errors.guestPhone = "Phone number is required.";
       else if (!/^\d{10}$/.test(form.guestPhone)) errors.guestPhone = "Enter a valid 10-digit phone number.";
       if (!form.guestEmail.trim())  errors.guestEmail = "Email address is required.";
       else if (!/\S+@\S+\.\S+/.test(form.guestEmail)) errors.guestEmail = "Enter a valid email address.";
     }
-
     return errors;
   };
 
@@ -170,18 +142,11 @@ const CheckoutPage = () => {
     if (isGuest) {
       res = await api.post("/orders/place/guest", {
         guestName: `${form.firstName} ${form.lastName}`.trim(),
-        guestEmail: form.guestEmail,
-        guestPhone: form.guestPhone,
-        shippingAddress,
-        paymentMethod: form.paymentMethod,
-        cartItems,
+        guestEmail: form.guestEmail, guestPhone: form.guestPhone,
+        shippingAddress, paymentMethod: form.paymentMethod, cartItems,
       });
     } else {
-      res = await api.post("/orders/place", {
-        shippingAddress,
-        paymentMethod: form.paymentMethod,
-        cartItems,
-      });
+      res = await api.post("/orders/place", { shippingAddress, paymentMethod: form.paymentMethod, cartItems });
     }
     return res.data;
   };
@@ -202,12 +167,7 @@ const CheckoutPage = () => {
 
   const handleOrder = async (e) => {
     e.preventDefault();
-
-    if (cart.length === 0) {
-      alert("Your cart is empty! Add some products first.");
-      return;
-    }
-
+    if (cart.length === 0) { alert("Your cart is empty! Add some products first."); return; }
     const errors = validate();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -215,31 +175,20 @@ const CheckoutPage = () => {
       document.getElementsByName(firstKey)[0]?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-
     const cartItems = cart.map((item) => ({
       productId: item.productId || item.product?.id || item.id,
-      quantity: item.quantity || 1,
-      price: item.price || 0,
-      weight: item.weight || "250g",
+      quantity: item.quantity || 1, price: item.price || 0, weight: item.weight || "250g",
     }));
-
     const shippingAddress = `${form.streetAddress}${form.apartment ? ", " + form.apartment : ""}, ${form.city}, ${form.state} - ${form.pinCode}, ${form.country}`;
-
     setLoading(true);
     try {
       const orderData = await placeOrderInBackend(shippingAddress, cartItems);
       const { orderId: razorpayOrderId } = await createRazorpayOrder(total);
-
       setLoading(false);
-
       const options = {
         key: process.env.REACT_APP_RAZORPAY_KEY,
-        amount: total * 100,
-        currency: "INR",
-        name: "Masala Store",
-        description: "Order Payment",
-        order_id: razorpayOrderId,
-
+        amount: total * 100, currency: "INR",
+        name: "Masala Store", description: "Order Payment", order_id: razorpayOrderId,
         handler: async (paymentResponse) => {
           setLoading(true);
           try {
@@ -250,30 +199,20 @@ const CheckoutPage = () => {
                 state: {
                   orderId: orderData.id,
                   name: `${form.firstName} ${form.lastName}`.trim() || localStorage.getItem("name"),
-                  phone: form.guestPhone,
-                  address: shippingAddress,
-                  total: total.toFixed(2),
-                  paymentId: paymentResponse.razorpay_payment_id,
+                  phone: form.guestPhone, address: shippingAddress,
+                  total: total.toFixed(2), paymentId: paymentResponse.razorpay_payment_id,
                 },
               });
-            } else {
-              alert("❌ Payment verification failed. Please contact support.");
-            }
-          } catch {
-            alert("❌ Error verifying payment. Please contact support.");
-          } finally {
-            setLoading(false);
-          }
+            } else { alert("❌ Payment verification failed. Please contact support."); }
+          } catch { alert("❌ Error verifying payment. Please contact support."); }
+          finally { setLoading(false); }
         },
-
         prefill: {
           name: `${form.firstName} ${form.lastName}`.trim(),
           email: form.guestEmail || localStorage.getItem("email") || "",
           contact: form.guestPhone || "",
         },
-
         theme: { color: "#dc2626" },
-
         modal: {
           ondismiss: () => {
             setLoading(false);
@@ -281,33 +220,31 @@ const CheckoutPage = () => {
           },
         },
       };
-
       const rzp = new window.Razorpay(options);
       rzp.on("payment.failed", (response) => {
         setLoading(false);
         alert("Payment failed: " + response.error.description);
       });
       rzp.open();
-
     } catch (err) {
       setLoading(false);
       alert(err.response?.data?.message || "Failed to place order! Please try again.");
     }
   };
 
-  const inp = (name) => ({
-    ...(fieldErrors[name] ? errorInputStyle : inputStyle),
-  });
+  const inp = (name) => ({ ...(fieldErrors[name] ? errorInputStyle : inputStyle) });
 
   return (
     <div style={{ background: "#fff", minHeight: "100vh", fontFamily: font }}>
-      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 24px" }}>
+      {/* ck-outer: reduces padding on mobile */}
+      <div className="ck-outer" style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 24px" }}>
         <form onSubmit={handleOrder} noValidate>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: "48px", alignItems: "start" }}>
+          {/* ck-grid: single column on mobile */}
+          <div className="ck-grid" style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: "48px", alignItems: "start" }}>
 
             {/* ══ LEFT: Billing Details ══ */}
             <div>
-              <h2 style={{ fontSize: "26px", fontWeight: 700, color: "#1f2937", fontFamily: font, marginBottom: "28px" }}>
+              <h2 className="ck-title" style={{ fontSize: "26px", fontWeight: 700, color: "#1f2937", fontFamily: font, marginBottom: "28px" }}>
                 Billing details
               </h2>
 
@@ -321,8 +258,8 @@ const CheckoutPage = () => {
                 </div>
               )}
 
-              {/* First + Last Name */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+              {/* First + Last Name — ck-name-row: single column on mobile */}
+              <div className="ck-name-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
                 <div>
                   <label style={labelStyle}>First name <span style={requiredStar}>*</span></label>
                   <input style={inp("firstName")} type="text" name="firstName" value={form.firstName} onChange={handleChange} />
@@ -339,9 +276,7 @@ const CheckoutPage = () => {
               <div style={{ marginBottom: "16px" }}>
                 <label style={labelStyle}>Country / Region <span style={requiredStar}>*</span></label>
                 <select style={{ ...inputStyle, cursor: "pointer" }} name="country" value={form.country} onChange={handleChange}>
-                  {COUNTRIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
+                  {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
 
@@ -355,8 +290,7 @@ const CheckoutPage = () => {
                 />
                 <FieldError msg={fieldErrors.streetAddress} />
                 <input
-                  style={inputStyle}
-                  type="text" name="apartment" value={form.apartment}
+                  style={inputStyle} type="text" name="apartment" value={form.apartment}
                   onChange={handleChange} placeholder="Apartment, suite, unit, etc. (optional)"
                 />
               </div>
@@ -383,7 +317,6 @@ const CheckoutPage = () => {
                 <FieldError msg={fieldErrors.pinCode} />
               </div>
 
-              {/* Guest only fields */}
               {isGuest && (
                 <>
                   <div style={{ marginBottom: "16px" }}>
@@ -410,35 +343,29 @@ const CheckoutPage = () => {
               </div>
             </div>
 
-            {/* ══ RIGHT: Your Order ══ */}
-            <div style={{ position: "sticky", top: "24px" }}>
-              <h2 style={{ fontSize: "26px", fontWeight: 700, color: "#1f2937", fontFamily: font, marginBottom: "24px" }}>
+            {/* ══ RIGHT: Your Order — ck-order-col: removes sticky on mobile ══ */}
+            <div className="ck-order-col" style={{ position: "sticky", top: "24px" }}>
+              <h2 className="ck-title" style={{ fontSize: "26px", fontWeight: 700, color: "#1f2937", fontFamily: font, marginBottom: "24px" }}>
                 Your order
               </h2>
 
               <div style={{ border: "1px solid #e5e7eb", borderRadius: "12px", overflow: "hidden" }}>
 
-                {/* Header */}
                 <div style={{
                   display: "grid", gridTemplateColumns: "1fr auto",
-                  padding: "12px 20px", background: "#f9fafb",
-                  borderBottom: "1px solid #e5e7eb",
+                  padding: "12px 20px", background: "#f9fafb", borderBottom: "1px solid #e5e7eb",
                 }}>
                   <span style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#6b7280", fontFamily: font }}>Product</span>
                   <span style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#6b7280", fontFamily: font }}>Subtotal</span>
                 </div>
 
-                {/* Items */}
                 {cart.length === 0 ? (
-                  <div style={{ padding: "20px", color: "#9ca3af", fontSize: "14px", fontFamily: font, textAlign: "center" }}>
-                    Cart is empty
-                  </div>
+                  <div style={{ padding: "20px", color: "#9ca3af", fontSize: "14px", fontFamily: font, textAlign: "center" }}>Cart is empty</div>
                 ) : (
                   cart.map((item, i) => (
                     <div key={i} style={{
                       display: "grid", gridTemplateColumns: "1fr auto",
-                      padding: "12px 20px", borderBottom: "1px solid #f3f4f6",
-                      alignItems: "center",
+                      padding: "12px 20px", borderBottom: "1px solid #f3f4f6", alignItems: "center",
                     }}>
                       <span style={{ fontSize: "14px", color: "#374151", fontFamily: font }}>
                         {item.productName || item.product?.name || item.name}
@@ -452,34 +379,21 @@ const CheckoutPage = () => {
                   ))
                 )}
 
-                {/* Subtotal */}
-                <div style={{
-                  display: "grid", gridTemplateColumns: "1fr auto",
-                  padding: "12px 20px", borderBottom: "1px solid #e5e7eb", background: "#fafafa",
-                }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", padding: "12px 20px", borderBottom: "1px solid #e5e7eb", background: "#fafafa" }}>
                   <span style={{ fontSize: "14px", fontWeight: 700, color: "#1f2937", fontFamily: font, textTransform: "uppercase", letterSpacing: "0.05em" }}>Subtotal</span>
                   <span style={{ fontSize: "14px", fontWeight: 600, color: "#1f2937", fontFamily: font }}>₹{subtotal.toFixed(2)}</span>
                 </div>
 
-                {/* Shipping */}
-                <div style={{
-                  display: "grid", gridTemplateColumns: "1fr auto",
-                  padding: "12px 20px", borderBottom: "1px solid #e5e7eb",
-                }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", padding: "12px 20px", borderBottom: "1px solid #e5e7eb" }}>
                   <span style={{ fontSize: "14px", fontWeight: 600, color: "#1f2937", fontFamily: font }}>Delivery</span>
                   <span style={{ fontSize: "14px", fontWeight: 600, color: "#1f2937", fontFamily: font }}>₹{DELIVERY_CHARGE}.00</span>
                 </div>
 
-                {/* Total */}
-                <div style={{
-                  display: "grid", gridTemplateColumns: "1fr auto",
-                  padding: "14px 20px", borderBottom: "1px solid #e5e7eb",
-                }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", padding: "14px 20px", borderBottom: "1px solid #e5e7eb" }}>
                   <span style={{ fontSize: "15px", fontWeight: 700, color: "#1f2937", fontFamily: font, textTransform: "uppercase", letterSpacing: "0.05em" }}>Total</span>
                   <span style={{ fontSize: "16px", fontWeight: 700, color: "#1f2937", fontFamily: font }}>₹{total.toFixed(2)}</span>
                 </div>
 
-                {/* Payment Method */}
                 <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e7eb" }}>
                   <div
                     onClick={() => setForm({ ...form, paymentMethod: "ONLINE" })}
@@ -498,42 +412,31 @@ const CheckoutPage = () => {
                   </div>
                 </div>
 
-                {/* Privacy note */}
                 <div style={{ padding: "14px 20px", borderBottom: "1px solid #e5e7eb" }}>
                   <p style={{ margin: 0, fontSize: "12px", color: "#6b7280", fontFamily: font, lineHeight: 1.6 }}>
                     Your personal data will be used to process your order and support your experience on this website.
                   </p>
                 </div>
 
-                {/* ── Place Order Button — matches CartPage style ── */}
                 <div style={{ padding: "16px 20px" }}>
                   <button
                     type="submit"
                     disabled={loading}
                     style={{
-                      width: "100%",
-                      background: loading ? "#9ca3af" : "#dc2626",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "30px",
-                      padding: "14px",
-                      fontSize: "16px",
-                      fontWeight: 600,
-                      fontFamily: font,
-                      cursor: loading ? "not-allowed" : "pointer",
-                      transition: "background 0.2s",
+                      width: "100%", background: loading ? "#9ca3af" : "#dc2626",
+                      color: "#fff", border: "none", borderRadius: "30px", padding: "14px",
+                      fontSize: "16px", fontWeight: 600, fontFamily: font,
+                      cursor: loading ? "not-allowed" : "pointer", transition: "background 0.2s",
                     }}
-onMouseOver={(e) => { if (!loading) e.currentTarget.style.background = "#b91c1c"; }}
-onMouseOut={(e) => { if (!loading) e.currentTarget.style.background = "#dc2626"; }}
+                    onMouseOver={(e) => { if (!loading) e.currentTarget.style.background = "#b91c1c"; }}
+                    onMouseOut={(e) => { if (!loading) e.currentTarget.style.background = "#dc2626"; }}
                   >
                     {loading ? (
                       <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                         <Spinner size="sm" color="white" />
                         Processing...
                       </span>
-                    ) : (
-                      "Place order"
-                    )}
+                    ) : "Place order"}
                   </button>
                 </div>
 

@@ -18,6 +18,26 @@ import VideosPage from "./pages/VideosPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import CartDrawer from "./components/CartDrawer";
 
+/* ─── Responsive layout padding ─── */
+if (typeof document !== "undefined" && !document.getElementById("app-layout-css")) {
+  const s = document.createElement("style");
+  s.id = "app-layout-css";
+  s.textContent = `
+    .app-layout {
+      padding-top: 40px;
+      padding-bottom: 40px;
+      background: #fff;
+      box-sizing: border-box;
+    }
+    @media (max-width: 768px) {
+      .app-layout {
+        padding-top: 16px;
+        padding-bottom: 16px;
+      }
+    }
+  `;
+  document.head.appendChild(s);
+}
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
@@ -31,14 +51,15 @@ const AdminRoute = ({ children }) => {
 };
 
 const Layout = ({ children }) => (
-  <div style={{ paddingTop: "40px", paddingBottom: "40px", background: "#fff", boxSizing: "border-box" }}>
+  <div className="app-layout">
     {children}
   </div>
 );
 
 function AppContent() {
   const location = useLocation();
-const isAdminPage = useMemo(() => location.pathname.startsWith('/admin'), [location.pathname]);
+  const isAdminPage = useMemo(() => location.pathname.startsWith('/admin'), [location.pathname]);
+
   return (
     <>
       {!isAdminPage && <Navbar />}

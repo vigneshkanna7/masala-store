@@ -13,6 +13,28 @@ if (typeof document !== "undefined" && !document.getElementById("poppins-font"))
   document.head.appendChild(link);
 }
 
+/* ─── Mobile-only styles ─── */
+if (typeof document !== "undefined" && !document.getElementById("products-mobile-css")) {
+  const s = document.createElement("style");
+  s.id = "products-mobile-css";
+  s.textContent = `
+    @media (max-width: 768px) {
+      .pp-container  { padding: 12px 12px !important; }
+      .pp-header     { margin-bottom: 16px !important; }
+      .pp-header h1  { font-size: 20px !important; }
+      .pp-sort       { font-size: 13px !important; padding: 8px 10px !important; }
+      .pp-card-img   { height: 170px !important; }
+      .pp-card-title { font-size: 13px !important; }
+      .pp-card-price { font-size: 13px !important; }
+      .pp-card-btn   { font-size: 11px !important; padding: 8px 10px !important; }
+    }
+    @media (max-width: 480px) {
+      .pp-card-img { height: 145px !important; }
+    }
+  `;
+  document.head.appendChild(s);
+}
+
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,42 +42,32 @@ const ProductsPage = () => {
   const [addedMap, setAddedMap] = useState({});
   const [loadingMap, setLoadingMap] = useState({});
 
-  // ── Modal state ──
   const [selectedProductId, setSelectedProductId] = useState(null);
 
-  // ── Read auth token once per render ──
   const token = localStorage.getItem("token");
   const isGuest = !token;
 
-  // ── Mounted ref — prevents setState after unmount ──
   const mountedRef = useRef(true);
   useEffect(() => {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
   }, []);
 
-  // ── Fetch products — cancelled on unmount ──
   useEffect(() => {
     const controller = new AbortController();
-
     api
       .get("/products", { signal: controller.signal })
       .then((res) => {
-        if (mountedRef.current) {
-          setProducts(res.data);
-          setLoading(false);
-        }
+        if (mountedRef.current) { setProducts(res.data); setLoading(false); }
       })
       .catch((err) => {
         if (err.name !== "AbortError" && err.name !== "CanceledError") {
           if (mountedRef.current) setLoading(false);
         }
       });
-
     return () => controller.abort();
   }, []);
 
-  // ── Derived sort — eliminates redundant `filtered` useState + effect double-render ──
   const filtered = useMemo(() => {
     const result = [...products];
     if (sortBy === "price-asc") result.sort((a, b) => a.price - b.price);
@@ -64,46 +76,33 @@ const ProductsPage = () => {
     return result;
   }, [sortBy, products]);
 
-  // ── Stable handler — useCallback stops new function refs on every parent render ──
   const handleAddToCart = useCallback(
     async (e, product) => {
       e.stopPropagation();
-
-      // Prevent double-click while request is in flight
       if (loadingMap[product.id]) return;
-
       if (isGuest) {
-        // ── Guest: store in localStorage ──
         const cart = JSON.parse(localStorage.getItem("guestCart")) || [];
         const idx = cart.findIndex((i) => i.productId === product.id);
-        if (idx !== -1) {
-          cart[idx].quantity += 1;
-        } else {
+        if (idx !== -1) { cart[idx].quantity += 1; }
+        else {
           cart.push({
-            productId: product.id,
-            productName: product.name,
-            price: product.price,
-            quantity: 1,
-            weight: "250g",
-            imageUrl: product.imageUrl,  // ← add this
+            productId: product.id, productName: product.name,
+            price: product.price, quantity: 1, weight: "250g", imageUrl: product.imageUrl,
           });
         }
         localStorage.setItem("guestCart", JSON.stringify(cart));
         window.dispatchEvent(new Event("cartUpdated"));
         window.dispatchEvent(new CustomEvent("showCartDrawer", {
-  detail: { name: product.name, price: product.price, imageUrl: product.imageUrl, weight: "250g" }
-}));
+          detail: { name: product.name, price: product.price, imageUrl: product.imageUrl, weight: "250g" }
+        }));
       } else {
-        // ── Logged-in: save to DB ──
         setLoadingMap((prev) => ({ ...prev, [product.id]: true }));
         try {
           await api.post("/cart/add", { productId: product.id, quantity: 1, weight: "250g" });
-
           window.dispatchEvent(new Event("cartUpdated"));
           window.dispatchEvent(new CustomEvent("showCartDrawer", {
-  detail: { name: product.name, price: product.price, imageUrl: product.imageUrl, weight: "250g" }
-}));
-
+            detail: { name: product.name, price: product.price, imageUrl: product.imageUrl, weight: "250g" }
+          }));
         } catch (err) {
           console.error("Failed to add to cart:", err);
           alert("Failed to add to cart. Please try again.");
@@ -113,13 +112,9 @@ const ProductsPage = () => {
         }
       }
     },
-    // loadingMap intentionally excluded — using setLoadingMap's functional form
-    // and the ref to read the latest value avoids stale closure without re-creating the handler
     [isGuest] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  // ── Stable modal handlers — useCallback so ProductDetailModal's
-  //    Escape-key effect doesn't re-register on every render ──
   const handleCardClick = useCallback((id) => setSelectedProductId(id), []);
   const handleModalClose = useCallback(() => setSelectedProductId(null), []);
 
@@ -128,10 +123,7 @@ const ProductsPage = () => {
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "40px 24px", fontFamily: font }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "24px" }}>
           {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              style={{ border: `1px solid #fca5a5`, borderRadius: "12px", padding: "16px", background: "#fff" }}
-            >
+            <div key={i} style={{ border: `1px solid #fca5a5`, borderRadius: "12px", padding: "16px", background: "#fff" }}>
               <div style={{ height: "16px", background: "#e5e7eb", borderRadius: "4px", marginBottom: "12px" }} />
               <div style={{ height: "200px", background: "#f3f4f6", borderRadius: "8px", marginBottom: "16px" }} />
               <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
@@ -146,10 +138,11 @@ const ProductsPage = () => {
 
   return (
     <div style={{ background: "#fff", fontFamily: font }}>
-      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 48px" }}>
+      {/* pp-container overrides padding on mobile */}
+      <div className="pp-container" style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 48px" }}>
 
-        {/* ── Header + Sort ── */}
-        <div style={{
+        {/* Header + Sort */}
+        <div className="pp-header" style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           marginBottom: "24px", flexWrap: "wrap", gap: "12px",
         }}>
@@ -157,6 +150,7 @@ const ProductsPage = () => {
             Our Products
           </h1>
           <select
+            className="pp-sort"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
             style={{
@@ -172,7 +166,7 @@ const ProductsPage = () => {
           </select>
         </div>
 
-        {/* ── Product Grid ── */}
+        {/* Product Grid */}
         <div
           className="products-grid"
           style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "24px" }}
@@ -190,18 +184,14 @@ const ProductsPage = () => {
         </div>
       </div>
 
-      {/* ── Product Detail Modal ── */}
       {selectedProductId && (
-        <ProductDetailModal
-          productId={selectedProductId}
-          onClose={handleModalClose}
-        />
+        <ProductDetailModal productId={selectedProductId} onClose={handleModalClose} />
       )}
 
       <style>{`
         @media (max-width: 1024px) { .products-grid { grid-template-columns: repeat(3, 1fr) !important; } }
         @media (max-width: 768px)  { .products-grid { grid-template-columns: repeat(2, 1fr) !important; } }
-        @media (max-width: 480px)  { .products-grid { grid-template-columns: 1fr !important; } }
+        @media (max-width: 480px)  { .products-grid { grid-template-columns: repeat(2, 1fr) !important; } }
       `}</style>
     </div>
   );
@@ -209,22 +199,13 @@ const ProductsPage = () => {
 
 /* ═══════════════════════════════════════════
    PRODUCT CARD
-   — React.memo prevents re-render when unrelated parent state changes
-   — hover states moved to CSS — zero JS state, zero re-renders on hover
 ═══════════════════════════════════════════ */
 const ProductCard = React.memo(({ product, added, isLoading, onCardClick, onAddToCart }) => {
-  const getButtonLabel = () => {
-    if (product.stock === 0) return "Out of Stock";
-    if (isLoading) return "Adding...";
-    if (added) return "Added to Cart ✓";
-    return "ADD TO CART";
-  };
-
   const getButtonBg = () => {
-  if (product.stock === 0) return "#e5e7eb";
-  if (isLoading) return "#f97316";
-  return red;
-};
+    if (product.stock === 0) return "#e5e7eb";
+    if (isLoading) return "#f97316";
+    return red;
+  };
 
   return (
     <>
@@ -263,24 +244,23 @@ const ProductCard = React.memo(({ product, added, isLoading, onCardClick, onAddT
           minHeight: "58px", display: "flex", alignItems: "center", justifyContent: "center",
         }}>
           <h4
-            className="product-card__title"
+            className="product-card__title pp-card-title"
             style={{
               fontFamily: font, fontWeight: 600, fontSize: "14px",
               color: "#111827", margin: 0, lineHeight: 1.4,
               display: "-webkit-box", WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical", overflow: "hidden",
-              transition: "color 0.2s",
+              WebkitBoxOrient: "vertical", overflow: "hidden", transition: "color 0.2s",
             }}
           >
             {product.name}
           </h4>
         </div>
 
-        <div style={{ height: "220px", display: "flex", alignItems: "center", justifyContent: "center", padding: "8px 16px" }}>
+        {/* pp-card-img shrinks height on mobile */}
+        <div className="pp-card-img" style={{ height: "220px", display: "flex", alignItems: "center", justifyContent: "center", padding: "8px 16px" }}>
           {product.imageUrl ? (
             <img
-              src={product.imageUrl}
-              alt={product.name}
+              src={product.imageUrl} alt={product.name}
               className="product-card__img"
               style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }}
               loading="lazy"
@@ -300,17 +280,16 @@ const ProductCard = React.memo(({ product, added, isLoading, onCardClick, onAddT
           alignItems: "center", justifyContent: "space-between",
           gap: "10px", marginTop: "auto",
         }}>
-          <span style={{ fontFamily: font, fontWeight: 700, fontSize: "15px", color: "#111827" }}>
+          <span className="pp-card-price" style={{ fontFamily: font, fontWeight: 700, fontSize: "15px", color: "#111827" }}>
             ₹{product.price}
           </span>
           <button
-            className={`product-card__btn${isLoading ? " is-loading" : ""}${added ? " is-added" : ""}`}
+            className={`product-card__btn pp-card-btn${isLoading ? " is-loading" : ""}${added ? " is-added" : ""}`}
             onClick={(e) => onAddToCart(e, product)}
             disabled={product.stock === 0 || isLoading}
             style={{
               display: "flex", alignItems: "center", gap: "8px",
-              padding: "10px 16px",
-              background: getButtonBg(),
+              padding: "10px 16px", background: getButtonBg(),
               color: product.stock === 0 ? "#9ca3af" : "#fff",
               border: "none", borderRadius: "8px", fontFamily: font,
               fontWeight: 700, fontSize: "12px", letterSpacing: "0.05em",
@@ -319,7 +298,7 @@ const ProductCard = React.memo(({ product, added, isLoading, onCardClick, onAddT
               transition: "background 0.2s", whiteSpace: "nowrap",
             }}
           >
-{isLoading ? "Adding..." : "ADD TO CART"}
+            {isLoading ? "Adding..." : "ADD TO CART"}
           </button>
         </div>
       </div>

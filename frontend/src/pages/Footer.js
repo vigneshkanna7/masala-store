@@ -3,6 +3,23 @@ import React from "react";
 const font = "'Poppins', sans-serif";
 const red = "#dc2626";
 
+/* ─── Inject mobile-only footer styles once ─── */
+if (typeof document !== "undefined" && !document.getElementById("footer-mobile-css")) {
+  const s = document.createElement("style");
+  s.id = "footer-mobile-css";
+  s.textContent = `
+    @media (max-width: 768px) {
+      .ft-grid        { grid-template-columns: 1fr !important; gap: 28px !important; }
+      .ft-social-row  { flex-wrap: wrap !important; }
+      .ft-payment-row { gap: 16px !important; }
+      .ft-payment-img { height: 28px !important; }
+      .ft-root        { padding: 32px 16px 24px !important; }
+      .ft-payment-sec { padding: 24px 16px !important; }
+    }
+  `;
+  document.head.appendChild(s);
+}
+
 const socialLinks = [
   {
     href: "https://www.instagram.com/melamfoods/",
@@ -46,7 +63,7 @@ const Footer = () => {
     <div style={{ width: "100%", boxSizing: "border-box", background: "#f9fafb" }}>
 
       {/* Payment Logos */}
-      <div style={{ padding: "36px 24px", background: "#fff" }}>
+      <div className="ft-payment-sec" style={{ padding: "36px 24px", background: "#fff" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <p style={{
             textAlign: "center", fontSize: "11px", fontWeight: 600,
@@ -55,12 +72,13 @@ const Footer = () => {
           }}>
             Accepted Payment Methods
           </p>
-          <div style={{
+          <div className="ft-payment-row" style={{
             display: "flex", flexWrap: "wrap", justifyContent: "center",
             alignItems: "center", gap: "32px",
           }}>
             {paymentLogos.map((logo, i) => (
               <img key={i} src={logo.src} alt={logo.alt}
+                className="ft-payment-img"
                 style={{ height: "36px", objectFit: "contain" }}
                 onError={(e) => (e.target.style.display = "none")}
                 loading="lazy"
@@ -71,12 +89,15 @@ const Footer = () => {
       </div>
 
       {/* Footer */}
-      <footer style={{ padding: "56px 24px 32px", fontFamily: font, margin: 0 }}>
+      <footer className="ft-root" style={{ padding: "56px 24px 32px", fontFamily: font, margin: 0 }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-          <div style={{
-            display: "grid", gridTemplateColumns: "repeat(3,1fr)",
-            gap: "40px", marginBottom: "48px", alignItems: "start",
-          }}>
+          <div
+            className="ft-grid"
+            style={{
+              display: "grid", gridTemplateColumns: "repeat(3,1fr)",
+              gap: "40px", marginBottom: "48px", alignItems: "start",
+            }}
+          >
 
             {/* Brand + Address */}
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -135,7 +156,7 @@ const Footer = () => {
               }}>
                 Connect With Us
               </p>
-              <div style={{ display: "flex", gap: "10px" }}>
+              <div className="ft-social-row" style={{ display: "flex", gap: "10px" }}>
                 {socialLinks.map(({ href, label, path }) => (
                   <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label}
                     style={{
