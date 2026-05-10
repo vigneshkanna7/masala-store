@@ -20,36 +20,23 @@ if (typeof document !== "undefined" && !document.getElementById("cart-mobile-css
   s.id = "cart-mobile-css";
   s.textContent = `
     @media (max-width: 768px) {
-      .cp-page         { padding: 20px 12px !important; }
+      .cp-page         { padding: 0 12px !important; }
       .cp-title        { font-size: 22px !important; margin-bottom: 18px !important; }
-
-      /* Card: image + body stay side-by-side but tighter */
       .cp-card         { padding: 14px !important; gap: 12px !important; }
       .cp-card-img     { width: 68px !important; height: 68px !important; }
-
-      /* Name & price stack vertically */
       .cp-card-top     { flex-direction: column !important; align-items: flex-start !important; gap: 2px !important; }
       .cp-prod-name    { font-size: 14px !important; }
       .cp-price-tag    { font-size: 14px !important; }
-
-      /* Weight buttons wrap */
       .cp-weight-row   { flex-wrap: wrap !important; gap: 6px !important; }
       .cp-weight-label { font-size: 12px !important; min-width: 46px !important; }
       .cp-weight-btn   { padding: 4px 10px !important; font-size: 12px !important; margin-right: 0 !important; }
-
-      /* Qty row */
       .cp-qty-label    { font-size: 12px !important; min-width: 46px !important; }
-
-      /* Remove btn */
       .cp-remove-btn   { padding: 7px 18px !important; font-size: 12px !important; }
-
-      /* Summary */
       .cp-summary      { padding: 14px 16px !important; }
       .cp-summary-row  { font-size: 14px !important; }
       .cp-total-label  { font-size: 15px !important; }
       .cp-total-value  { font-size: 18px !important; }
     }
-
     @media (max-width: 400px) {
       .cp-card-img   { width: 56px !important; height: 56px !important; }
       .cp-prod-name  { font-size: 13px !important; }
@@ -61,7 +48,8 @@ if (typeof document !== "undefined" && !document.getElementById("cart-mobile-css
 const font = "'Poppins', sans-serif";
 
 const styles = {
-  page: { background: "#fff", minHeight: "100vh", fontFamily: font, padding: "40px 24px" },
+  /* top/bottom padding removed — app-layout in App.js adds 40px top & 60px bottom */
+  page: { background: "#fff", minHeight: "100vh", fontFamily: font, padding: "0 24px" },
   container: { maxWidth: "860px", margin: "0 auto" },
   pageTitle: { fontSize: "32px", fontWeight: 700, color: "#1f2937", marginBottom: "32px", fontFamily: font },
   card: {

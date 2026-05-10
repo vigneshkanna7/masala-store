@@ -31,9 +31,9 @@ if (typeof document !== "undefined" && !document.getElementById("app-layout-css"
       box-sizing: border-box;
     }
 
-    /* HomePage: hero banner sits flush under the navbar, bottom gap before footer */
+    /* HomePage: same top gap as all other pages, bottom gap before footer */
     .app-layout-home {
-      padding-top: 0;
+      padding-top: 40px;
       padding-bottom: 60px;
       background: #fff;
       box-sizing: border-box;
@@ -45,7 +45,7 @@ if (typeof document !== "undefined" && !document.getElementById("app-layout-css"
         padding-bottom: 40px;
       }
       .app-layout-home {
-        padding-top: 0;
+        padding-top: 20px;
         padding-bottom: 40px;
       }
     }
