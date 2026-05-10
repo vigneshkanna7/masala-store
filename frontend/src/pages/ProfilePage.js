@@ -1,3 +1,4 @@
+// src/pages/ProfilePage.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/api';
@@ -10,6 +11,7 @@ const inp = {
   borderRadius: '8px', fontSize: '15px', fontFamily: font,
   color: '#111', background: '#f5f6fa', outline: 'none',
   transition: 'border-color 0.18s, background 0.18s',
+  boxSizing: 'border-box',
 };
 const inpDisabled = { ...inp, color: '#888', cursor: 'not-allowed', background: '#f0f0f0' };
 const inpEye = { ...inp, paddingRight: '46px' };
@@ -57,7 +59,6 @@ function ProfilePage() {
 
   const handleSave = async () => {
     const hasPasswordChange = passwordData.newPassword || passwordData.confirmPassword;
-
     if (hasPasswordChange) {
       if (!passwordData.currentPassword) {
         showToast('Please enter your current password!', false); return;
@@ -92,13 +93,16 @@ function ProfilePage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
         * { box-sizing: border-box; }
+
         .prof-inp:focus { border-color: #c0392b !important; background: #fff !important; }
+
         .save-btn {
           padding: 13px 40px; background: #c0392b; color: #fff; border: none;
           border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer;
           font-family: 'DM Sans', sans-serif; transition: background 0.2s;
         }
         .save-btn:hover { background: #a93226; }
+
         .toast {
           position: fixed; top: 28px; right: 28px; z-index: 9999;
           min-width: 280px; max-width: 400px; padding: 16px 20px;
@@ -109,9 +113,68 @@ function ProfilePage() {
         }
         .toast-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
         .toast-error   { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+
         @keyframes slideIn {
           from { opacity: 0; transform: translateX(60px); }
           to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ── Profile page layout ── */
+        .profile-wrapper {
+          max-width: 960px;
+          margin: 0 auto;
+          padding: 40px 24px 60px;
+        }
+        .profile-title {
+          font-size: 28px;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          margin-bottom: 32px;
+        }
+        .profile-name-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+          margin-bottom: 22px;
+        }
+
+        @media (max-width: 640px) {
+          .profile-wrapper {
+            padding: 24px 16px 48px;
+          }
+          .profile-title {
+            font-size: 20px;
+            margin-bottom: 24px;
+            letter-spacing: 0.04em;
+          }
+          .profile-name-row {
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+          }
+          .save-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+          }
+          .toast {
+            top: auto;
+            bottom: 16px;
+            right: 16px;
+            left: 16px;
+            max-width: unset;
+            min-width: unset;
+          }
+        }
+
+        @media (min-width: 641px) and (max-width: 900px) {
+          .profile-wrapper {
+            padding: 32px 24px 48px;
+          }
+          .profile-title {
+            font-size: 24px;
+          }
         }
       `}</style>
 
@@ -123,16 +186,12 @@ function ProfilePage() {
       )}
 
       <div style={{ fontFamily: font, background: '#fff', minHeight: '100vh', color: '#111' }}>
-        <div style={{ maxWidth: '960px', margin: '0 auto', padding: '40px 24px 60px' }}>
+        <div className="profile-wrapper">
 
-          <h1 style={{
-            fontSize: '28px', fontWeight: 800, letterSpacing: '0.06em',
-            textTransform: 'uppercase', marginBottom: '32px',
-          }}>
-            Profile Details
-          </h1>
+          <h1 className="profile-title">Profile Details</h1>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '22px' }}>
+          {/* First + Last name */}
+          <div className="profile-name-row">
             <div>
               <label style={lbl}>First name <span style={{ color: red }}>*</span></label>
               <input
@@ -192,7 +251,6 @@ function ProfilePage() {
             Password change
           </h3>
 
-          {/* ── Current Password ── */}
           <div style={fg}>
             <label style={lbl}>Current password</label>
             <div style={{ position: 'relative' }}>
@@ -210,7 +268,6 @@ function ProfilePage() {
             </div>
           </div>
 
-          {/* ── New Password ── */}
           <div style={fg}>
             <label style={lbl}>Change password</label>
             <div style={{ position: 'relative' }}>
@@ -227,7 +284,6 @@ function ProfilePage() {
             </div>
           </div>
 
-          {/* ── Confirm Password ── */}
           <div style={{ ...fg, marginBottom: '36px' }}>
             <label style={lbl}>Confirm new password</label>
             <div style={{ position: 'relative' }}>

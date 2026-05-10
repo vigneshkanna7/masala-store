@@ -1,24 +1,8 @@
+// src/components/Footer.js
 import React from "react";
 
 const font = "'Poppins', sans-serif";
 const red = "#dc2626";
-
-/* ─── Inject mobile-only footer styles once ─── */
-if (typeof document !== "undefined" && !document.getElementById("footer-mobile-css")) {
-  const s = document.createElement("style");
-  s.id = "footer-mobile-css";
-  s.textContent = `
-    @media (max-width: 768px) {
-      .ft-grid        { grid-template-columns: 1fr !important; gap: 28px !important; }
-      .ft-social-row  { flex-wrap: wrap !important; }
-      .ft-payment-row { gap: 16px !important; }
-      .ft-payment-img { height: 28px !important; }
-      .ft-root        { padding: 32px 16px 24px !important; }
-      .ft-payment-sec { padding: 24px 16px !important; }
-    }
-  `;
-  document.head.appendChild(s);
-}
 
 const socialLinks = [
   {
@@ -62,8 +46,84 @@ const Footer = () => {
   return (
     <div style={{ width: "100%", boxSizing: "border-box", background: "#f9fafb" }}>
 
+      <style>{`
+        /* ── Footer Mobile Styles ── */
+        .ft-payment-sec {
+          padding: 36px 24px;
+          background: #fff;
+        }
+        .ft-payment-row {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          align-items: center;
+          gap: 32px;
+        }
+        .ft-payment-img {
+          height: 36px;
+          object-fit: contain;
+        }
+        .ft-root {
+          padding: 56px 24px 32px;
+          font-family: 'Poppins', sans-serif;
+          margin: 0;
+        }
+        .ft-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 40px;
+          margin-bottom: 48px;
+          align-items: start;
+        }
+        .ft-social-row {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .ft-bottom-links {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 8px 20px;
+          margin-bottom: 12px;
+        }
+
+        @media (max-width: 640px) {
+          .ft-payment-sec {
+            padding: 24px 16px;
+          }
+          .ft-payment-row {
+            gap: 16px 20px;
+          }
+          .ft-payment-img {
+            height: 26px;
+          }
+          .ft-root {
+            padding: 32px 16px 24px;
+          }
+          .ft-grid {
+            grid-template-columns: 1fr;
+            gap: 28px;
+            margin-bottom: 32px;
+          }
+          .ft-bottom-links {
+            gap: 6px 12px;
+          }
+        }
+
+        @media (min-width: 641px) and (max-width: 900px) {
+          .ft-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+          }
+          .ft-root {
+            padding: 40px 24px 28px;
+          }
+        }
+      `}</style>
+
       {/* Payment Logos */}
-      <div className="ft-payment-sec" style={{ padding: "36px 24px", background: "#fff" }}>
+      <div className="ft-payment-sec">
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <p style={{
             textAlign: "center", fontSize: "11px", fontWeight: 600,
@@ -72,14 +132,13 @@ const Footer = () => {
           }}>
             Accepted Payment Methods
           </p>
-          <div className="ft-payment-row" style={{
-            display: "flex", flexWrap: "wrap", justifyContent: "center",
-            alignItems: "center", gap: "32px",
-          }}>
+          <div className="ft-payment-row">
             {paymentLogos.map((logo, i) => (
-              <img key={i} src={logo.src} alt={logo.alt}
+              <img
+                key={i}
+                src={logo.src}
+                alt={logo.alt}
                 className="ft-payment-img"
-                style={{ height: "36px", objectFit: "contain" }}
                 onError={(e) => (e.target.style.display = "none")}
                 loading="lazy"
               />
@@ -89,15 +148,10 @@ const Footer = () => {
       </div>
 
       {/* Footer */}
-      <footer className="ft-root" style={{ padding: "56px 24px 32px", fontFamily: font, margin: 0 }}>
+      <footer className="ft-root">
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-          <div
-            className="ft-grid"
-            style={{
-              display: "grid", gridTemplateColumns: "repeat(3,1fr)",
-              gap: "40px", marginBottom: "48px", alignItems: "start",
-            }}
-          >
+
+          <div className="ft-grid">
 
             {/* Brand + Address */}
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -156,7 +210,7 @@ const Footer = () => {
               }}>
                 Connect With Us
               </p>
-              <div className="ft-social-row" style={{ display: "flex", gap: "10px" }}>
+              <div className="ft-social-row">
                 {socialLinks.map(({ href, label, path }) => (
                   <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label}
                     style={{
@@ -185,10 +239,7 @@ const Footer = () => {
 
           {/* Bottom bar */}
           <div style={{ borderTop: "1px solid #d1d5db", paddingTop: "24px", textAlign: "center" }}>
-            <div style={{
-              display: "flex", flexWrap: "wrap", justifyContent: "center",
-              gap: "8px 20px", marginBottom: "12px",
-            }}>
+            <div className="ft-bottom-links">
               {[
                 { label: "About Us", href: "/about" },
                 { label: "Terms & Conditions", href: "#" },

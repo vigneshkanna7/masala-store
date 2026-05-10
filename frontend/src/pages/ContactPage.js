@@ -1,11 +1,10 @@
 // src/pages/ContactPage.js
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import api from "../api/api";
 
 const font = "'Poppins', sans-serif";
 const red = "#dc2626";
 
-/* ─── Inject Poppins once ─── */
 if (typeof document !== "undefined" && !document.getElementById("poppins-font")) {
   const link = document.createElement("link");
   link.id = "poppins-font";
@@ -46,7 +45,6 @@ const labelStyle = {
 
 const requiredStar = { color: red, marginLeft: "2px" };
 
-/* ─── Inline field error (matches CheckoutPage's FieldError) ─── */
 const FieldError = ({ msg }) =>
   msg ? (
     <p style={{ color: red, fontSize: "12px", fontFamily: font, margin: "4px 0 0" }}>
@@ -54,7 +52,6 @@ const FieldError = ({ msg }) =>
     </p>
   ) : null;
 
-/* ─── Toast component (matches ForgotPassword style) ─── */
 const Toast = ({ message, type, visible }) =>
   visible ? (
     <div className={`toast ${type === "success" ? "toast-success" : "toast-error"}`}>
@@ -73,8 +70,6 @@ const ContactPage = () => {
   });
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
-
-  /* ─── Toast state ─── */
   const [toast, setToast] = useState({ visible: false, message: "", type: "success" });
 
   const showToast = (message, type = "success") => {
@@ -82,7 +77,6 @@ const ContactPage = () => {
     setTimeout(() => setToast((t) => ({ ...t, visible: false })), 3500);
   };
 
-  /* ─── Validation (mirrors CheckoutPage pattern) ─── */
   const validate = () => {
     const errors = {};
     if (!form.name.trim())    errors.name    = "Name is required.";
@@ -101,7 +95,6 @@ const ContactPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const errors = validate();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -109,7 +102,6 @@ const ContactPage = () => {
       document.getElementsByName(firstKey)[0]?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-
     setLoading(true);
     try {
       await api.post("/contact", form);
@@ -131,7 +123,6 @@ const ContactPage = () => {
   return (
     <div style={{ background: "#fff", fontFamily: font }}>
 
-      {/* ── Toast styles ── */}
       <style>{`
         @keyframes slideIn {
           from { opacity: 0; transform: translateX(60px); }
@@ -147,30 +138,95 @@ const ContactPage = () => {
         }
         .toast-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
         .toast-error   { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+
+        /* ── Contact Page Mobile Styles ── */
+        .contact-wrapper {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px 48px;
+        }
+        .contact-title {
+          text-align: center;
+          font-size: 40px;
+          font-weight: 600;
+          color: #1f2937;
+          margin-bottom: 48px;
+          font-family: 'Poppins', sans-serif;
+        }
+        .contact-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+          margin-bottom: 20px;
+        }
+        .contact-submit-btn {
+          background: #dc2626;
+          color: #fff;
+          border: none;
+          border-radius: 30px;
+          padding: 12px 32px;
+          font-size: 15px;
+          font-weight: 600;
+          font-family: 'Poppins', sans-serif;
+          cursor: pointer;
+          transition: background 0.2s;
+          width: auto;
+        }
+        .contact-submit-btn:disabled {
+          background: #9ca3af;
+          cursor: not-allowed;
+        }
+        .contact-submit-btn:hover:not(:disabled) {
+          background: #b91c1c;
+        }
+
         @media (max-width: 640px) {
-          .contact-grid { grid-template-columns: 1fr !important; }
+          .contact-wrapper {
+            padding: 16px 16px 32px;
+          }
+          .contact-title {
+            font-size: 26px;
+            margin-bottom: 28px;
+          }
+          .contact-row {
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+          }
+          .contact-submit-btn {
+            width: 100%;
+            padding: 14px 32px;
+            font-size: 16px;
+          }
+          .toast {
+            top: auto;
+            bottom: 16px;
+            right: 16px;
+            left: 16px;
+            max-width: unset;
+            min-width: unset;
+          }
+        }
+
+        @media (min-width: 641px) and (max-width: 900px) {
+          .contact-wrapper {
+            padding: 20px 24px;
+          }
+          .contact-title {
+            font-size: 32px;
+            margin-bottom: 36px;
+          }
         }
       `}</style>
 
-      {/* ── Main Content ── */}
-      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 48px" }}>
+      <div className="contact-wrapper">
 
-        {/* ── Page Title ── */}
-        <h1 style={{
-          textAlign: "center",
-          fontSize: "40px",
-          fontWeight: 600,
-          color: "#1f2937",
-          marginBottom: "48px",
-          fontFamily: font,
-        }}>
-          Contact Us
-        </h1>
+        <h1 className="contact-title">Contact Us</h1>
 
         <form onSubmit={handleSubmit} noValidate>
 
           {/* Row 1 — Name + Email */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "20px" }}>
+          <div className="contact-row">
             <div>
               <label style={labelStyle}>Your name <span style={requiredStar}>*</span></label>
               <input
@@ -200,7 +256,7 @@ const ContactPage = () => {
           </div>
 
           {/* Row 2 — Subject + Phone */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "20px" }}>
+          <div className="contact-row">
             <div>
               <label style={labelStyle}>Subject</label>
               <input
@@ -246,36 +302,18 @@ const ContactPage = () => {
             <FieldError msg={fieldErrors.message} />
           </div>
 
-          {/* Submit Button */}
-          {/* Submit Button */}
-{/* Submit Button */}
-<button
-  type="submit"
-  disabled={loading}
-  style={{
-    background: loading ? "#9ca3af" : "#dc2626",
-    color: "#fff",
-    border: "none",
-    borderRadius: "30px",
-    padding: "12px 32px",
-    fontSize: "15px",
-    fontWeight: 600,
-    fontFamily: font,
-    cursor: loading ? "not-allowed" : "pointer",
-    transition: "background 0.2s",
-  }}
-onMouseOver={(e) => { if (!loading) e.currentTarget.style.background = "#b91c1c"; }}
-onMouseOut={(e) => { if (!loading) e.currentTarget.style.background = "#dc2626"; }}
->
-  {loading ? "Sending..." : "Send"}
-</button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="contact-submit-btn"
+          >
+            {loading ? "Sending..." : "Send"}
+          </button>
 
         </form>
       </div>
 
-      {/* ── Toast ── */}
       <Toast message={toast.message} type={toast.type} visible={toast.visible} />
-
     </div>
   );
 };

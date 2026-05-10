@@ -14,6 +14,31 @@ nav {
   box-shadow: none !important;
 }
 
+/* ── Global Layout Spacing ──
+   Applied in App.js:  <div className="page-content">...</div>
+*/
+.page-content {
+  padding-top: 32px;
+  padding-bottom: 64px;
+}
+
+/* Home page hero must sit flush under the navbar — no top gap */
+.page-content.page-home {
+  padding-top: 0;
+  padding-bottom: 0; /* HomePage manages its own bottom spacing */
+}
+
+@media (max-width: 640px) {
+  .page-content {
+    padding-top: 20px;
+    padding-bottom: 40px;
+  }
+  .page-content.page-home {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
 .App {
   text-align: center;
 }

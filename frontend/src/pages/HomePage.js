@@ -15,54 +15,172 @@ if (typeof document !== "undefined" && !document.getElementById("poppins-font"))
   document.head.appendChild(link);
 }
 
-/* ─── Inject mobile-only styles once ─── */
+/* ─── Inject styles once ─── */
 if (typeof document !== "undefined" && !document.getElementById("homepage-mobile-css")) {
   const s = document.createElement("style");
   s.id = "homepage-mobile-css";
   s.textContent = `
-    /* ── Hide scrollbar globally for scroll rows ── */
     .hp-scroll-row::-webkit-scrollbar { display: none; }
     .hp-scroll-row { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* ════════════════════════════════
-       MOBILE  ≤ 768px
-    ════════════════════════════════ */
-    @media (max-width: 768px) {
+    /* ── Hero ── */
+    .hp-hero-outer {
+      background: #fff;
+      padding: 0;
+      margin: 0;
+    }
+    .hp-hero-wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 48px;
+      position: relative;
+    }
+    .hp-dots-wrap {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 0 0;
+    }
 
-      /* Hero */
-      .hp-hero-wrap {
-        padding: 0 10px !important;
-      }
+    /* ── Trust strip ── */
+    .hp-trust-outer {
+      background: #fff;
+      padding: 40px 0;
+      border-top: 1px solid #f3f4f6;
+      border-bottom: 1px solid #f3f4f6;
+      margin-top: 0;
+    }
+    .hp-trust-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+    .hp-trust-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+    .hp-trust-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 0 28px;
+      border-right: 1px solid #f3f4f6;
+    }
+    .hp-trust-item:last-child { border-right: none; }
+    .hp-trust-icon {
+      font-size: 48px;
+      color: #374151;
+      margin-bottom: 14px;
+    }
 
-      /* Slide dots */
-      .hp-dots-wrap {
-        padding: 10px 0 0 !important;
-      }
+    /* ── Sections ── */
+    .hp-section-wrap {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+    .hp-reviews-outer {
+      background: #fff;
+      border-top: 1px solid #f3f4f6;
+    }
 
-      /* Trust strip */
-      .hp-trust-outer {
-        padding: 24px 0 !important;
-        margin-top: 8px !important;
-      }
-      .hp-trust-inner {
-        padding: 0 16px !important;
-      }
+    /* ── Section header ── */
+    .hp-section-hd {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+    .hp-section-hd h2 {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 800;
+      font-size: 24px;
+      letter-spacing: 0.06em;
+      color: #111827;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .hp-section-arrows { display: flex; gap: 8px; }
+
+    /* ── Arrow button ── */
+    .hp-arrow-btn {
+      width: 44px; height: 44px;
+      border: none; border-radius: 6px;
+      color: #fff; font-size: 22px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center;
+      justify-content: center; line-height: 1;
+      transition: background 0.2s;
+    }
+
+    /* ── Product cards ── */
+    .hp-products-scroll {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .hp-product-card {
+      flex-shrink: 0;
+      width: 280px;
+    }
+    .hp-product-card-img { height: 260px; }
+    .hp-product-name {
+      padding: 18px 16px 8px;
+      min-height: 62px;
+    }
+    .hp-product-footer { padding: 12px 16px 18px; }
+    .hp-product-price { font-size: 16px; }
+    .hp-add-btn {
+      padding: 10px 16px;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Review cards ── */
+    .hp-review-card { width: 300px; }
+    .hp-reviews-hd {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+
+    /* ════════════════
+       TABLET  641–900px
+    ════════════════ */
+    @media (min-width: 641px) and (max-width: 900px) {
+      .hp-hero-wrap { padding: 0 24px; }
+      .hp-trust-inner { padding: 0 24px; }
+      .hp-trust-grid { grid-template-columns: 1fr 1fr 1fr; gap: 0; }
+      .hp-trust-item { padding: 0 16px; }
+      .hp-section-wrap { padding: 40px 20px; }
+      .hp-section-hd h2 { font-size: 20px; }
+    }
+
+    /* ════════════════
+       MOBILE  ≤ 640px
+    ════════════════ */
+    @media (max-width: 640px) {
+      .hp-hero-wrap { padding: 0 10px; }
+      .hp-dots-wrap { padding: 10px 0 0; }
+
+      .hp-trust-outer { padding: 0; }
+      .hp-trust-inner { padding: 0; }
       .hp-trust-grid {
         grid-template-columns: 1fr !important;
         gap: 0 !important;
       }
       .hp-trust-item {
-        padding: 16px 12px !important;
-        border-right: none !important;
-        border-bottom: 1px solid #f3f4f6 !important;
         flex-direction: row !important;
         text-align: left !important;
-        gap: 14px !important;
         align-items: flex-start !important;
+        padding: 16px 16px !important;
+        border-right: none !important;
+        border-bottom: 1px solid #f3f4f6 !important;
+        gap: 14px !important;
       }
-      .hp-trust-item:last-child {
-        border-bottom: none !important;
-      }
+      .hp-trust-item:last-child { border-bottom: none !important; }
       .hp-trust-icon {
         font-size: 32px !important;
         margin-bottom: 0 !important;
@@ -71,25 +189,10 @@ if (typeof document !== "undefined" && !document.getElementById("homepage-mobile
       }
       .hp-trust-text { text-align: left !important; }
 
-      /* Section padding */
-      .hp-section {
-        padding: 28px 12px !important;
-      }
+      .hp-section-wrap { padding: 28px 12px; }
+      .hp-section-hd h2 { font-size: 17px !important; letter-spacing: 0.04em !important; }
+      .hp-section-arrows { display: none !important; }
 
-      /* Section header */
-      .hp-section-hd h2 {
-        font-size: 17px !important;
-        letter-spacing: 0.04em !important;
-      }
-
-      /* Arrow buttons – smaller on mobile */
-      .hp-arrow-btn {
-        width: 34px !important;
-        height: 34px !important;
-        font-size: 18px !important;
-      }
-
-      /* ── Product cards: 2-column grid on mobile ── */
       .hp-products-scroll {
         display: grid !important;
         grid-template-columns: 1fr 1fr !important;
@@ -97,53 +200,21 @@ if (typeof document !== "undefined" && !document.getElementById("homepage-mobile
         overflow-x: visible !important;
         padding-bottom: 0 !important;
       }
-      .hp-product-card {
-        width: 100% !important;
-        min-width: 0 !important;
-        flex-shrink: unset !important;
-      }
-      .hp-product-card-img {
-        height: 150px !important;
-        padding: 8px 10px !important;
-      }
-      .hp-product-name {
-        font-size: 12px !important;
-        padding: 12px 10px 6px !important;
-        min-height: 50px !important;
-      }
-      .hp-product-footer {
-        padding: 8px 10px 12px !important;
-        gap: 6px !important;
-      }
-      .hp-product-price {
-        font-size: 13px !important;
-      }
-      .hp-add-btn {
-        font-size: 10px !important;
-        padding: 7px 8px !important;
-        gap: 4px !important;
-        letter-spacing: 0.03em !important;
-      }
+      .hp-product-card { width: 100% !important; min-width: 0 !important; flex-shrink: unset !important; }
+      .hp-product-card-img { height: 150px !important; padding: 8px 10px !important; }
+      .hp-product-name { font-size: 12px !important; padding: 12px 10px 6px !important; min-height: 50px !important; }
+      .hp-product-footer { padding: 8px 10px 12px !important; gap: 6px !important; }
+      .hp-product-price { font-size: 13px !important; }
+      .hp-add-btn { font-size: 10px !important; padding: 7px 8px !important; gap: 4px !important; letter-spacing: 0.03em !important; }
 
-      /* Review cards */
-      .hp-review-card {
-        width: 240px !important;
-      }
-      .hp-reviews-hd {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 10px !important;
-      }
+      .hp-review-card { width: 240px !important; }
+      .hp-reviews-hd { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+
+      .hp-arrow-btn { width: 34px !important; height: 34px !important; font-size: 18px !important; }
     }
 
-    /* ════════════════════════════════
-       SMALL MOBILE  ≤ 400px
-    ════════════════════════════════ */
     @media (max-width: 400px) {
-      .hp-products-scroll {
-        grid-template-columns: 1fr 1fr !important;
-        gap: 8px !important;
-      }
+      .hp-products-scroll { gap: 8px !important; }
       .hp-product-card-img { height: 120px !important; }
       .hp-review-card { width: 200px !important; }
       .hp-section-hd h2 { font-size: 15px !important; }
@@ -168,9 +239,7 @@ const red = "#dc2626";
 const Stars = ({ rating }) => (
   <div style={{ display: "flex", gap: "2px" }}>
     {[1, 2, 3, 4, 5].map((s) => (
-      <span key={s} style={{ fontSize: "16px", color: s <= rating ? "#f59e0b" : "#d1d5db" }}>
-        ★
-      </span>
+      <span key={s} style={{ fontSize: "16px", color: s <= rating ? "#f59e0b" : "#d1d5db" }}>★</span>
     ))}
   </div>
 );
@@ -181,7 +250,6 @@ const Stars = ({ rating }) => (
 const ReviewCard = ({ review }) => (
   <div className="hp-review-card" style={{
     flexShrink: 0,
-    width: "300px",
     border: "1px solid #e5e7eb",
     borderRadius: "12px",
     padding: "22px 20px",
@@ -216,8 +284,7 @@ const ReviewCard = ({ review }) => (
     </div>
     <Stars rating={review.rating} />
     <p style={{
-      margin: 0, fontSize: "13.5px", color: "#4b5563",
-      lineHeight: 1.65,
+      margin: 0, fontSize: "13.5px", color: "#4b5563", lineHeight: 1.65,
       display: "-webkit-box", WebkitLineClamp: 4,
       WebkitBoxOrient: "vertical", overflow: "hidden",
     }}>
@@ -245,23 +312,18 @@ const HomePage = () => {
   const isGuest = !token;
 
   useEffect(() => {
-    const t = setInterval(
-      () => setCurrentSlide((p) => (p + 1) % slides.length),
-      3500
-    );
+    const t = setInterval(() => setCurrentSlide((p) => (p + 1) % slides.length), 3500);
     return () => clearInterval(t);
   }, []);
 
   useEffect(() => {
-    api
-      .get("/products")
+    api.get("/products")
       .then((res) => { setProducts(res.data.slice(0, 10)); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    api
-      .get("/reviews")
+    api.get("/reviews")
       .then((res) => { setReviews(res.data); setReviewsLoading(false); })
       .catch(() => setReviewsLoading(false));
   }, []);
@@ -303,7 +365,6 @@ const HomePage = () => {
 
   const scroll = (dir) =>
     scrollRef.current?.scrollBy({ left: dir === "left" ? -320 : 320, behavior: "smooth" });
-
   const scrollReviews = (dir) =>
     reviewScrollRef.current?.scrollBy({ left: dir === "left" ? -320 : 320, behavior: "smooth" });
 
@@ -313,8 +374,8 @@ const HomePage = () => {
       {/* ══════════════════════════════════════
           HERO SLIDER
       ══════════════════════════════════════ */}
-      <div style={{ background: "#fff", padding: "24px 0 0" }}>
-        <div className="hp-hero-wrap" style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 48px", position: "relative" }}>
+      <div className="hp-hero-outer">
+        <div className="hp-hero-wrap">
           <div style={{ overflow: "hidden", borderRadius: "10px" }}>
             <div style={{
               display: "flex",
@@ -333,9 +394,8 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-
         {/* Dots */}
-        <div className="hp-dots-wrap" style={{ display: "flex", justifyContent: "center", gap: "8px", padding: "16px 0 0" }}>
+        <div className="hp-dots-wrap">
           {slides.map((_, i) => (
             <button key={i} onClick={() => setCurrentSlide(i)} aria-label={`Slide ${i + 1}`}
               style={{
@@ -354,20 +414,16 @@ const HomePage = () => {
       {/* ══════════════════════════════════════
           TRUST STRIP
       ══════════════════════════════════════ */}
-      <div className="hp-trust-outer" style={{ padding: "40px 0 40px", background: "#fff", marginTop: "20px" }}>
-        <div className="hp-trust-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 48px" }}>
-          <div className="hp-trust-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+      <div className="hp-trust-outer">
+        <div className="hp-trust-inner">
+          <div className="hp-trust-grid">
             {[
               { Icon: MdEco, title: "100% Natural Ingredients", desc: "Pure & authentic ingredients, no artificial additives." },
               { Icon: RiSecurePaymentLine, title: "Secure Payment", desc: "Secure Payment via UPI" },
               { Icon: BiSupport, title: "Online Support", desc: "Within 02 days for support." },
             ].map(({ Icon, title, desc }) => (
-              <div key={title} className="hp-trust-item" style={{
-                display: "flex", flexDirection: "column", alignItems: "center",
-                textAlign: "center", padding: "0 28px",
-                borderRight: "none",
-              }}>
-                <Icon className="hp-trust-icon" style={{ fontSize: "48px", color: "#374151", marginBottom: "14px" }} />
+              <div key={title} className="hp-trust-item">
+                <Icon className="hp-trust-icon" />
                 <div className="hp-trust-text">
                   <p style={{ fontFamily: font, fontWeight: 600, fontSize: "15px", color: "#111827", margin: "0 0 6px 0" }}>
                     {title}
@@ -385,13 +441,10 @@ const HomePage = () => {
       {/* ══════════════════════════════════════
           BEST SELLERS
       ══════════════════════════════════════ */}
-      <div className="hp-section" style={{ maxWidth: "1300px", margin: "0 auto", padding: "52px 24px" }}>
-        <div className="hp-section-hd" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
-          <h2 style={{ fontFamily: font, fontWeight: 800, fontSize: "26px", letterSpacing: "0.06em", color: "#111827", margin: 0, textTransform: "uppercase" }}>
-            Best Sellers
-          </h2>
-          {/* Arrow buttons hidden on mobile since grid doesn't scroll */}
-          <div className="hp-section-arrows" style={{ display: "flex", gap: "8px" }}>
+      <div className="hp-section-wrap">
+        <div className="hp-section-hd">
+          <h2>Best Sellers</h2>
+          <div className="hp-section-arrows">
             <ArrowBtn onClick={() => scroll("left")} label="Scroll left">←</ArrowBtn>
             <ArrowBtn onClick={() => scroll("right")} label="Scroll right">→</ArrowBtn>
           </div>
@@ -402,14 +455,7 @@ const HomePage = () => {
             {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : (
-          <div
-            ref={scrollRef}
-            className="hp-products-scroll hp-scroll-row"
-            style={{
-              display: "flex", gap: "20px", overflowX: "auto",
-              paddingBottom: "8px",
-            }}
-          >
+          <div ref={scrollRef} className="hp-products-scroll hp-scroll-row">
             {products.map((product) => (
               <ProductCard
                 key={product.id}
@@ -428,13 +474,12 @@ const HomePage = () => {
           CUSTOMER REVIEWS
       ══════════════════════════════════════ */}
       {(reviewsLoading || reviews.length > 0) && (
-        <div style={{ background: "#fff", padding: "52px 0" }}>
-          <div className="hp-section" style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 24px" }}>
-
-            <div className="hp-reviews-hd hp-section-hd" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
+        <div className="hp-reviews-outer">
+          <div className="hp-section-wrap">
+            <div className="hp-reviews-hd hp-section-hd">
               <div>
                 <h2 style={{
-                  fontFamily: font, fontWeight: 800, fontSize: "26px",
+                  fontFamily: font, fontWeight: 800, fontSize: "24px",
                   letterSpacing: "0.06em", color: "#111827", margin: "0 0 6px",
                   textTransform: "uppercase",
                 }}>
@@ -473,30 +518,15 @@ const HomePage = () => {
                 ))}
               </div>
             ) : (
-              <div
-                ref={reviewScrollRef}
-                className="hp-scroll-row"
-                style={{
-                  display: "flex", gap: "20px", overflowX: "auto",
-                  paddingBottom: "8px",
-                }}
-              >
+              <div ref={reviewScrollRef} className="hp-scroll-row" style={{ display: "flex", gap: "20px", overflowX: "auto", paddingBottom: "8px" }}>
                 {reviews.map((review) => (
                   <ReviewCard key={review.id} review={review} />
                 ))}
               </div>
             )}
-
           </div>
         </div>
       )}
-
-      {/* Hide arrows on mobile (grid doesn't scroll) */}
-      <style>{`
-        @media (max-width: 768px) {
-          .hp-section-arrows { display: none !important; }
-        }
-      `}</style>
 
     </div>
   );
@@ -515,13 +545,8 @@ const ArrowBtn = ({ onClick, label, children }) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        width: "44px", height: "44px",
         background: hovered ? "#b91c1c" : red,
-        border: "none", borderRadius: "6px",
-        color: "#fff", fontSize: "22px", fontWeight: 700,
-        cursor: "pointer", display: "flex", alignItems: "center",
-        justifyContent: "center", lineHeight: 1,
-        transition: "background 0.2s", fontFamily: font,
+        fontFamily: font,
       }}
     >
       {children}
@@ -533,7 +558,10 @@ const ArrowBtn = ({ onClick, label, children }) => {
    SKELETON CARD
 ═══════════════════════════════════════════ */
 const SkeletonCard = () => (
-  <div style={{ flexShrink: 0, width: "280px", border: "1px solid #fca5a5", borderRadius: "12px", padding: "20px", background: "#fff", opacity: 0.7 }}>
+  <div style={{
+    flexShrink: 0, width: "280px", border: "1px solid #fca5a5",
+    borderRadius: "12px", padding: "20px", background: "#fff", opacity: 0.7,
+  }}>
     <div style={{ height: "18px", background: "#e5e7eb", borderRadius: "4px", marginBottom: "12px" }} />
     <div style={{ height: "240px", background: "#f3f4f6", borderRadius: "8px", marginBottom: "16px" }} />
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
@@ -564,7 +592,6 @@ const ProductCard = ({ product, added, isLoading, onCardClick, onAddToCart }) =>
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        flexShrink: 0, width: "280px",
         border: "1px solid #fca5a5", borderRadius: "12px",
         display: "flex", flexDirection: "column",
         background: "#fff", cursor: "pointer",
@@ -578,9 +605,8 @@ const ProductCard = ({ product, added, isLoading, onCardClick, onAddToCart }) =>
       <div
         className="hp-product-name"
         style={{
-          padding: "18px 16px 8px", textAlign: "center",
-          minHeight: "62px", display: "flex",
-          alignItems: "center", justifyContent: "center",
+          textAlign: "center",
+          display: "flex", alignItems: "center", justifyContent: "center",
         }}
       >
         <h4 style={{
@@ -597,8 +623,7 @@ const ProductCard = ({ product, added, isLoading, onCardClick, onAddToCart }) =>
       <div
         className="hp-product-card-img"
         style={{
-          height: "260px", display: "flex",
-          alignItems: "center", justifyContent: "center",
+          display: "flex", alignItems: "center", justifyContent: "center",
           padding: "8px 20px",
         }}
       >
@@ -621,16 +646,15 @@ const ProductCard = ({ product, added, isLoading, onCardClick, onAddToCart }) =>
         )}
       </div>
 
-      {/* Footer: price + button */}
+      {/* Footer */}
       <div
         className="hp-product-footer"
         style={{
-          padding: "12px 16px 18px", display: "flex",
-          alignItems: "center", justifyContent: "space-between",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
           gap: "12px", marginTop: "auto",
         }}
       >
-        <span className="hp-product-price" style={{ fontFamily: font, fontWeight: 700, fontSize: "16px", color: "#111827" }}>
+        <span className="hp-product-price" style={{ fontFamily: font, fontWeight: 700, color: "#111827" }}>
           ₹{product.price}
         </span>
         <button
@@ -641,10 +665,10 @@ const ProductCard = ({ product, added, isLoading, onCardClick, onAddToCart }) =>
           onMouseLeave={() => setBtnHovered(false)}
           style={{
             display: "flex", alignItems: "center", gap: "8px",
-            padding: "10px 16px", background: getButtonBg(),
+            background: getButtonBg(),
             color: "#fff", border: "none", borderRadius: "8px",
-            fontFamily: font, fontWeight: 700, fontSize: "12px",
-            letterSpacing: "0.05em", textTransform: "uppercase",
+            fontFamily: font, fontWeight: 700,
+            textTransform: "uppercase",
             cursor: isLoading ? "not-allowed" : "pointer",
             transition: "background 0.2s", whiteSpace: "nowrap",
           }}
