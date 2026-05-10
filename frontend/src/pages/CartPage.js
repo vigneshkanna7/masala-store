@@ -14,20 +14,45 @@ if (typeof document !== "undefined" && !document.getElementById("poppins-font"))
   document.head.appendChild(link);
 }
 
-/* ─── Mobile-only styles ─── */
+/* ─── Mobile styles ─── */
 if (typeof document !== "undefined" && !document.getElementById("cart-mobile-css")) {
   const s = document.createElement("style");
   s.id = "cart-mobile-css";
   s.textContent = `
     @media (max-width: 768px) {
-      .cp-page       { padding: 20px 12px !important; }
-      .cp-title      { font-size: 24px !important; margin-bottom: 20px !important; }
-      .cp-card       { flex-direction: column !important; gap: 12px !important; padding: 14px !important; }
-      .cp-card-img   { width: 64px !important; height: 64px !important; }
-      .cp-card-top   { flex-direction: column !important; align-items: flex-start !important; gap: 4px !important; }
-      .cp-prod-name  { font-size: 15px !important; }
-      .cp-price-tag  { font-size: 15px !important; }
-      .cp-summary    { padding: 14px 16px !important; }
+      .cp-page         { padding: 20px 12px !important; }
+      .cp-title        { font-size: 22px !important; margin-bottom: 18px !important; }
+
+      /* Card: image + body stay side-by-side but tighter */
+      .cp-card         { padding: 14px !important; gap: 12px !important; }
+      .cp-card-img     { width: 68px !important; height: 68px !important; }
+
+      /* Name & price stack vertically */
+      .cp-card-top     { flex-direction: column !important; align-items: flex-start !important; gap: 2px !important; }
+      .cp-prod-name    { font-size: 14px !important; }
+      .cp-price-tag    { font-size: 14px !important; }
+
+      /* Weight buttons wrap */
+      .cp-weight-row   { flex-wrap: wrap !important; gap: 6px !important; }
+      .cp-weight-label { font-size: 12px !important; min-width: 46px !important; }
+      .cp-weight-btn   { padding: 4px 10px !important; font-size: 12px !important; margin-right: 0 !important; }
+
+      /* Qty row */
+      .cp-qty-label    { font-size: 12px !important; min-width: 46px !important; }
+
+      /* Remove btn */
+      .cp-remove-btn   { padding: 7px 18px !important; font-size: 12px !important; }
+
+      /* Summary */
+      .cp-summary      { padding: 14px 16px !important; }
+      .cp-summary-row  { font-size: 14px !important; }
+      .cp-total-label  { font-size: 15px !important; }
+      .cp-total-value  { font-size: 18px !important; }
+    }
+
+    @media (max-width: 400px) {
+      .cp-card-img   { width: 56px !important; height: 56px !important; }
+      .cp-prod-name  { font-size: 13px !important; }
     }
   `;
   document.head.appendChild(s);
@@ -52,24 +77,25 @@ const styles = {
     border: "1px solid #e5e7eb", display: "flex", alignItems: "center",
     justifyContent: "center", flexShrink: 0, fontSize: "24px",
   },
-  cardBody: { flex: 1, display: "flex", flexDirection: "column", gap: "12px" },
+  cardBody: { flex: 1, display: "flex", flexDirection: "column", gap: "12px", minWidth: 0 },
   cardTop: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" },
   productName: { fontSize: "17px", fontWeight: 600, color: "#1f2937", fontFamily: font, margin: 0 },
-  priceTag: { fontSize: "17px", fontWeight: 700, color: "#1f2937", fontFamily: font },
-  rowLabel: { fontSize: "13px", color: "#6b7280", fontFamily: font, marginRight: "8px", minWidth: "52px" },
+  priceTag: { fontSize: "17px", fontWeight: 700, color: "#1f2937", fontFamily: font, flexShrink: 0 },
+  rowLabel: { fontSize: "13px", color: "#6b7280", fontFamily: font, marginRight: "8px", minWidth: "52px", flexShrink: 0 },
   weightBtn: (active) => ({
     padding: "5px 14px", fontSize: "13px", fontWeight: 500, fontFamily: font,
     border: active ? "2px solid #dc2626" : "1px solid #d1d5db",
     background: active ? "#dc2626" : "#fff",
     color: active ? "#fff" : "#374151",
-    borderRadius: "6px", cursor: "pointer", marginRight: "6px", transition: "all 0.15s",
+    borderRadius: "6px", cursor: "pointer", marginRight: "6px",
+    transition: "all 0.15s", flexShrink: 0,
   }),
   removeBtn: {
     background: "#dc2626", color: "#fff", border: "none", borderRadius: "30px",
     padding: "8px 24px", fontSize: "13px", fontWeight: 600, fontFamily: font,
     cursor: "pointer", transition: "background 0.2s", alignSelf: "flex-start",
   },
-  divider: { border: "none", borderTop: "1px solid #f3f4f6", margin: "8px 0" },
+  divider: { border: "none", borderTop: "1px solid #f3f4f6", margin: "4px 0" },
   summaryBox: { background: "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", padding: "20px 24px", marginTop: "8px" },
   summaryRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", fontSize: "15px", color: "#6b7280", fontFamily: font },
   summaryTotal: { display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "14px", borderTop: "1px solid #e5e7eb", marginTop: "4px" },
@@ -220,8 +246,8 @@ const CartPage = () => {
           const availableWeights = item.availableWeights || WEIGHT_OPTIONS;
 
           return (
-            /* cp-card: stacks image + body vertically on mobile */
             <div key={index} className="cp-card" style={styles.card}>
+              {/* Image */}
               {(item.imageUrl || item.product?.imageUrl) ? (
                 <img
                   src={item.imageUrl || item.product?.imageUrl}
@@ -233,8 +259,10 @@ const CartPage = () => {
                 <div className="cp-card-img" style={styles.productImagePlaceholder}>🛒</div>
               )}
 
+              {/* Body */}
               <div style={styles.cardBody}>
-                {/* cp-card-top: stacks name + price on mobile */}
+
+                {/* Name + Price */}
                 <div className="cp-card-top" style={styles.cardTop}>
                   <p className="cp-prod-name" style={styles.productName}>
                     {item.productName || item.product?.name}
@@ -246,33 +274,59 @@ const CartPage = () => {
 
                 <hr style={styles.divider} />
 
-                <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px" }}>
-                  <span style={styles.rowLabel}>Weight</span>
+                {/* Weight */}
+                <div className="cp-weight-row" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px" }}>
+                  <span className="cp-weight-label" style={styles.rowLabel}>Weight</span>
                   {availableWeights.map((w) => (
-                    <button key={w} style={styles.weightBtn(activeWeight === w)} onClick={() => handleWeightSelect(index, w)}>
+                    <button
+                      key={w}
+                      className="cp-weight-btn"
+                      style={styles.weightBtn(activeWeight === w)}
+                      onClick={() => handleWeightSelect(index, w)}
+                    >
                       {w.toUpperCase()}
                     </button>
                   ))}
                 </div>
 
+                {/* Quantity */}
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span style={styles.rowLabel}>Qty</span>
-                  <div style={{ display: "flex", alignItems: "center", border: "1px solid #d1d5db", borderRadius: "8px", overflow: "hidden", width: "fit-content" }}>
+                  <span className="cp-qty-label" style={styles.rowLabel}>Qty</span>
+                  <div style={{
+                    display: "flex", alignItems: "center",
+                    border: "1px solid #d1d5db", borderRadius: "8px",
+                    overflow: "hidden", width: "fit-content",
+                  }}>
                     <button
                       onClick={() => handleQuantityChange(index, -1)}
-                      style={{ width: "36px", height: "36px", background: "#f9fafb", border: "none", borderRight: "1px solid #d1d5db", cursor: "pointer", fontSize: "18px", color: "#374151", fontFamily: font, display: "flex", alignItems: "center", justifyContent: "center" }}
+                      style={{
+                        width: "34px", height: "34px", background: "#f9fafb",
+                        border: "none", borderRight: "1px solid #d1d5db",
+                        cursor: "pointer", fontSize: "18px", color: "#374151",
+                        fontFamily: font, display: "flex", alignItems: "center", justifyContent: "center",
+                      }}
                     >−</button>
-                    <span style={{ width: "44px", textAlign: "center", fontSize: "15px", fontWeight: 600, color: "#1f2937", fontFamily: font }}>
+                    <span style={{
+                      width: "40px", textAlign: "center",
+                      fontSize: "14px", fontWeight: 600, color: "#1f2937", fontFamily: font,
+                    }}>
                       {item.quantity || 1}
                     </span>
                     <button
                       onClick={() => handleQuantityChange(index, 1)}
-                      style={{ width: "36px", height: "36px", background: "#f9fafb", border: "none", borderLeft: "1px solid #d1d5db", cursor: "pointer", fontSize: "18px", color: "#374151", fontFamily: font, display: "flex", alignItems: "center", justifyContent: "center" }}
+                      style={{
+                        width: "34px", height: "34px", background: "#f9fafb",
+                        border: "none", borderLeft: "1px solid #d1d5db",
+                        cursor: "pointer", fontSize: "18px", color: "#374151",
+                        fontFamily: font, display: "flex", alignItems: "center", justifyContent: "center",
+                      }}
                     >+</button>
                   </div>
                 </div>
 
+                {/* Remove */}
                 <button
+                  className="cp-remove-btn"
                   style={styles.removeBtn}
                   onMouseOver={(e) => (e.target.style.background = "#b91c1c")}
                   onMouseOut={(e) => (e.target.style.background = "#dc2626")}
@@ -285,22 +339,24 @@ const CartPage = () => {
           );
         })}
 
-        {/* cp-summary: reduces padding on mobile */}
+        {/* Summary */}
         <div className="cp-summary" style={styles.summaryBox}>
           <p style={{ fontSize: "15px", fontWeight: 600, color: "#1f2937", fontFamily: font, marginBottom: "12px" }}>
             Order Summary
           </p>
-          <div style={styles.summaryRow}>
+          <div className="cp-summary-row" style={styles.summaryRow}>
             <span>Items ({itemCount})</span>
             <span style={{ color: "#1f2937" }}>₹{getTotal()}</span>
           </div>
-          <div style={styles.summaryRow}>
+          <div className="cp-summary-row" style={styles.summaryRow}>
             <span>Delivery Charge</span>
             <span style={{ color: "#1f2937" }}>₹40.00</span>
           </div>
           <div style={styles.summaryTotal}>
-            <span style={styles.totalLabel}>Total</span>
-            <span style={styles.totalValue}>₹{(parseFloat(getTotal()) + 40).toFixed(2)}</span>
+            <span className="cp-total-label" style={styles.totalLabel}>Total</span>
+            <span className="cp-total-value" style={styles.totalValue}>
+              ₹{(parseFloat(getTotal()) + 40).toFixed(2)}
+            </span>
           </div>
           <button
             style={styles.checkoutBtn}

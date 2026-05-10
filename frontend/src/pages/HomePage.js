@@ -20,36 +20,133 @@ if (typeof document !== "undefined" && !document.getElementById("homepage-mobile
   const s = document.createElement("style");
   s.id = "homepage-mobile-css";
   s.textContent = `
+    /* ── Hide scrollbar globally for scroll rows ── */
+    .hp-scroll-row::-webkit-scrollbar { display: none; }
+    .hp-scroll-row { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* ════════════════════════════════
+       MOBILE  ≤ 768px
+    ════════════════════════════════ */
     @media (max-width: 768px) {
+
       /* Hero */
-      .hp-hero-wrap { padding: 12px 12px 0 !important; }
+      .hp-hero-wrap {
+        padding: 0 10px !important;
+      }
+
+      /* Slide dots */
+      .hp-dots-wrap {
+        padding: 10px 0 0 !important;
+      }
 
       /* Trust strip */
-      .hp-trust-outer { padding: 20px 0 !important; margin-top: 8px !important; }
-      .hp-trust-inner { padding: 12px 16px !important; }
-      .hp-trust-grid  { grid-template-columns: 1fr !important; gap: 20px !important; }
-      .hp-trust-item  { padding: 0 !important; }
+      .hp-trust-outer {
+        padding: 24px 0 !important;
+        margin-top: 8px !important;
+      }
+      .hp-trust-inner {
+        padding: 0 16px !important;
+      }
+      .hp-trust-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0 !important;
+      }
+      .hp-trust-item {
+        padding: 16px 12px !important;
+        border-right: none !important;
+        border-bottom: 1px solid #f3f4f6 !important;
+        flex-direction: row !important;
+        text-align: left !important;
+        gap: 14px !important;
+        align-items: flex-start !important;
+      }
+      .hp-trust-item:last-child {
+        border-bottom: none !important;
+      }
+      .hp-trust-icon {
+        font-size: 32px !important;
+        margin-bottom: 0 !important;
+        flex-shrink: 0 !important;
+        margin-top: 2px !important;
+      }
+      .hp-trust-text { text-align: left !important; }
 
-      /* Sections */
-      .hp-section    { padding: 28px 12px !important; }
-      .hp-section-hd h2 { font-size: 18px !important; }
+      /* Section padding */
+      .hp-section {
+        padding: 28px 12px !important;
+      }
 
-      /* Product cards */
-      .hp-product-card     { width: 175px !important; }
-      .hp-product-card-img { height: 165px !important; }
-      .hp-product-name     { font-size: 13px !important; }
-      .hp-product-price    { font-size: 14px !important; }
-      .hp-add-btn          { font-size: 11px !important; padding: 8px 10px !important; }
+      /* Section header */
+      .hp-section-hd h2 {
+        font-size: 17px !important;
+        letter-spacing: 0.04em !important;
+      }
+
+      /* Arrow buttons – smaller on mobile */
+      .hp-arrow-btn {
+        width: 34px !important;
+        height: 34px !important;
+        font-size: 18px !important;
+      }
+
+      /* ── Product cards: 2-column grid on mobile ── */
+      .hp-products-scroll {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 12px !important;
+        overflow-x: visible !important;
+        padding-bottom: 0 !important;
+      }
+      .hp-product-card {
+        width: 100% !important;
+        min-width: 0 !important;
+        flex-shrink: unset !important;
+      }
+      .hp-product-card-img {
+        height: 150px !important;
+        padding: 8px 10px !important;
+      }
+      .hp-product-name {
+        font-size: 12px !important;
+        padding: 12px 10px 6px !important;
+        min-height: 50px !important;
+      }
+      .hp-product-footer {
+        padding: 8px 10px 12px !important;
+        gap: 6px !important;
+      }
+      .hp-product-price {
+        font-size: 13px !important;
+      }
+      .hp-add-btn {
+        font-size: 10px !important;
+        padding: 7px 8px !important;
+        gap: 4px !important;
+        letter-spacing: 0.03em !important;
+      }
 
       /* Review cards */
-      .hp-review-card { width: 260px !important; }
-      .hp-reviews-hd  { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+      .hp-review-card {
+        width: 240px !important;
+      }
+      .hp-reviews-hd {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+      }
     }
 
-    @media (max-width: 480px) {
-      .hp-product-card     { width: 150px !important; }
-      .hp-product-card-img { height: 140px !important; }
-      .hp-review-card      { width: 230px !important; }
+    /* ════════════════════════════════
+       SMALL MOBILE  ≤ 400px
+    ════════════════════════════════ */
+    @media (max-width: 400px) {
+      .hp-products-scroll {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+      }
+      .hp-product-card-img { height: 120px !important; }
+      .hp-review-card { width: 200px !important; }
+      .hp-section-hd h2 { font-size: 15px !important; }
     }
   `;
   document.head.appendChild(s);
@@ -238,7 +335,7 @@ const HomePage = () => {
         </div>
 
         {/* Dots */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "8px", padding: "16px 0 0" }}>
+        <div className="hp-dots-wrap" style={{ display: "flex", justifyContent: "center", gap: "8px", padding: "16px 0 0" }}>
           {slides.map((_, i) => (
             <button key={i} onClick={() => setCurrentSlide(i)} aria-label={`Slide ${i + 1}`}
               style={{
@@ -270,13 +367,15 @@ const HomePage = () => {
                 textAlign: "center", padding: "0 28px",
                 borderRight: "none",
               }}>
-                <Icon style={{ fontSize: "48px", color: "#374151", marginBottom: "14px" }} />
-                <p style={{ fontFamily: font, fontWeight: 600, fontSize: "15px", color: "#111827", margin: "0 0 6px 0" }}>
-                  {title}
-                </p>
-                <p style={{ fontFamily: font, fontWeight: 400, fontSize: "13px", color: "#6b7280", margin: 0, lineHeight: 1.6 }}>
-                  {desc}
-                </p>
+                <Icon className="hp-trust-icon" style={{ fontSize: "48px", color: "#374151", marginBottom: "14px" }} />
+                <div className="hp-trust-text">
+                  <p style={{ fontFamily: font, fontWeight: 600, fontSize: "15px", color: "#111827", margin: "0 0 6px 0" }}>
+                    {title}
+                  </p>
+                  <p style={{ fontFamily: font, fontWeight: 400, fontSize: "13px", color: "#6b7280", margin: 0, lineHeight: 1.6 }}>
+                    {desc}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
@@ -291,7 +390,8 @@ const HomePage = () => {
           <h2 style={{ fontFamily: font, fontWeight: 800, fontSize: "26px", letterSpacing: "0.06em", color: "#111827", margin: 0, textTransform: "uppercase" }}>
             Best Sellers
           </h2>
-          <div style={{ display: "flex", gap: "8px" }}>
+          {/* Arrow buttons hidden on mobile since grid doesn't scroll */}
+          <div className="hp-section-arrows" style={{ display: "flex", gap: "8px" }}>
             <ArrowBtn onClick={() => scroll("left")} label="Scroll left">←</ArrowBtn>
             <ArrowBtn onClick={() => scroll("right")} label="Scroll right">→</ArrowBtn>
           </div>
@@ -302,10 +402,14 @@ const HomePage = () => {
             {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : (
-          <div ref={scrollRef} style={{
-            display: "flex", gap: "20px", overflowX: "auto",
-            paddingBottom: "8px", scrollbarWidth: "none", msOverflowStyle: "none",
-          }}>
+          <div
+            ref={scrollRef}
+            className="hp-products-scroll hp-scroll-row"
+            style={{
+              display: "flex", gap: "20px", overflowX: "auto",
+              paddingBottom: "8px",
+            }}
+          >
             {products.map((product) => (
               <ProductCard
                 key={product.id}
@@ -371,9 +475,10 @@ const HomePage = () => {
             ) : (
               <div
                 ref={reviewScrollRef}
+                className="hp-scroll-row"
                 style={{
                   display: "flex", gap: "20px", overflowX: "auto",
-                  paddingBottom: "8px", scrollbarWidth: "none", msOverflowStyle: "none",
+                  paddingBottom: "8px",
                 }}
               >
                 {reviews.map((review) => (
@@ -385,6 +490,13 @@ const HomePage = () => {
           </div>
         </div>
       )}
+
+      {/* Hide arrows on mobile (grid doesn't scroll) */}
+      <style>{`
+        @media (max-width: 768px) {
+          .hp-section-arrows { display: none !important; }
+        }
+      `}</style>
 
     </div>
   );
@@ -399,6 +511,7 @@ const ArrowBtn = ({ onClick, label, children }) => {
     <button
       onClick={onClick}
       aria-label={label}
+      className="hp-arrow-btn"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -461,8 +574,16 @@ const ProductCard = ({ product, added, isLoading, onCardClick, onAddToCart }) =>
         fontFamily: font, overflow: "hidden",
       }}
     >
-      <div style={{ padding: "18px 16px 8px", textAlign: "center", minHeight: "62px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <h4 className="hp-product-name" style={{
+      {/* Name */}
+      <div
+        className="hp-product-name"
+        style={{
+          padding: "18px 16px 8px", textAlign: "center",
+          minHeight: "62px", display: "flex",
+          alignItems: "center", justifyContent: "center",
+        }}
+      >
+        <h4 style={{
           fontFamily: font, fontWeight: 600, fontSize: "15px",
           color: hovered ? red : "#111827", margin: 0, lineHeight: 1.4,
           display: "-webkit-box", WebkitLineClamp: 2,
@@ -472,20 +593,43 @@ const ProductCard = ({ product, added, isLoading, onCardClick, onAddToCart }) =>
         </h4>
       </div>
 
-      <div className="hp-product-card-img" style={{ height: "260px", display: "flex", alignItems: "center", justifyContent: "center", padding: "8px 20px" }}>
+      {/* Image */}
+      <div
+        className="hp-product-card-img"
+        style={{
+          height: "260px", display: "flex",
+          alignItems: "center", justifyContent: "center",
+          padding: "8px 20px",
+        }}
+      >
         {product.imageUrl ? (
           <img src={product.imageUrl} alt={product.name}
-            style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain", transform: hovered ? "scale(1.05)" : "scale(1)", transition: "transform 0.3s" }}
+            style={{
+              maxHeight: "100%", maxWidth: "100%", objectFit: "contain",
+              transform: hovered ? "scale(1.05)" : "scale(1)", transition: "transform 0.3s",
+            }}
             loading="lazy"
           />
         ) : (
-          <div style={{ width: "100%", height: "100%", background: "#fff7ed", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "64px" }}>
+          <div style={{
+            width: "100%", height: "100%", background: "#fff7ed",
+            borderRadius: "8px", display: "flex", alignItems: "center",
+            justifyContent: "center", fontSize: "64px",
+          }}>
             🌶️
           </div>
         )}
       </div>
 
-      <div style={{ padding: "12px 16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginTop: "auto" }}>
+      {/* Footer: price + button */}
+      <div
+        className="hp-product-footer"
+        style={{
+          padding: "12px 16px 18px", display: "flex",
+          alignItems: "center", justifyContent: "space-between",
+          gap: "12px", marginTop: "auto",
+        }}
+      >
         <span className="hp-product-price" style={{ fontFamily: font, fontWeight: 700, fontSize: "16px", color: "#111827" }}>
           ₹{product.price}
         </span>

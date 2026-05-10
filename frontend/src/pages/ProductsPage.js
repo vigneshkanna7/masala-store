@@ -13,24 +13,44 @@ if (typeof document !== "undefined" && !document.getElementById("poppins-font"))
   document.head.appendChild(link);
 }
 
-/* ─── Mobile-only styles ─── */
+/* ─── Mobile styles ─── */
 if (typeof document !== "undefined" && !document.getElementById("products-mobile-css")) {
   const s = document.createElement("style");
   s.id = "products-mobile-css";
   s.textContent = `
+    /* Grid breakpoints */
+    @media (max-width: 1024px) { .products-grid { grid-template-columns: repeat(3, 1fr) !important; } }
+    @media (max-width: 768px)  { .products-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; } }
+    @media (max-width: 400px)  { .products-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; } }
+
     @media (max-width: 768px) {
-      .pp-container  { padding: 12px 12px !important; }
-      .pp-header     { margin-bottom: 16px !important; }
-      .pp-header h1  { font-size: 20px !important; }
-      .pp-sort       { font-size: 13px !important; padding: 8px 10px !important; }
-      .pp-card-img   { height: 170px !important; }
-      .pp-card-title { font-size: 13px !important; }
-      .pp-card-price { font-size: 13px !important; }
-      .pp-card-btn   { font-size: 11px !important; padding: 8px 10px !important; }
+      .pp-container       { padding: 16px 12px !important; }
+      .pp-header          { margin-bottom: 16px !important; flex-wrap: wrap !important; gap: 10px !important; }
+      .pp-header h1       { font-size: 20px !important; }
+      .pp-sort            { font-size: 13px !important; padding: 8px 10px !important; width: 100% !important; }
+      .pp-card-img        { height: 140px !important; padding: 6px 10px !important; }
+      .pp-card-title-wrap { min-height: 48px !important; padding: 12px 10px 6px !important; }
+      .pp-card-title      { font-size: 12px !important; }
+      .pp-card-footer     { padding: 8px 10px 12px !important; gap: 6px !important; }
+      .pp-card-price      { font-size: 13px !important; }
+      .pp-card-btn        { font-size: 10px !important; padding: 7px 8px !important; letter-spacing: 0.02em !important; }
     }
-    @media (max-width: 480px) {
-      .pp-card-img { height: 145px !important; }
+
+    @media (max-width: 400px) {
+      .pp-card-img   { height: 120px !important; }
+      .pp-card-btn   { font-size: 9px !important; padding: 6px 6px !important; }
     }
+
+    /* Skeleton loading grid */
+    @media (max-width: 768px)  { .pp-skeleton-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; } }
+
+    /* Card hover — desktop only */
+    .product-card { transition: box-shadow 0.2s, transform 0.2s; }
+    .product-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.10); transform: translateY(-3px); }
+    .product-card:hover .product-card__title { color: ${red}; }
+    .product-card__img { transition: transform 0.3s; }
+    .product-card:hover .product-card__img { transform: scale(1.05); }
+    .product-card__btn:not(:disabled):not(.is-loading):not(.is-added):hover { background: #b91c1c !important; }
   `;
   document.head.appendChild(s);
 }
@@ -41,7 +61,6 @@ const ProductsPage = () => {
   const [sortBy, setSortBy] = useState("default");
   const [addedMap, setAddedMap] = useState({});
   const [loadingMap, setLoadingMap] = useState({});
-
   const [selectedProductId, setSelectedProductId] = useState(null);
 
   const token = localStorage.getItem("token");
@@ -120,12 +139,15 @@ const ProductsPage = () => {
 
   if (loading)
     return (
-      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "40px 24px", fontFamily: font }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "24px" }}>
+      <div className="pp-container" style={{ maxWidth: "1200px", margin: "0 auto", padding: "24px 48px", fontFamily: font }}>
+        <div
+          className="pp-skeleton-grid"
+          style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "24px" }}
+        >
           {[...Array(8)].map((_, i) => (
-            <div key={i} style={{ border: `1px solid #fca5a5`, borderRadius: "12px", padding: "16px", background: "#fff" }}>
+            <div key={i} style={{ border: "1px solid #fca5a5", borderRadius: "12px", padding: "16px", background: "#fff" }}>
               <div style={{ height: "16px", background: "#e5e7eb", borderRadius: "4px", marginBottom: "12px" }} />
-              <div style={{ height: "200px", background: "#f3f4f6", borderRadius: "8px", marginBottom: "16px" }} />
+              <div style={{ height: "160px", background: "#f3f4f6", borderRadius: "8px", marginBottom: "16px" }} />
               <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
                 <div style={{ height: "20px", width: "60px", background: "#e5e7eb", borderRadius: "4px" }} />
                 <div style={{ height: "36px", flex: 1, background: "#fee2e2", borderRadius: "8px" }} />
@@ -138,14 +160,16 @@ const ProductsPage = () => {
 
   return (
     <div style={{ background: "#fff", fontFamily: font }}>
-      {/* pp-container overrides padding on mobile */}
       <div className="pp-container" style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px 48px" }}>
 
         {/* Header + Sort */}
-        <div className="pp-header" style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          marginBottom: "24px", flexWrap: "wrap", gap: "12px",
-        }}>
+        <div
+          className="pp-header"
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            marginBottom: "24px", flexWrap: "wrap", gap: "12px",
+          }}
+        >
           <h1 style={{ fontFamily: font, fontWeight: 800, fontSize: "25px", color: "#111827", margin: 0 }}>
             Our Products
           </h1>
@@ -187,12 +211,6 @@ const ProductsPage = () => {
       {selectedProductId && (
         <ProductDetailModal productId={selectedProductId} onClose={handleModalClose} />
       )}
-
-      <style>{`
-        @media (max-width: 1024px) { .products-grid { grid-template-columns: repeat(3, 1fr) !important; } }
-        @media (max-width: 768px)  { .products-grid { grid-template-columns: repeat(2, 1fr) !important; } }
-        @media (max-width: 480px)  { .products-grid { grid-template-columns: repeat(2, 1fr) !important; } }
-      `}</style>
     </div>
   );
 };
@@ -208,101 +226,101 @@ const ProductCard = React.memo(({ product, added, isLoading, onCardClick, onAddT
   };
 
   return (
-    <>
-      <style>{`
-        .product-card { transition: box-shadow 0.2s, transform 0.2s; }
-        .product-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.10); transform: translateY(-3px); }
-        .product-card:hover .product-card__title { color: ${red}; }
-        .product-card__img { transition: transform 0.3s; }
-        .product-card:hover .product-card__img { transform: scale(1.05); }
-        .product-card__btn:not(:disabled):not(.is-loading):not(.is-added):hover { background: #b91c1c !important; }
-      `}</style>
-
-      <div
-        className="product-card"
-        onClick={() => onCardClick(product.id)}
-        style={{
-          border: `1px solid #fca5a5`, borderRadius: "12px",
-          display: "flex", flexDirection: "column",
-          background: "#fff", cursor: "pointer",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
-          fontFamily: font, overflow: "hidden", position: "relative",
-        }}
-      >
-        {product.stock === 0 && (
-          <div style={{
-            position: "absolute", top: "12px", right: "12px",
-            background: red, color: "#fff", fontSize: "11px", fontWeight: 700,
-            padding: "4px 10px", borderRadius: "999px", fontFamily: font, zIndex: 2,
-          }}>
-            Out of Stock
-          </div>
-        )}
-
+    <div
+      className="product-card"
+      onClick={() => onCardClick(product.id)}
+      style={{
+        border: "1px solid #fca5a5", borderRadius: "12px",
+        display: "flex", flexDirection: "column",
+        background: "#fff", cursor: "pointer",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+        fontFamily: font, overflow: "hidden", position: "relative",
+      }}
+    >
+      {product.stock === 0 && (
         <div style={{
+          position: "absolute", top: "8px", right: "8px",
+          background: red, color: "#fff", fontSize: "10px", fontWeight: 700,
+          padding: "3px 8px", borderRadius: "999px", fontFamily: font, zIndex: 2,
+        }}>
+          Out of Stock
+        </div>
+      )}
+
+      {/* Title */}
+      <div
+        className="pp-card-title-wrap"
+        style={{
           padding: "16px 14px 8px", textAlign: "center",
           minHeight: "58px", display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <h4
-            className="product-card__title pp-card-title"
-            style={{
-              fontFamily: font, fontWeight: 600, fontSize: "14px",
-              color: "#111827", margin: 0, lineHeight: 1.4,
-              display: "-webkit-box", WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical", overflow: "hidden", transition: "color 0.2s",
-            }}
-          >
-            {product.name}
-          </h4>
-        </div>
+        }}
+      >
+        <h4
+          className="product-card__title pp-card-title"
+          style={{
+            fontFamily: font, fontWeight: 600, fontSize: "14px",
+            color: "#111827", margin: 0, lineHeight: 1.4,
+            display: "-webkit-box", WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical", overflow: "hidden", transition: "color 0.2s",
+          }}
+        >
+          {product.name}
+        </h4>
+      </div>
 
-        {/* pp-card-img shrinks height on mobile */}
-        <div className="pp-card-img" style={{ height: "220px", display: "flex", alignItems: "center", justifyContent: "center", padding: "8px 16px" }}>
-          {product.imageUrl ? (
-            <img
-              src={product.imageUrl} alt={product.name}
-              className="product-card__img"
-              style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }}
-              loading="lazy"
-            />
-          ) : (
-            <div style={{
-              width: "100%", height: "100%", background: "#fff7ed", borderRadius: "8px",
-              display: "flex", alignItems: "center", justifyContent: "center", fontSize: "56px",
-            }}>
-              🌶️
-            </div>
-          )}
-        </div>
+      {/* Image */}
+      <div
+        className="pp-card-img"
+        style={{ height: "200px", display: "flex", alignItems: "center", justifyContent: "center", padding: "8px 16px" }}
+      >
+        {product.imageUrl ? (
+          <img
+            src={product.imageUrl} alt={product.name}
+            className="product-card__img"
+            style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }}
+            loading="lazy"
+          />
+        ) : (
+          <div style={{
+            width: "100%", height: "100%", background: "#fff7ed", borderRadius: "8px",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: "48px",
+          }}>
+            🌶️
+          </div>
+        )}
+      </div>
 
-        <div style={{
+      {/* Footer */}
+      <div
+        className="pp-card-footer"
+        style={{
           padding: "10px 14px 16px", display: "flex",
           alignItems: "center", justifyContent: "space-between",
           gap: "10px", marginTop: "auto",
-        }}>
-          <span className="pp-card-price" style={{ fontFamily: font, fontWeight: 700, fontSize: "15px", color: "#111827" }}>
-            ₹{product.price}
-          </span>
-          <button
-            className={`product-card__btn pp-card-btn${isLoading ? " is-loading" : ""}${added ? " is-added" : ""}`}
-            onClick={(e) => onAddToCart(e, product)}
-            disabled={product.stock === 0 || isLoading}
-            style={{
-              display: "flex", alignItems: "center", gap: "8px",
-              padding: "10px 16px", background: getButtonBg(),
-              color: product.stock === 0 ? "#9ca3af" : "#fff",
-              border: "none", borderRadius: "8px", fontFamily: font,
-              fontWeight: 700, fontSize: "12px", letterSpacing: "0.05em",
-              textTransform: "uppercase",
-              cursor: (product.stock === 0 || isLoading) ? "not-allowed" : "pointer",
-              transition: "background 0.2s", whiteSpace: "nowrap",
-            }}
-          >
-            {isLoading ? "Adding..." : "ADD TO CART"}
-          </button>
-        </div>
+        }}
+      >
+        <span className="pp-card-price" style={{ fontFamily: font, fontWeight: 700, fontSize: "15px", color: "#111827", flexShrink: 0 }}>
+          ₹{product.price}
+        </span>
+        <button
+          className={`product-card__btn pp-card-btn${isLoading ? " is-loading" : ""}${added ? " is-added" : ""}`}
+          onClick={(e) => onAddToCart(e, product)}
+          disabled={product.stock === 0 || isLoading}
+          style={{
+            display: "flex", alignItems: "center", gap: "6px",
+            padding: "9px 12px", background: getButtonBg(),
+            color: product.stock === 0 ? "#9ca3af" : "#fff",
+            border: "none", borderRadius: "8px", fontFamily: font,
+            fontWeight: 700, fontSize: "11px", letterSpacing: "0.04em",
+            textTransform: "uppercase",
+            cursor: (product.stock === 0 || isLoading) ? "not-allowed" : "pointer",
+            transition: "background 0.2s", whiteSpace: "nowrap",
+          }}
+        >
+          {isLoading ? "Adding..." : "ADD TO CART"}
+        </button>
       </div>
-    </>
+    </div>
   );
 });
 

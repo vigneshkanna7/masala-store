@@ -19,17 +19,37 @@ if (typeof document !== "undefined" && !document.getElementById("razorpay-script
   document.head.appendChild(script);
 }
 
-/* ─── Mobile-only styles ─── */
+/* ─── Mobile styles ─── */
 if (typeof document !== "undefined" && !document.getElementById("checkout-mobile-css")) {
   const s = document.createElement("style");
   s.id = "checkout-mobile-css";
   s.textContent = `
     @media (max-width: 768px) {
-      .ck-outer      { padding: 20px 12px !important; }
-      .ck-grid       { grid-template-columns: 1fr !important; gap: 24px !important; }
-      .ck-name-row   { grid-template-columns: 1fr !important; gap: 12px !important; }
-      .ck-title      { font-size: 20px !important; margin-bottom: 18px !important; }
-      .ck-order-col  { position: static !important; }
+      .ck-outer     { padding: 20px 12px !important; }
+
+      /* Single column layout */
+      .ck-grid      {
+        grid-template-columns: 1fr !important;
+        gap: 32px !important;
+      }
+
+      /* Name row: single column */
+      .ck-name-row  { grid-template-columns: 1fr !important; gap: 12px !important; }
+
+      /* Section titles */
+      .ck-title     { font-size: 20px !important; margin-bottom: 18px !important; }
+
+      /* Order column: not sticky on mobile */
+      .ck-order-col { position: static !important; top: auto !important; }
+
+      /* Order summary grid items smaller text */
+      .ck-order-row-text  { font-size: 13px !important; }
+      .ck-order-row-price { font-size: 13px !important; }
+    }
+
+    @media (max-width: 400px) {
+      .ck-outer   { padding: 16px 10px !important; }
+      .ck-title   { font-size: 18px !important; }
     }
   `;
   document.head.appendChild(s);
@@ -236,11 +256,13 @@ const CheckoutPage = () => {
 
   return (
     <div style={{ background: "#fff", minHeight: "100vh", fontFamily: font }}>
-      {/* ck-outer: reduces padding on mobile */}
       <div className="ck-outer" style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 24px" }}>
         <form onSubmit={handleOrder} noValidate>
-          {/* ck-grid: single column on mobile */}
-          <div className="ck-grid" style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: "48px", alignItems: "start" }}>
+          {/* ck-grid: 2-col desktop → 1-col mobile */}
+          <div
+            className="ck-grid"
+            style={{ display: "grid", gridTemplateColumns: "1fr 400px", gap: "48px", alignItems: "start" }}
+          >
 
             {/* ══ LEFT: Billing Details ══ */}
             <div>
@@ -258,7 +280,7 @@ const CheckoutPage = () => {
                 </div>
               )}
 
-              {/* First + Last Name — ck-name-row: single column on mobile */}
+              {/* First + Last Name */}
               <div className="ck-name-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
                 <div>
                   <label style={labelStyle}>First name <span style={requiredStar}>*</span></label>
@@ -306,7 +328,7 @@ const CheckoutPage = () => {
               <div style={{ marginBottom: "16px" }}>
                 <label style={labelStyle}>State <span style={requiredStar}>*</span></label>
                 <select style={{ ...inputStyle, cursor: "pointer" }} name="state" value={form.state} onChange={handleChange}>
-                  {INDIAN_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  {INDIAN_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
                 </select>
               </div>
 
@@ -343,7 +365,7 @@ const CheckoutPage = () => {
               </div>
             </div>
 
-            {/* ══ RIGHT: Your Order — ck-order-col: removes sticky on mobile ══ */}
+            {/* ══ RIGHT: Your Order ══ */}
             <div className="ck-order-col" style={{ position: "sticky", top: "24px" }}>
               <h2 className="ck-title" style={{ fontSize: "26px", fontWeight: 700, color: "#1f2937", fontFamily: font, marginBottom: "24px" }}>
                 Your order
@@ -351,50 +373,56 @@ const CheckoutPage = () => {
 
               <div style={{ border: "1px solid #e5e7eb", borderRadius: "12px", overflow: "hidden" }}>
 
+                {/* Header row */}
                 <div style={{
                   display: "grid", gridTemplateColumns: "1fr auto",
-                  padding: "12px 20px", background: "#f9fafb", borderBottom: "1px solid #e5e7eb",
+                  padding: "12px 16px", background: "#f9fafb", borderBottom: "1px solid #e5e7eb",
                 }}>
                   <span style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#6b7280", fontFamily: font }}>Product</span>
                   <span style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#6b7280", fontFamily: font }}>Subtotal</span>
                 </div>
 
+                {/* Cart items */}
                 {cart.length === 0 ? (
                   <div style={{ padding: "20px", color: "#9ca3af", fontSize: "14px", fontFamily: font, textAlign: "center" }}>Cart is empty</div>
                 ) : (
                   cart.map((item, i) => (
                     <div key={i} style={{
                       display: "grid", gridTemplateColumns: "1fr auto",
-                      padding: "12px 20px", borderBottom: "1px solid #f3f4f6", alignItems: "center",
+                      padding: "10px 16px", borderBottom: "1px solid #f3f4f6", alignItems: "center", gap: "8px",
                     }}>
-                      <span style={{ fontSize: "14px", color: "#374151", fontFamily: font }}>
+                      <span className="ck-order-row-text" style={{ fontSize: "13px", color: "#374151", fontFamily: font, lineHeight: 1.4 }}>
                         {item.productName || item.product?.name || item.name}
                         {item.weight ? ` - ${item.weight.toUpperCase()}` : ""}
                         <span style={{ fontWeight: 700, color: "#1f2937" }}> × {item.quantity || 1}</span>
                       </span>
-                      <span style={{ fontSize: "14px", fontWeight: 500, color: "#1f2937", fontFamily: font }}>
+                      <span className="ck-order-row-price" style={{ fontSize: "13px", fontWeight: 500, color: "#1f2937", fontFamily: font }}>
                         ₹{(item.price || 0).toFixed(2)}
                       </span>
                     </div>
                   ))
                 )}
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", padding: "12px 20px", borderBottom: "1px solid #e5e7eb", background: "#fafafa" }}>
-                  <span style={{ fontSize: "14px", fontWeight: 700, color: "#1f2937", fontFamily: font, textTransform: "uppercase", letterSpacing: "0.05em" }}>Subtotal</span>
+                {/* Subtotal */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", padding: "12px 16px", borderBottom: "1px solid #e5e7eb", background: "#fafafa" }}>
+                  <span style={{ fontSize: "14px", fontWeight: 700, color: "#1f2937", fontFamily: font, textTransform: "uppercase", letterSpacing: "0.04em" }}>Subtotal</span>
                   <span style={{ fontSize: "14px", fontWeight: 600, color: "#1f2937", fontFamily: font }}>₹{subtotal.toFixed(2)}</span>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", padding: "12px 20px", borderBottom: "1px solid #e5e7eb" }}>
+                {/* Delivery */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", padding: "12px 16px", borderBottom: "1px solid #e5e7eb" }}>
                   <span style={{ fontSize: "14px", fontWeight: 600, color: "#1f2937", fontFamily: font }}>Delivery</span>
                   <span style={{ fontSize: "14px", fontWeight: 600, color: "#1f2937", fontFamily: font }}>₹{DELIVERY_CHARGE}.00</span>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", padding: "14px 20px", borderBottom: "1px solid #e5e7eb" }}>
-                  <span style={{ fontSize: "15px", fontWeight: 700, color: "#1f2937", fontFamily: font, textTransform: "uppercase", letterSpacing: "0.05em" }}>Total</span>
+                {/* Total */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", padding: "14px 16px", borderBottom: "1px solid #e5e7eb" }}>
+                  <span style={{ fontSize: "15px", fontWeight: 700, color: "#1f2937", fontFamily: font, textTransform: "uppercase", letterSpacing: "0.04em" }}>Total</span>
                   <span style={{ fontSize: "16px", fontWeight: 700, color: "#1f2937", fontFamily: font }}>₹{total.toFixed(2)}</span>
                 </div>
 
-                <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e7eb" }}>
+                {/* Payment method */}
+                <div style={{ padding: "14px 16px", borderBottom: "1px solid #e5e7eb" }}>
                   <div
                     onClick={() => setForm({ ...form, paymentMethod: "ONLINE" })}
                     style={{
@@ -412,13 +440,15 @@ const CheckoutPage = () => {
                   </div>
                 </div>
 
-                <div style={{ padding: "14px 20px", borderBottom: "1px solid #e5e7eb" }}>
+                {/* Privacy note */}
+                <div style={{ padding: "12px 16px", borderBottom: "1px solid #e5e7eb" }}>
                   <p style={{ margin: 0, fontSize: "12px", color: "#6b7280", fontFamily: font, lineHeight: 1.6 }}>
                     Your personal data will be used to process your order and support your experience on this website.
                   </p>
                 </div>
 
-                <div style={{ padding: "16px 20px" }}>
+                {/* Submit */}
+                <div style={{ padding: "14px 16px" }}>
                   <button
                     type="submit"
                     disabled={loading}

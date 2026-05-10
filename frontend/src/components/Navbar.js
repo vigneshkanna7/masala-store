@@ -37,17 +37,18 @@ const Navbar = () => {
 
   useEffect(() => {
     const update = () => {
-  if (isLoggedIn) {
-    api.get("/cart")
-      .then((res) => {
-    const count = (res.data || []).length;
-        setCartCount(count);
-      })
-      .catch(() => setCartCount(0));
-  } else {
-    const cart = JSON.parse(localStorage.getItem("guestCart")) || [];
-    setCartCount(cart.length);  }
-};
+      if (isLoggedIn) {
+        api.get("/cart")
+          .then((res) => {
+            const count = (res.data || []).length;
+            setCartCount(count);
+          })
+          .catch(() => setCartCount(0));
+      } else {
+        const cart = JSON.parse(localStorage.getItem("guestCart")) || [];
+        setCartCount(cart.length);
+      }
+    };
     update();
     window.addEventListener("storage", update);
     window.addEventListener("cartUpdated", update);
@@ -69,6 +70,11 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userName");
@@ -87,16 +93,16 @@ const Navbar = () => {
     <>
       <nav style={{ position: "relative", background: "#fff", borderBottom: "none", fontFamily: font }}>
         <div style={{
-          maxWidth: "1300px", margin: "0 auto", padding: "0 24px",
-          height: "90px", display: "flex", alignItems: "center",
-          justifyContent: "space-between", gap: "16px",
+          maxWidth: "1300px", margin: "0 auto", padding: "0 16px",
+          height: "70px", display: "flex", alignItems: "center",
+          justifyContent: "space-between", gap: "12px",
         }}>
           {/* ── LOGO ── */}
           <Link to="/" style={{ textDecoration: "none", flexShrink: 0 }} aria-label="Home">
             <div style={{
-              width: "80px", height: "80px", background: red, borderRadius: "50%",
+              width: "58px", height: "58px", background: red, borderRadius: "50%",
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#fff", fontWeight: 900, fontSize: "13px",
+              color: "#fff", fontWeight: 900, fontSize: "11px",
               letterSpacing: "0.05em", fontFamily: font,
             }}>
               LOGO
@@ -132,9 +138,9 @@ const Navbar = () => {
           </ul>
 
           {/* ── RIGHT ACTIONS ── */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
 
-            {/* ── SIGN IN (guest) ── */}
+            {/* ── SIGN IN (guest, desktop) ── */}
             {!isLoggedIn && (
               <div className="hide-on-mobile">
                 <button
@@ -143,8 +149,7 @@ const Navbar = () => {
                     display: "flex", alignItems: "center", gap: "6px",
                     padding: "6px 4px", background: "transparent",
                     color: "#111827", border: "none", fontFamily: font,
-                    fontWeight: 600, fontSize: "16px",
-                    cursor: "pointer",
+                    fontWeight: 600, fontSize: "16px", cursor: "pointer",
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = red)}
                   onMouseLeave={(e) => (e.currentTarget.style.color = "#111827")}
@@ -155,7 +160,7 @@ const Navbar = () => {
               </div>
             )}
 
-            {/* ── USER MENU (logged in) ── */}
+            {/* ── USER MENU (logged in, desktop) ── */}
             {isLoggedIn && (
               <div ref={dropdownRef} style={{ position: "relative" }} className="hide-on-mobile">
                 <button
@@ -165,8 +170,7 @@ const Navbar = () => {
                     padding: "8px 16px", background: "transparent",
                     color: "#111827", border: "none",
                     borderRadius: "8px", fontFamily: font, fontWeight: 600,
-                    fontSize: "16px",
-                    cursor: "pointer", transition: "border-color 0.2s",
+                    fontSize: "16px", cursor: "pointer", transition: "border-color 0.2s",
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.borderColor = red)}
                   onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#e5e7eb")}
@@ -198,7 +202,7 @@ const Navbar = () => {
             {/* ── CART ICON ── */}
             <button onClick={() => navigate("/cart")} aria-label="Cart"
               style={{
-                position: "relative", width: "42px", height: "42px",
+                position: "relative", width: "40px", height: "40px",
                 background: red, border: "none", borderRadius: "50%",
                 color: "#fff", display: "flex", alignItems: "center",
                 justifyContent: "center", cursor: "pointer",
@@ -207,12 +211,12 @@ const Navbar = () => {
               onMouseEnter={(e) => (e.currentTarget.style.background = "#b91c1c")}
               onMouseLeave={(e) => (e.currentTarget.style.background = red)}
             >
-              <FiShoppingCart style={{ fontSize: "18px" }} />
+              <FiShoppingCart style={{ fontSize: "17px" }} />
               {cartCount > 0 && (
                 <span style={{
                   position: "absolute", top: "-4px", right: "-4px",
-                  background: "#111827", color: "#fff", fontSize: "12px",
-                  fontWeight: 700, minWidth: "18px", height: "18px",
+                  background: "#111827", color: "#fff", fontSize: "11px",
+                  fontWeight: 700, minWidth: "17px", height: "17px",
                   borderRadius: "50%", display: "flex", alignItems: "center",
                   justifyContent: "center", fontFamily: font, padding: "0 3px",
                 }}>
@@ -226,7 +230,8 @@ const Navbar = () => {
               className="show-on-mobile"
               style={{
                 background: "none", border: "none", cursor: "pointer",
-                color: "#111827", fontSize: "24px", display: "none", padding: "4px",
+                color: "#111827", fontSize: "24px", display: "none",
+                padding: "4px", flexShrink: 0,
               }}
             >
               {menuOpen ? <FiX /> : <FiMenu />}
@@ -234,42 +239,95 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* ── MOBILE MENU ── */}
+        {/* ── MOBILE MENU DRAWER ── */}
         {menuOpen && (
-          <div style={{ background: "#fff", borderTop: "1px solid #e5e7eb", padding: "12px 24px 20px" }}>
-            {navLinks.map(({ label, path }) => (
-              <Link key={path} to={path} onClick={() => setMenuOpen(false)}
-                style={{
-                  display: "block", padding: "12px 0", fontFamily: font,
-                  fontWeight: isActive(path) ? 700 : 500, fontSize: "17px",
-                  color: isActive(path) ? red : "#111827",
-                  textDecoration: "none", borderBottom: "1px solid #f3f4f6",
-                }}
-              >
-                {label}
-              </Link>
-            ))}
+          <div style={{
+            background: "#fff",
+            borderTop: "1px solid #f3f4f6",
+            padding: "8px 0 20px",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          }}>
+            {/* Nav links */}
+            <div style={{ padding: "0 20px" }}>
+              {navLinks.map(({ label, path }) => (
+                <Link key={path} to={path} onClick={() => setMenuOpen(false)}
+                  style={{
+                    display: "flex", alignItems: "center",
+                    padding: "13px 0",
+                    fontFamily: font,
+                    fontWeight: isActive(path) ? 700 : 500,
+                    fontSize: "16px",
+                    color: isActive(path) ? red : "#111827",
+                    textDecoration: "none",
+                    borderBottom: "1px solid #f3f4f6",
+                  }}
+                >
+                  {isActive(path) && (
+                    <span style={{
+                      width: "3px", height: "18px", background: red,
+                      borderRadius: "2px", marginRight: "12px", flexShrink: 0,
+                    }} />
+                  )}
+                  {label}
+                </Link>
+              ))}
+            </div>
 
-            <div style={{ marginTop: "16px", display: "flex", gap: "12px" }}>
+            {/* Auth buttons */}
+            <div style={{ padding: "16px 20px 0", display: "flex", gap: "10px" }}>
               {!isLoggedIn ? (
                 <>
                   <button onClick={openLogin}
-                    style={{ flex: 1, padding: "10px", background: red, color: "#fff", border: "none", borderRadius: "8px", fontFamily: font, fontWeight: 600, fontSize: "16px", cursor: "pointer" }}>
+                    style={{
+                      flex: 1, padding: "11px 10px",
+                      background: red, color: "#fff",
+                      border: "none", borderRadius: "8px",
+                      fontFamily: font, fontWeight: 600, fontSize: "15px",
+                      cursor: "pointer",
+                    }}>
                     Login
                   </button>
                   <button onClick={openRegister}
-                    style={{ flex: 1, padding: "10px", background: "transparent", color: red, border: `2px solid ${red}`, borderRadius: "8px", fontFamily: font, fontWeight: 600, fontSize: "16px", cursor: "pointer" }}>
+                    style={{
+                      flex: 1, padding: "11px 10px",
+                      background: "transparent", color: red,
+                      border: `2px solid ${red}`, borderRadius: "8px",
+                      fontFamily: font, fontWeight: 600, fontSize: "15px",
+                      cursor: "pointer",
+                    }}>
                     Register
                   </button>
                 </>
               ) : (
                 <>
                   <button onClick={() => { navigate("/profile"); setMenuOpen(false); }}
-                    style={{ flex: 1, padding: "10px", background: red, color: "#fff", border: "none", borderRadius: "8px", fontFamily: font, fontWeight: 600, fontSize: "16px", cursor: "pointer" }}>
-                    Profile
+                    style={{
+                      flex: 1, padding: "11px 10px",
+                      background: red, color: "#fff",
+                      border: "none", borderRadius: "8px",
+                      fontFamily: font, fontWeight: 600, fontSize: "15px",
+                      cursor: "pointer",
+                    }}>
+                    My Profile
+                  </button>
+                  <button onClick={() => { navigate("/orders"); setMenuOpen(false); }}
+                    style={{
+                      flex: 1, padding: "11px 10px",
+                      background: "transparent", color: "#374151",
+                      border: "1px solid #e5e7eb", borderRadius: "8px",
+                      fontFamily: font, fontWeight: 600, fontSize: "15px",
+                      cursor: "pointer",
+                    }}>
+                    Orders
                   </button>
                   <button onClick={handleLogout}
-                    style={{ flex: 1, padding: "10px", background: "transparent", color: "#374151", border: "1px solid #e5e7eb", borderRadius: "8px", fontFamily: font, fontWeight: 600, fontSize: "16px", cursor: "pointer" }}>
+                    style={{
+                      flex: 1, padding: "11px 10px",
+                      background: "transparent", color: red,
+                      border: `1px solid ${red}`, borderRadius: "8px",
+                      fontFamily: font, fontWeight: 600, fontSize: "15px",
+                      cursor: "pointer",
+                    }}>
                     Logout
                   </button>
                 </>
