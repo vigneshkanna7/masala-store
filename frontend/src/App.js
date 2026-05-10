@@ -18,21 +18,35 @@ import VideosPage from "./pages/VideosPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import CartDrawer from "./components/CartDrawer";
 
-/* ─── Responsive layout padding ─── */
+/* ─── Global layout spacing ─── */
 if (typeof document !== "undefined" && !document.getElementById("app-layout-css")) {
   const s = document.createElement("style");
   s.id = "app-layout-css";
   s.textContent = `
+    /* Standard pages: breathing room above and below content */
     .app-layout {
       padding-top: 40px;
-      padding-bottom: 40px;
+      padding-bottom: 60px;
       background: #fff;
       box-sizing: border-box;
     }
+
+    /* HomePage: hero banner sits flush under the navbar, no top gap */
+    .app-layout-home {
+      padding-top: 0;
+      padding-bottom: 0;  /* HomePage handles its own internal bottom spacing */
+      background: #fff;
+      box-sizing: border-box;
+    }
+
     @media (max-width: 768px) {
       .app-layout {
-        padding-top: 16px;
-        padding-bottom: 16px;
+        padding-top: 20px;
+        padding-bottom: 40px;
+      }
+      .app-layout-home {
+        padding-top: 0;
+        padding-bottom: 0;
       }
     }
   `;
@@ -50,10 +64,14 @@ const AdminRoute = ({ children }) => {
   return (adminToken && role === "ADMIN") ? children : <Navigate to="/admin/login" />;
 };
 
+/* Standard layout — 40px top / 60px bottom gap */
 const Layout = ({ children }) => (
-  <div className="app-layout">
-    {children}
-  </div>
+  <div className="app-layout">{children}</div>
+);
+
+/* Home layout — hero flush against navbar, no outer padding */
+const HomeLayout = ({ children }) => (
+  <div className="app-layout-home">{children}</div>
 );
 
 function AppContent() {
@@ -64,26 +82,30 @@ function AppContent() {
     <>
       {!isAdminPage && <Navbar />}
       {!isAdminPage && <CartDrawer />}
-      <Routes>
-        <Route path="/" element={<Layout><HomePage /></Layout>} />
 
-        <Route path="/login" element={<Navigate to="/" />} />
+      <Routes>
+        {/* Home — no padding so hero banner sits flush under navbar */}
+        <Route path="/" element={<HomeLayout><HomePage /></HomeLayout>} />
+
+        <Route path="/login"    element={<Navigate to="/" />} />
         <Route path="/register" element={<Navigate to="/" />} />
 
-        <Route path="/cart" element={<Layout><CartPage /></Layout>} />
-        <Route path="/checkout" element={<Layout><CheckoutPage /></Layout>} />
-        <Route path="/order-success" element={<Layout><OrderSuccessPage /></Layout>} />
-        <Route path="/products" element={<Layout><ProductsPage /></Layout>} />
-        <Route path="/products/:id" element={<Layout><ProductDetailPage /></Layout>} />
-        <Route path="/about" element={<Layout><AboutPage /></Layout>} />
-        <Route path="/contact" element={<Layout><ContactPage /></Layout>} />
-        <Route path="/videos" element={<Layout><VideosPage /></Layout>} />
+        {/* All other pages get standard top/bottom spacing */}
+        <Route path="/cart"           element={<Layout><CartPage /></Layout>} />
+        <Route path="/checkout"       element={<Layout><CheckoutPage /></Layout>} />
+        <Route path="/order-success"  element={<Layout><OrderSuccessPage /></Layout>} />
+        <Route path="/products"       element={<Layout><ProductsPage /></Layout>} />
+        <Route path="/products/:id"   element={<Layout><ProductDetailPage /></Layout>} />
+        <Route path="/about"          element={<Layout><AboutPage /></Layout>} />
+        <Route path="/contact"        element={<Layout><ContactPage /></Layout>} />
+        <Route path="/videos"         element={<Layout><VideosPage /></Layout>} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/orders" element={<ProtectedRoute><Layout><OrdersPage /></Layout></ProtectedRoute>} />
+
+        <Route path="/orders"  element={<ProtectedRoute><Layout><OrdersPage /></Layout></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Layout><ProfilePage /></Layout></ProtectedRoute>} />
 
-        <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="/admin/login"      element={<AdminLoginPage />} />
+        <Route path="/admin/dashboard"  element={<AdminRoute><AdminDashboard /></AdminRoute>} />
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
