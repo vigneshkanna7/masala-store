@@ -26,7 +26,7 @@ if (typeof document !== "undefined" && !document.getElementById("homepage-mobile
     /* ── Hero ── */
     .hp-hero-outer {
       background: #fff;
-      padding: 0;
+      padding: 20px 0 0;
       margin: 0;
     }
     .hp-hero-wrap {
@@ -163,6 +163,7 @@ if (typeof document !== "undefined" && !document.getElementById("homepage-mobile
     ════════════════ */
     @media (max-width: 640px) {
       .hp-hero-wrap { padding: 0 10px; }
+      .hp-hero-outer { padding-top: 12px; }
       .hp-dots-wrap { padding: 10px 0 0; }
 
       .hp-trust-outer { padding: 0; }

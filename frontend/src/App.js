@@ -31,10 +31,10 @@ if (typeof document !== "undefined" && !document.getElementById("app-layout-css"
       box-sizing: border-box;
     }
 
-    /* HomePage: hero banner sits flush under the navbar, no top gap */
+    /* HomePage: hero banner sits flush under the navbar, bottom gap before footer */
     .app-layout-home {
       padding-top: 0;
-      padding-bottom: 0;  /* HomePage handles its own internal bottom spacing */
+      padding-bottom: 60px;
       background: #fff;
       box-sizing: border-box;
     }
@@ -46,7 +46,7 @@ if (typeof document !== "undefined" && !document.getElementById("app-layout-css"
       }
       .app-layout-home {
         padding-top: 0;
-        padding-bottom: 0;
+        padding-bottom: 40px;
       }
     }
   `;
