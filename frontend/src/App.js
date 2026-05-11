@@ -34,7 +34,7 @@ if (typeof document !== "undefined" && !document.getElementById("app-layout-css"
     /* HomePage: same top gap as all other pages, bottom gap before footer */
     .app-layout-home {
       padding-top: 40px;
-      padding-bottom: 60px;
+      padding-bottom: 0px;
       background: #fff;
       box-sizing: border-box;
     }
@@ -46,7 +46,7 @@ if (typeof document !== "undefined" && !document.getElementById("app-layout-css"
       }
       .app-layout-home {
         padding-top: 20px;
-        padding-bottom: 40px;
+        padding-bottom: 0px;
       }
     }
   `;
