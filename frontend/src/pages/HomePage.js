@@ -46,8 +46,6 @@ if (typeof document !== "undefined" && !document.getElementById("homepage-mobile
     .hp-trust-outer {
       background: #fff;
       padding: 40px 0;
-      border-top: 1px solid #f3f4f6;
-      border-bottom: 1px solid #f3f4f6;
       margin-top: 0;
     }
     .hp-trust-inner {
@@ -65,9 +63,7 @@ if (typeof document !== "undefined" && !document.getElementById("homepage-mobile
       align-items: center;
       text-align: center;
       padding: 0 28px;
-      border-right: 1px solid #f3f4f6;
     }
-    .hp-trust-item:last-child { border-right: none; }
     .hp-trust-icon {
       font-size: 48px;
       color: #374151;
@@ -165,29 +161,26 @@ if (typeof document !== "undefined" && !document.getElementById("homepage-mobile
       .hp-hero-wrap { padding: 0 10px; }
       .hp-dots-wrap { padding: 10px 0 0; }
 
-      .hp-trust-outer { padding: 0; }
-      .hp-trust-inner { padding: 0; }
+      .hp-trust-outer { padding: 24px 0; }
+      .hp-trust-inner { padding: 0 16px; }
       .hp-trust-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr 1fr 1fr !important;
         gap: 0 !important;
       }
       .hp-trust-item {
-        flex-direction: row !important;
-        text-align: left !important;
-        align-items: flex-start !important;
-        padding: 16px 16px !important;
-        border-right: none !important;
-        border-bottom: 1px solid #f3f4f6 !important;
-        gap: 14px !important;
+        flex-direction: column !important;
+        text-align: center !important;
+        align-items: center !important;
+        padding: 12px 8px !important;
+        gap: 8px !important;
       }
-      .hp-trust-item:last-child { border-bottom: none !important; }
       .hp-trust-icon {
         font-size: 32px !important;
-        margin-bottom: 0 !important;
-        flex-shrink: 0 !important;
-        margin-top: 2px !important;
+        margin-bottom: 6px !important;
       }
-      .hp-trust-text { text-align: left !important; }
+      .hp-trust-text { text-align: center !important; }
+      .hp-trust-text p:first-child { font-size: 11px !important; }
+      .hp-trust-text p:last-child { display: none !important; }
 
       .hp-section-wrap { padding: 28px 12px; }
       .hp-section-hd h2 { font-size: 17px !important; letter-spacing: 0.04em !important; }
@@ -218,6 +211,7 @@ if (typeof document !== "undefined" && !document.getElementById("homepage-mobile
       .hp-product-card-img { height: 120px !important; }
       .hp-review-card { width: 200px !important; }
       .hp-section-hd h2 { font-size: 15px !important; }
+      .hp-trust-text p:first-child { font-size: 10px !important; }
     }
   `;
   document.head.appendChild(s);

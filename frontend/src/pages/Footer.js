@@ -47,22 +47,78 @@ const Footer = () => {
     <div style={{ width: "100%", boxSizing: "border-box", background: "#f9fafb" }}>
 
       <style>{`
-        /* ── Footer Mobile Styles ── */
-        .ft-payment-sec {
-          padding: 36px 24px;
-          background: #fff;
+        /* ── Marquee keyframe ── */
+        @keyframes ft-marquee {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
-        .ft-payment-row {
+
+        /* ── Payment section ── */
+        .ft-payment-sec {
+          padding: 36px 0;
+          background: #fff;
+          overflow: hidden;
+        }
+        .ft-payment-label {
+          text-align: center;
+          font-size: 11px;
+          font-weight: 600;
+          color: #9ca3af;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          margin-bottom: 20px;
+          font-family: 'Poppins', sans-serif;
+          padding: 0 24px;
+        }
+
+        /* Fade edges */
+        .ft-marquee-outer {
+          position: relative;
+          overflow: hidden;
+        }
+        .ft-marquee-outer::before,
+        .ft-marquee-outer::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          width: 80px;
+          z-index: 2;
+          pointer-events: none;
+        }
+        .ft-marquee-outer::before {
+          left: 0;
+          background: linear-gradient(to right, #fff, transparent);
+        }
+        .ft-marquee-outer::after {
+          right: 0;
+          background: linear-gradient(to left, #fff, transparent);
+        }
+
+        .ft-marquee-track {
           display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
+          width: max-content;
+          animation: ft-marquee 18s linear infinite;
           align-items: center;
-          gap: 32px;
+          gap: 0;
+        }
+        .ft-marquee-track:hover {
+          animation-play-state: paused;
+        }
+        .ft-marquee-item {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 36px;
+          flex-shrink: 0;
         }
         .ft-payment-img {
           height: 36px;
           object-fit: contain;
+          display: block;
         }
+
+        /* ── Footer layout ── */
         .ft-root {
           padding: 56px 24px 32px;
           font-family: 'Poppins', sans-serif;
@@ -90,13 +146,17 @@ const Footer = () => {
 
         @media (max-width: 640px) {
           .ft-payment-sec {
-            padding: 24px 16px;
-          }
-          .ft-payment-row {
-            gap: 16px 20px;
+            padding: 24px 0;
           }
           .ft-payment-img {
             height: 26px;
+          }
+          .ft-marquee-item {
+            padding: 0 24px;
+          }
+          .ft-marquee-outer::before,
+          .ft-marquee-outer::after {
+            width: 40px;
           }
           .ft-root {
             padding: 32px 16px 24px;
@@ -122,32 +182,28 @@ const Footer = () => {
         }
       `}</style>
 
-      {/* Payment Logos */}
+      {/* ── Payment Logos Marquee ── */}
       <div className="ft-payment-sec">
-        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-          <p style={{
-            textAlign: "center", fontSize: "11px", fontWeight: 600,
-            color: "#9ca3af", letterSpacing: "0.1em", textTransform: "uppercase",
-            marginBottom: "20px", fontFamily: font,
-          }}>
-            Accepted Payment Methods
-          </p>
-          <div className="ft-payment-row">
-            {paymentLogos.map((logo, i) => (
-              <img
-                key={i}
-                src={logo.src}
-                alt={logo.alt}
-                className="ft-payment-img"
-                onError={(e) => (e.target.style.display = "none")}
-                loading="lazy"
-              />
+        <p className="ft-payment-label">Accepted Payment Methods</p>
+        <div className="ft-marquee-outer">
+          {/* Duplicate logos so the loop is seamless */}
+          <div className="ft-marquee-track">
+            {[...paymentLogos, ...paymentLogos].map((logo, i) => (
+              <div key={i} className="ft-marquee-item">
+                <img
+                  src={logo.src}
+                  alt={logo.alt}
+                  className="ft-payment-img"
+                  onError={(e) => (e.target.style.display = "none")}
+                  loading="lazy"
+                />
+              </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Footer */}
+      {/* ── Footer ── */}
       <footer className="ft-root">
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
 
