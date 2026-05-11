@@ -78,8 +78,7 @@ if (typeof document !== "undefined" && !document.getElementById("homepage-mobile
     }
     .hp-reviews-outer {
       background: #fff;
-      border-top: 1px solid #f3f4f6;
-    }
+      }
 
     /* ── Section header ── */
     .hp-section-hd {

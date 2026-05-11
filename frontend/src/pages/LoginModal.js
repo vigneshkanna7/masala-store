@@ -1,122 +1,314 @@
 import React, { useState, useEffect } from "react";
 import api from "../api/api";
 import Spinner from "../components/Spinner";
-import { FiUser, FiLock, FiMail, FiPhone, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiUser, FiLock, FiMail, FiPhone, FiEye, FiEyeOff, FiArrowLeft, FiCheck } from "react-icons/fi";
 
-if (typeof document !== "undefined" && !document.getElementById("poppins-font")) {
+if (typeof document !== "undefined" && !document.getElementById("lm-font")) {
   const link = document.createElement("link");
-  link.id = "poppins-font";
+  link.id = "lm-font";
   link.rel = "stylesheet";
   link.href = "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap";
   document.head.appendChild(link);
+}
+
+if (typeof document !== "undefined" && !document.getElementById("lm-styles")) {
+  const s = document.createElement("style");
+  s.id = "lm-styles";
+  s.textContent = `
+    .lm-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+      backdrop-filter: blur(4px);
+    }
+    .lm-modal {
+      display: flex;
+      width: 100%; max-width: 860px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.3);
+      min-height: 540px;
+      position: relative;
+      font-family: 'Poppins', sans-serif;
+      background: #fff;
+    }
+    .lm-modal-fp {
+      max-width: 460px;
+      border-radius: 20px;
+    }
+
+    /* ── Brand Panel ── */
+    .lm-brand {
+      flex: 0 0 320px;
+      background: #dc2626;
+      padding: 48px 36px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .lm-brand-right { border-radius: 0 20px 20px 0; order: 1; }
+    .lm-brand-left  { border-radius: 20px 0 0 20px; order: 0; }
+    .lm-brand-bg {
+      position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+    }
+    .lm-brand-circle {
+      position: absolute; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .lm-brand-content { position: relative; z-index: 1; text-align: center; width: 100%; }
+    .lm-brand-avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.3);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px; font-size: 30px; color: #fff;
+    }
+    .lm-brand h3 {
+      font-size: 26px; font-weight: 800; color: #fff;
+      margin: 0 0 12px; line-height: 1.2;
+      font-family: 'Poppins', sans-serif;
+    }
+    .lm-brand p {
+      font-size: 13px; color: rgba(255,255,255,0.8);
+      line-height: 1.75; margin: 0 0 32px;
+      font-family: 'Poppins', sans-serif;
+    }
+    .lm-brand-btn {
+      display: inline-block;
+      padding: 11px 36px;
+      background: transparent;
+      color: #fff;
+      border: 1.5px solid rgba(255,255,255,0.6);
+      border-radius: 50px;
+      font-size: 13px; font-weight: 600;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .lm-brand-btn:hover { background: rgba(255,255,255,0.15); border-color: #fff; }
+
+    /* ── Form Panel ── */
+    .lm-form-panel {
+      flex: 1;
+      padding: 48px 44px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: #fff; overflow-y: auto;
+    }
+    .lm-form-panel-fp {
+      border-radius: 20px;
+    }
+
+    /* ── Form Header ── */
+    .lm-form-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: #fef2f2;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px; font-size: 22px; color: #dc2626;
+    }
+    .lm-form-title {
+      font-size: 22px; font-weight: 700; color: #111827;
+      margin: 0 0 4px; text-align: center;
+      font-family: 'Poppins', sans-serif;
+    }
+    .lm-form-sub {
+      font-size: 13px; color: #9ca3af;
+      margin: 0 0 24px; text-align: center;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* ── Input ── */
+    .lm-field { position: relative; margin-bottom: 14px; width: 100%; }
+    .lm-field-icon {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: #dc2626; font-size: 16px; pointer-events: none;
+      display: flex; align-items: center;
+    }
+    .lm-input {
+      width: 100%; padding: 12px 16px 12px 44px;
+      background: #f9fafb;
+      border: 1.5px solid #f3f4f6;
+      border-radius: 12px;
+      font-size: 13.5px; font-family: 'Poppins', sans-serif;
+      color: #111827; outline: none; box-sizing: border-box;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .lm-input:focus { border-color: #dc2626; background: #fff; }
+    .lm-input::placeholder { color: #9ca3af; }
+    .lm-input-otp {
+      letter-spacing: 0.3em; font-size: 22px; text-align: center;
+      padding: 12px 16px !important;
+    }
+    .lm-eye-btn {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      cursor: pointer; background: none; border: none; padding: 0;
+      font-size: 16px; color: #9ca3af;
+      display: flex; align-items: center;
+    }
+    .lm-eye-btn:hover { color: #6b7280; }
+
+    /* ── Submit btn ── */
+    .lm-submit {
+      width: 100%; padding: 13px;
+      background: #dc2626; color: #fff;
+      border: none; border-radius: 12px;
+      font-size: 14px; font-weight: 700;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer; margin-top: 4px;
+      transition: background 0.2s, transform 0.1s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .lm-submit:hover:not(:disabled) { background: #b91c1c; }
+    .lm-submit:active:not(:disabled) { transform: scale(0.99); }
+    .lm-submit:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    /* ── Divider ── */
+    .lm-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 20px 0; width: 100%;
+    }
+    .lm-divider-line { flex: 1; height: 1px; background: #f3f4f6; }
+    .lm-divider span { font-size: 12px; color: #d1d5db; font-family: 'Poppins', sans-serif; }
+
+    /* ── Error ── */
+    .lm-error {
+      background: #fef2f2; border: 1px solid #fca5a5;
+      color: #dc2626; border-radius: 10px;
+      padding: 10px 14px; margin-bottom: 14px;
+      font-size: 13px; font-family: 'Poppins', sans-serif;
+      width: 100%; box-sizing: border-box;
+    }
+
+    /* ── Close btn ── */
+    .lm-close {
+      position: absolute; top: 16px; right: 18px; z-index: 10;
+      background: #f9fafb; border: none;
+      width: 32px; height: 32px; border-radius: 50%;
+      font-size: 16px; color: #6b7280; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .lm-close:hover { background: #fee2e2; color: #dc2626; }
+
+    /* ── Forgot password steps ── */
+    .lm-steps {
+      display: flex; gap: 6px; margin-bottom: 28px;
+    }
+    .lm-step-dot {
+      height: 4px; border-radius: 2px;
+      transition: all 0.3s;
+    }
+    .lm-back-link {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: #dc2626; cursor: pointer;
+      margin-top: 16px; font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+    }
+    .lm-back-link:hover { color: #b91c1c; }
+    .lm-forgot-link {
+      font-size: 12px; color: #dc2626; cursor: pointer;
+      font-family: 'Poppins', sans-serif; font-weight: 500;
+    }
+    .lm-forgot-link:hover { color: #b91c1c; }
+
+    /* ── Toast ── */
+    .lm-toast {
+      position: fixed; top: 24px; right: 24px; z-index: 9999;
+      min-width: 280px; max-width: 380px;
+      padding: 14px 18px;
+      border-radius: 12px; font-family: 'Poppins', sans-serif;
+      font-size: 13.5px; font-weight: 500;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      animation: lm-slide-in 0.3s ease;
+    }
+    .lm-toast-ok  { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .lm-toast-err { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+    @keyframes lm-slide-in {
+      from { opacity: 0; transform: translateX(40px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ── Success state ── */
+    .lm-success-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: #f0fdf4; border: 2px solid #bbf7d0;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px; font-size: 32px; color: #16a34a;
+    }
+
+    /* ══════════════════════════
+       MOBILE ≤ 640px
+    ══════════════════════════ */
+    @media (max-width: 640px) {
+      .lm-overlay { padding: 0; align-items: flex-end; }
+      .lm-modal {
+        flex-direction: column;
+        border-radius: 20px 20px 0 0;
+        min-height: unset;
+        max-width: 100%;
+        max-height: 94vh;
+        overflow-y: auto;
+      }
+      .lm-modal-fp {
+        border-radius: 20px 20px 0 0;
+        max-width: 100%;
+      }
+      .lm-brand {
+        flex: none;
+        border-radius: 20px 20px 0 0 !important;
+        order: 0 !important;
+        padding: 28px 24px;
+        min-height: unset;
+      }
+      .lm-brand-avatar { width: 52px; height: 52px; font-size: 22px; margin-bottom: 14px; }
+      .lm-brand h3 { font-size: 20px; margin-bottom: 8px; }
+      .lm-brand p { font-size: 12px; margin-bottom: 18px; }
+      .lm-brand-btn { padding: 9px 28px; font-size: 12px; }
+      .lm-form-panel {
+        padding: 28px 24px 36px;
+        border-radius: 0 !important;
+      }
+      .lm-form-panel-fp { border-radius: 20px 20px 0 0 !important; padding: 32px 24px 40px; }
+      .lm-form-icon { width: 44px; height: 44px; font-size: 18px; }
+      .lm-form-title { font-size: 19px; }
+      .lm-close { top: 12px; right: 14px; }
+      .lm-toast { top: auto; bottom: 100px; right: 16px; left: 16px; min-width: unset; }
+    }
+
+    @media (min-width: 641px) and (max-width: 860px) {
+      .lm-brand { flex: 0 0 260px; padding: 36px 24px; }
+      .lm-form-panel { padding: 36px 32px; }
+    }
+  `;
+  document.head.appendChild(s);
 }
 
 const font = "'Poppins', sans-serif";
 const red = "#dc2626";
 const darkRed = "#b91c1c";
 
-const inputStyle = {
-  width: "100%",
-  padding: "11px 16px 11px 44px",
-  background: "#fef2f2",
-  border: "1.5px solid transparent",
-  borderRadius: "50px",
-  fontSize: "13px",
-  fontFamily: font,
-  color: "#1f2937",
-  outline: "none",
-  boxSizing: "border-box",
-  transition: "border-color 0.2s",
-};
-
-const submitBtn = {
-  width: "100%",
-  padding: "11px",
-  background: red,
-  color: "#fff",
-  border: "none",
-  borderRadius: "50px",
-  fontSize: "14px",
-  fontWeight: 700,
-  fontFamily: font,
-  cursor: "pointer",
-  marginTop: "6px",
-  transition: "background 0.2s",
-};
-
-const outlineBtn = {
-  padding: "9px 32px",
-  background: "transparent",
-  color: "#fff",
-  border: "2px solid #fff",
-  borderRadius: "50px",
-  fontSize: "13px",
-  fontWeight: 600,
-  fontFamily: font,
-  cursor: "pointer",
-  marginTop: "18px",
-  transition: "all 0.2s",
-};
-
-const eyeBtn = {
-  position: "absolute", right: "14px", top: "50%",
-  transform: "translateY(-50%)", cursor: "pointer",
-  fontSize: "16px", color: "#9ca3af",
-  background: "none", border: "none", padding: 0,
-  display: "flex", alignItems: "center",
-};
-
-const whitePanel = {
-  flex: 1,
-  background: "#fff",
-  padding: "48px 44px",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-};
-
-const SpiceDecor = () => (
-  <svg width="100%" height="100%" viewBox="0 0 280 420" fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    style={{ position: "absolute", top: 0, left: 0, opacity: 0.15, pointerEvents: "none" }}
-    preserveAspectRatio="xMidYMid slice">
-    <ellipse cx="62" cy="118" rx="32" ry="16" stroke="#fff" strokeWidth="2.5" fill="none"/>
-    <path d="M 30 118 Q 30 140 62 140 Q 94 140 94 118" stroke="#fff" strokeWidth="2.5" fill="none"/>
-    <rect x="57" y="82" width="10" height="30" rx="5" stroke="#fff" strokeWidth="2.5" fill="none"/>
-    <ellipse cx="62" cy="82" rx="7" ry="4" stroke="#fff" strokeWidth="2" fill="none"/>
-    <circle cx="218" cy="68" r="6" stroke="#fff" strokeWidth="2" fill="none"/>
-    <circle cx="218" cy="68" r="22" stroke="#fff" strokeWidth="1.5" strokeDasharray="3 3" fill="none"/>
-    <line x1="218" y1="46" x2="218" y2="90" stroke="#fff" strokeWidth="2"/>
-    <line x1="196" y1="68" x2="240" y2="68" stroke="#fff" strokeWidth="2"/>
-    <line x1="202" y1="52" x2="234" y2="84" stroke="#fff" strokeWidth="2"/>
-    <line x1="234" y1="52" x2="202" y2="84" stroke="#fff" strokeWidth="2"/>
-    <path d="M 28 320 Q 48 275 68 292 Q 84 306 62 334 Q 48 350 28 320 Z" stroke="#fff" strokeWidth="2.5" fill="none"/>
-    <path d="M 66 290 Q 74 268 88 260" stroke="#fff" strokeWidth="2" fill="none" strokeLinecap="round"/>
-    <path d="M 240 360 Q 272 326 280 296 Q 252 310 240 360 Z" stroke="#fff" strokeWidth="2" fill="none"/>
-    <line x1="240" y1="360" x2="272" y2="316" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/>
-    <path d="M 185 390 Q 208 365 216 342" stroke="#fff" strokeWidth="2" fill="none" strokeLinecap="round"/>
-    <path d="M 198 376 Q 210 366 214 350" stroke="#fff" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-    <circle cx="130" cy="38" r="5" fill="#fff" opacity="0.6"/>
-    <circle cx="178" cy="398" r="6" fill="#fff" opacity="0.5"/>
-    <circle cx="20" cy="412" r="4" fill="#fff" opacity="0.45"/>
-    <circle cx="268" cy="198" r="5" fill="#fff" opacity="0.5"/>
-    <circle cx="100" cy="288" r="3" fill="#fff" opacity="0.4"/>
-    <path d="M 100 155 L 104 146 L 108 155 L 117 159 L 108 163 L 104 172 L 100 163 L 91 159 Z" fill="#fff" opacity="0.65"/>
-    <path d="M 252 422 L 255 415 L 258 422 L 265 425 L 258 428 L 255 435 L 252 428 L 245 425 Z" fill="#fff" opacity="0.55"/>
-    <path d="M 10 196 L 13 189 L 16 196 L 23 199 L 16 202 L 13 209 L 10 202 L 3 199 Z" fill="#fff" opacity="0.5"/>
-  </svg>
+const BrandPanel = ({ side, icon, heading, body, btnLabel, onBtnClick }) => (
+  <div className={`lm-brand ${side === "right" ? "lm-brand-right" : "lm-brand-left"}`}>
+    <div className="lm-brand-bg">
+      <div className="lm-brand-circle" style={{ width: 320, height: 320, top: -100, right: -120 }} />
+      <div className="lm-brand-circle" style={{ width: 200, height: 200, bottom: -60, left: -60 }} />
+      <div className="lm-brand-circle" style={{ width: 100, height: 100, bottom: 60, right: 20 }} />
+    </div>
+    <div className="lm-brand-content">
+      <div className="lm-brand-avatar">{icon}</div>
+      <h3>{heading}</h3>
+      <p>{body}</p>
+      <button className="lm-brand-btn" onClick={onBtnClick}>{btnLabel}</button>
+    </div>
+  </div>
 );
 
-const InputWrapper = ({ icon: Icon, children }) => (
-  <div style={{ position: "relative", marginBottom: "12px" }}>
-    <span style={{
-      position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)",
-      color: "#dc2626", fontSize: "16px", pointerEvents: "none",
-      display: "flex", alignItems: "center",
-    }}>
-      <Icon />
-    </span>
+const Field = ({ icon: Icon, children }) => (
+  <div className="lm-field">
+    <span className="lm-field-icon"><Icon /></span>
     {children}
   </div>
 );
@@ -148,550 +340,300 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
     setTimeout(() => setToast({ visible: false, message: "", success: true }), 3000);
   };
 
+  useEffect(() => { setMode(defaultMode); setLoginError(""); setRegError(""); }, [defaultMode, isOpen]);
   useEffect(() => {
-    setMode(defaultMode);
-    setLoginError("");
-    setRegError("");
-  }, [defaultMode, isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = isOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [isOpen]);
-
   useEffect(() => {
-    const handler = (e) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    const h = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
   }, [onClose]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoginError("");
-    setLoginLoading(true);
+    setLoginError(""); setLoginLoading(true);
     try {
       const res = await api.post("/auth/login", loginForm);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userName", res.data.name);
-      localStorage.setItem("user", JSON.stringify({
-        name: res.data.name,
-        email: res.data.email,
-        role: res.data.role,
-      }));
-      onClose();
-      window.location.reload();
-    } catch {
-      setLoginError("Invalid email or password!");
-    } finally {
-      setLoginLoading(false);
-    }
+      localStorage.setItem("user", JSON.stringify({ name: res.data.name, email: res.data.email, role: res.data.role }));
+      onClose(); window.location.reload();
+    } catch { setLoginError("Invalid email or password!"); }
+    finally { setLoginLoading(false); }
   };
 
   const handleRegister = async (e) => {
-    e.preventDefault();
-    setRegError("");
+    e.preventDefault(); setRegError("");
     if (regForm.password !== regForm.confirmPassword) { setRegError("Passwords do not match!"); return; }
     if (regForm.password.length < 6) { setRegError("Password must be at least 6 characters!"); return; }
     setRegLoading(true);
     try {
-      const res = await api.post("/auth/register", {
-        name: regForm.name, email: regForm.email,
-        password: regForm.password, phone: regForm.phone,
-      });
+      const res = await api.post("/auth/register", { name: regForm.name, email: regForm.email, password: regForm.password, phone: regForm.phone });
       const { token, name, email, role } = res.data;
-      localStorage.setItem("token", token);
-      localStorage.setItem("userName", name);
+      localStorage.setItem("token", token); localStorage.setItem("userName", name);
       localStorage.setItem("user", JSON.stringify({ name, email, role }));
       localStorage.removeItem("guestCart");
-      onClose();
-      window.location.reload();
-    } catch (err) {
-      setRegError(err.response?.data?.message || "Registration failed. Try again!");
-    } finally {
-      setRegLoading(false);
-    }
+      onClose(); window.location.reload();
+    } catch (err) { setRegError(err.response?.data?.message || "Registration failed. Try again!"); }
+    finally { setRegLoading(false); }
   };
 
   const handleFpSendOtp = async () => {
-    if (!fpEmail.trim() || !/\S+@\S+\.\S+/.test(fpEmail))
-      return showToast("Enter a valid email address.", false);
+    if (!fpEmail.trim() || !/\S+@\S+\.\S+/.test(fpEmail)) return showToast("Enter a valid email address.", false);
     setFpLoading(true);
-    try {
-      await api.post("/auth/forgot-password", { email: fpEmail });
-      showToast("OTP sent to your email!", true);
-      setFpStep(2);
-    } catch {
-      showToast("Something went wrong. Please try again.", false);
-    } finally {
-      setFpLoading(false);
-    }
+    try { await api.post("/auth/forgot-password", { email: fpEmail }); showToast("OTP sent to your email!", true); setFpStep(2); }
+    catch { showToast("Something went wrong. Please try again.", false); }
+    finally { setFpLoading(false); }
   };
 
   const handleFpVerifyOtp = async () => {
     if (fpOtp.length !== 6) return showToast("OTP must be 6 digits.", false);
     setFpLoading(true);
-    try {
-      await api.post("/auth/verify-otp", { email: fpEmail, otp: fpOtp });
-      showToast("OTP verified successfully!", true);
-      setFpStep(3);
-    } catch (err) {
-      showToast(err.response?.data?.message || "Invalid OTP. Please try again.", false);
-    } finally {
-      setFpLoading(false);
-    }
+    try { await api.post("/auth/verify-otp", { email: fpEmail, otp: fpOtp }); showToast("OTP verified!", true); setFpStep(3); }
+    catch (err) { showToast(err.response?.data?.message || "Invalid OTP.", false); }
+    finally { setFpLoading(false); }
   };
 
   const handleFpReset = async () => {
     if (fpNewPassword.length < 8) return showToast("Password must be at least 8 characters.", false);
     if (fpNewPassword !== fpConfirmPassword) return showToast("Passwords do not match.", false);
     setFpLoading(true);
-    try {
-      await api.post("/auth/reset-password", {
-        email: fpEmail, otp: fpOtp, newPassword: fpNewPassword,
-      });
-      showToast("Password reset successfully!", true);
-      setFpStep(4);
-    } catch (err) {
-      showToast(err.response?.data?.message || "Failed to reset password. Please try again.", false);
-    } finally {
-      setFpLoading(false);
-    }
+    try { await api.post("/auth/reset-password", { email: fpEmail, otp: fpOtp, newPassword: fpNewPassword }); showToast("Password reset successfully!", true); setFpStep(4); }
+    catch (err) { showToast(err.response?.data?.message || "Failed to reset. Try again.", false); }
+    finally { setFpLoading(false); }
   };
 
   const resetFpAndGoLogin = () => {
-    setMode("login");
-    setFpStep(1);
-    setFpEmail(""); setFpOtp("");
-    setFpNewPassword(""); setFpConfirmPassword("");
+    setMode("login"); setFpStep(1);
+    setFpEmail(""); setFpOtp(""); setFpNewPassword(""); setFpConfirmPassword("");
   };
 
   if (!isOpen) return null;
 
-  const redPanel = {
-    flex: "0 0 300px",
-    background: `linear-gradient(145deg, ${red} 0%, ${darkRed} 100%)`,
-    borderRadius: mode === "login" ? "16px 0 0 16px" : "0 16px 16px 0",
-    padding: "48px 36px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    overflow: "hidden",
-    order: mode === "login" ? 0 : 1,
-  };
-
-  const loginWhitePanel = {
-    ...whitePanel,
-    borderRadius: mode === "login" ? "0 16px 16px 0" : "16px 0 0 16px",
-  };
-
-  const fpTitles    = { 1: "Forgot Password", 2: "Enter OTP", 3: "New Password", 4: "All Done!" };
-  const fpSubtitles = {
-    1: "Enter your Registered email and we'll send you an OTP.",
-    2: `We sent a 6-digit OTP to ${fpEmail}`,
-    3: "Choose a strong new password.",
-    4: "Your password has been reset successfully!",
-  };
-
   return (
     <>
-      <style>{`
-        @keyframes fpSlideIn {
-          from { opacity: 0; transform: translateX(60px); }
-          to   { opacity: 1; transform: translateX(0); }
-        }
-        .fp-toast {
-          position: fixed; top: 28px; right: 28px; z-index: 9999;
-          min-width: 280px; max-width: 400px; padding: 16px 20px;
-          border-radius: 10px; font-family: 'Poppins', sans-serif;
-          font-size: 14px; font-weight: 500; display: flex;
-          align-items: center; gap: 10px;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.12); animation: fpSlideIn 0.3s ease;
-        }
-        .fp-toast-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-        .fp-toast-error   { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
-        .modal-input:focus { border-color: #dc2626 !important; }
-        .outline-btn:hover { background: rgba(255,255,255,0.15) !important; }
-      `}</style>
-
       {toast.visible && (
-        <div className={`fp-toast ${toast.success ? "fp-toast-success" : "fp-toast-error"}`}>
+        <div className={`lm-toast ${toast.success ? "lm-toast-ok" : "lm-toast-err"}`}>
+          {toast.success ? <FiCheck style={{ flexShrink: 0 }} /> : "⚠"}
           {toast.message}
         </div>
       )}
 
-      <div
-        onClick={onClose}
-        style={{
-          position: "fixed", inset: 0,
-          background: "rgba(0,0,0,0.55)",
-          zIndex: 1000,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          padding: "24px",
-          backdropFilter: "blur(3px)",
-        }}
-      >
+      <div className="lm-overlay" onClick={onClose}>
         <div
+          className={`lm-modal ${mode === "forgotPassword" ? "lm-modal-fp" : ""}`}
           onClick={(e) => e.stopPropagation()}
-          style={{
-            display: "flex",
-            width: "100%",
-            maxWidth: mode === "forgotPassword" ? "480px" : "820px",
-            borderRadius: "16px",
-            overflow: "hidden",
-            boxShadow: "0 32px 80px rgba(0,0,0,0.25)",
-            minHeight: "500px",
-            position: "relative",
-            fontFamily: font,
-            transition: "max-width 0.3s ease",
-          }}
         >
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            style={{
-              position: "absolute", top: "14px", right: "16px", zIndex: 10,
-              background: "transparent", border: "none", fontSize: "20px",
-              color: "#6b7280", cursor: "pointer", lineHeight: 1,
-            }}
-            aria-label="Close"
-          >
-            ✕
-          </button>
+          <button className="lm-close" onClick={onClose} aria-label="Close">✕</button>
 
-          {/* LOGIN MODE */}
+          {/* ══ LOGIN ══ */}
           {mode === "login" && (<>
-            <div style={redPanel}>
-              <SpiceDecor />
-              <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-                <div style={{
-                  width: "64px", height: "64px", borderRadius: "50%",
-                  background: "rgba(255,255,255,0.2)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  margin: "0 auto 20px", border: "2px solid rgba(255,255,255,0.4)",
-                }}>
-                  <FiUser style={{ fontSize: "28px", color: "#fff" }} />
-                </div>
-                <h2 style={{ fontSize: "26px", fontWeight: 800, color: "#fff", fontFamily: font, lineHeight: 1.2, marginBottom: "14px" }}>
-                  New Here?
-                </h2>
-                <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.85)", fontFamily: font, lineHeight: 1.7, marginBottom: "28px" }}>
-                  Thank you for shopping with us.<br />Create an account to get started.
-                </p>
-                <button
-                  className="outline-btn"
-                  style={outlineBtn}
-                  onClick={() => { setMode("register"); setLoginError(""); }}
-                >
-                  Register
-                </button>
-              </div>
-            </div>
+            <BrandPanel
+              side="left"
+              icon={<FiUser />}
+              heading="New here?"
+              body={"Create an account to enjoy\nexclusive offers, track orders\nand more."}
+              btnLabel="Register"
+              onBtnClick={() => { setMode("register"); setLoginError(""); }}
+            />
+            <div className="lm-form-panel">
+              <div className="lm-form-icon"><FiLock /></div>
+              <h2 className="lm-form-title">Welcome back</h2>
+              <p className="lm-form-sub">Sign in to your account</p>
 
-            <div style={loginWhitePanel}>
-              <div style={{ marginBottom: "8px", textAlign: "center" }}>
-                <div style={{
-                  width: "48px", height: "48px", borderRadius: "50%",
-                  background: "#fef2f2", display: "flex", alignItems: "center",
-                  justifyContent: "center", margin: "0 auto 12px",
-                }}>
-                  <FiLock style={{ fontSize: "20px", color: red }} />
-                </div>
-                <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#1f2937", fontFamily: font, margin: "0 0 4px" }}>
-                  Welcome Back
-                </h2>
-                <p style={{ fontSize: "13px", color: "#9ca3af", fontFamily: font, margin: "0 0 20px" }}>
-                  Sign in to your account
-                </p>
-              </div>
+              {loginError && <div className="lm-error">{loginError}</div>}
 
-              {loginError && (
-                <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", color: "#dc2626", borderRadius: "8px", padding: "9px 13px", marginBottom: "14px", fontSize: "13px", fontFamily: font, width: "100%", boxSizing: "border-box" }}>
-                  {loginError}
-                </div>
-              )}
               <form onSubmit={handleLogin} style={{ width: "100%" }}>
-                <InputWrapper icon={FiMail}>
-                  <input
-                    className="modal-input"
-                    style={inputStyle} type="email" placeholder="Email address"
-                    value={loginForm.email}
-                    onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-                    required
-                    onFocus={(e) => e.target.style.borderColor = red}
-                    onBlur={(e) => e.target.style.borderColor = "transparent"}
-                  />
-                </InputWrapper>
-                <InputWrapper icon={FiLock}>
-                  <input
-                    className="modal-input"
-                    style={inputStyle} type={showPass ? "text" : "password"} placeholder="Password"
-                    value={loginForm.password}
-                    onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                    required
-                    onFocus={(e) => e.target.style.borderColor = red}
-                    onBlur={(e) => e.target.style.borderColor = "transparent"}
-                  />
-                  <button type="button" onClick={() => setShowPass(!showPass)} style={eyeBtn}>
+                <Field icon={FiMail}>
+                  <input className="lm-input" type="email" placeholder="Email address"
+                    value={loginForm.email} onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })} required />
+                </Field>
+                <Field icon={FiLock}>
+                  <input className="lm-input" type={showPass ? "text" : "password"} placeholder="Password"
+                    value={loginForm.password} onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} required />
+                  <button type="button" className="lm-eye-btn" onClick={() => setShowPass(!showPass)}>
                     {showPass ? <FiEyeOff /> : <FiEye />}
                   </button>
-                </InputWrapper>
+                </Field>
 
-                <div style={{ textAlign: "right", marginBottom: "14px" }}>
-                  <span
-                    onClick={() => { setMode("forgotPassword"); setFpStep(1); }}
-                    style={{ fontSize: "12px", color: red, cursor: "pointer", fontFamily: font }}
-                  >
-                    Forgot Password?
+                <div style={{ textAlign: "right", marginBottom: "16px", marginTop: "-2px" }}>
+                  <span className="lm-forgot-link" onClick={() => { setMode("forgotPassword"); setFpStep(1); }}>
+                    Forgot password?
                   </span>
                 </div>
 
-                <button type="submit" disabled={loginLoading} style={submitBtn}
-                  onMouseOver={(e) => e.currentTarget.style.background = darkRed}
-                  onMouseOut={(e) => e.currentTarget.style.background = red}>
-                  {loginLoading
-                    ? <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}><Spinner size="sm" color="white" /> Signing in...</span>
-                    : "Sign In"}
+                <button type="submit" className="lm-submit" disabled={loginLoading}>
+                  {loginLoading ? <><Spinner size="sm" color="white" /> Signing in...</> : "Sign In"}
                 </button>
               </form>
+
+              <div className="lm-divider"><div className="lm-divider-line"/><span>or</span><div className="lm-divider-line"/></div>
+              <p style={{ fontSize: "13px", color: "#9ca3af", fontFamily: font, margin: 0 }}>
+                Don't have an account?{" "}
+                <span style={{ color: red, fontWeight: 600, cursor: "pointer" }}
+                  onClick={() => { setMode("register"); setLoginError(""); }}>
+                  Register
+                </span>
+              </p>
             </div>
           </>)}
 
-          {/* REGISTER MODE */}
+          {/* ══ REGISTER ══ */}
           {mode === "register" && (<>
-            <div style={loginWhitePanel}>
-              <div style={{ marginBottom: "8px", textAlign: "center" }}>
-                <div style={{
-                  width: "48px", height: "48px", borderRadius: "50%",
-                  background: "#fef2f2", display: "flex", alignItems: "center",
-                  justifyContent: "center", margin: "0 auto 12px",
-                }}>
-                  <FiUser style={{ fontSize: "20px", color: red }} />
-                </div>
-                <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#1f2937", fontFamily: font, margin: "0 0 4px" }}>
-                  Create Account
-                </h2>
-                <p style={{ fontSize: "13px", color: "#9ca3af", fontFamily: font, margin: "0 0 16px" }}>
-                  Join us and start shopping
-                </p>
-              </div>
+            <div className="lm-form-panel">
+              <div className="lm-form-icon"><FiUser /></div>
+              <h2 className="lm-form-title">Create account</h2>
+              <p className="lm-form-sub">Join us and start shopping</p>
 
-              {regError && (
-                <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", color: "#dc2626", borderRadius: "8px", padding: "9px 13px", marginBottom: "10px", fontSize: "13px", fontFamily: font, width: "100%", boxSizing: "border-box" }}>
-                  {regError}
-                </div>
-              )}
+              {regError && <div className="lm-error">{regError}</div>}
+
               <form onSubmit={handleRegister} style={{ width: "100%" }}>
-                <InputWrapper icon={FiUser}>
-                  <input className="modal-input" style={inputStyle} type="text" placeholder="Full name"
-                    value={regForm.name} onChange={(e) => setRegForm({ ...regForm, name: e.target.value })} required
-                    onFocus={(e) => e.target.style.borderColor = red}
-                    onBlur={(e) => e.target.style.borderColor = "transparent"}
-                  />
-                </InputWrapper>
-                <InputWrapper icon={FiMail}>
-                  <input className="modal-input" style={inputStyle} type="email" placeholder="Email address"
-                    value={regForm.email} onChange={(e) => setRegForm({ ...regForm, email: e.target.value })} required
-                    onFocus={(e) => e.target.style.borderColor = red}
-                    onBlur={(e) => e.target.style.borderColor = "transparent"}
-                  />
-                </InputWrapper>
-                <InputWrapper icon={FiPhone}>
-                  <input className="modal-input" style={inputStyle} type="tel" placeholder="Phone number"
-                    value={regForm.phone} onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
-                    maxLength={10} required
-                    onFocus={(e) => e.target.style.borderColor = red}
-                    onBlur={(e) => e.target.style.borderColor = "transparent"}
-                  />
-                </InputWrapper>
-                <InputWrapper icon={FiLock}>
-                  <input className="modal-input" style={inputStyle} type={showPass ? "text" : "password"} placeholder="Password"
-                    value={regForm.password} onChange={(e) => setRegForm({ ...regForm, password: e.target.value })} required
-                    onFocus={(e) => e.target.style.borderColor = red}
-                    onBlur={(e) => e.target.style.borderColor = "transparent"}
-                  />
-                  <button type="button" onClick={() => setShowPass(!showPass)} style={eyeBtn}>
+                <Field icon={FiUser}>
+                  <input className="lm-input" type="text" placeholder="Full name"
+                    value={regForm.name} onChange={(e) => setRegForm({ ...regForm, name: e.target.value })} required />
+                </Field>
+                <Field icon={FiMail}>
+                  <input className="lm-input" type="email" placeholder="Email address"
+                    value={regForm.email} onChange={(e) => setRegForm({ ...regForm, email: e.target.value })} required />
+                </Field>
+                <Field icon={FiPhone}>
+                  <input className="lm-input" type="tel" placeholder="Phone number"
+                    value={regForm.phone} onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })} maxLength={10} required />
+                </Field>
+                <Field icon={FiLock}>
+                  <input className="lm-input" type={showPass ? "text" : "password"} placeholder="Password"
+                    value={regForm.password} onChange={(e) => setRegForm({ ...regForm, password: e.target.value })} required />
+                  <button type="button" className="lm-eye-btn" onClick={() => setShowPass(!showPass)}>
                     {showPass ? <FiEyeOff /> : <FiEye />}
                   </button>
-                </InputWrapper>
-                <InputWrapper icon={FiLock}>
-                  <input className="modal-input" style={inputStyle} type={showConfirm ? "text" : "password"} placeholder="Confirm password"
-                    value={regForm.confirmPassword} onChange={(e) => setRegForm({ ...regForm, confirmPassword: e.target.value })} required
-                    onFocus={(e) => e.target.style.borderColor = red}
-                    onBlur={(e) => e.target.style.borderColor = "transparent"}
-                  />
-                  <button type="button" onClick={() => setShowConfirm(!showConfirm)} style={eyeBtn}>
+                </Field>
+                <Field icon={FiLock}>
+                  <input className="lm-input" type={showConfirm ? "text" : "password"} placeholder="Confirm password"
+                    value={regForm.confirmPassword} onChange={(e) => setRegForm({ ...regForm, confirmPassword: e.target.value })} required />
+                  <button type="button" className="lm-eye-btn" onClick={() => setShowConfirm(!showConfirm)}>
                     {showConfirm ? <FiEyeOff /> : <FiEye />}
                   </button>
-                </InputWrapper>
-                <button type="submit" disabled={regLoading} style={submitBtn}
-                  onMouseOver={(e) => e.currentTarget.style.background = darkRed}
-                  onMouseOut={(e) => e.currentTarget.style.background = red}>
-                  {regLoading
-                    ? <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}><Spinner size="sm" color="white" /> Registering...</span>
-                    : "Create Account"}
+                </Field>
+                <button type="submit" className="lm-submit" disabled={regLoading}>
+                  {regLoading ? <><Spinner size="sm" color="white" /> Creating account...</> : "Create Account"}
                 </button>
               </form>
+
+              <div className="lm-divider"><div className="lm-divider-line"/><span>or</span><div className="lm-divider-line"/></div>
+              <p style={{ fontSize: "13px", color: "#9ca3af", fontFamily: font, margin: 0 }}>
+                Already have an account?{" "}
+                <span style={{ color: red, fontWeight: 600, cursor: "pointer" }}
+                  onClick={() => { setMode("login"); setRegError(""); }}>
+                  Sign in
+                </span>
+              </p>
             </div>
 
-            <div style={redPanel}>
-              <SpiceDecor />
-              <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-                <div style={{
-                  width: "64px", height: "64px", borderRadius: "50%",
-                  background: "rgba(255,255,255,0.2)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  margin: "0 auto 20px", border: "2px solid rgba(255,255,255,0.4)",
-                }}>
-                  <FiLock style={{ fontSize: "28px", color: "#fff" }} />
-                </div>
-                <h2 style={{ fontSize: "26px", fontWeight: 800, color: "#fff", fontFamily: font, lineHeight: 1.2, marginBottom: "14px" }}>
-                  Welcome Back
-                </h2>
-                <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.85)", fontFamily: font, lineHeight: 1.7, marginBottom: "28px" }}>
-                  Already have an account?<br />Sign in to continue.
-                </p>
-                <button
-                  className="outline-btn"
-                  style={outlineBtn}
-                  onClick={() => { setMode("login"); setRegError(""); }}
-                >
-                  Sign In
-                </button>
-              </div>
-            </div>
+            <BrandPanel
+              side="right"
+              icon={<FiLock />}
+              heading="Welcome back!"
+              body={"Already have an account?\nSign in to continue shopping\nwhere you left off."}
+              btnLabel="Sign In"
+              onBtnClick={() => { setMode("login"); setRegError(""); }}
+            />
           </>)}
 
-          {/* FORGOT PASSWORD MODE */}
+          {/* ══ FORGOT PASSWORD ══ */}
           {mode === "forgotPassword" && (
-            <div style={{
-              flex: 1, background: "#fff", borderRadius: "16px",
-              padding: "48px 44px",
-              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-            }}>
+            <div className="lm-form-panel lm-form-panel-fp" style={{ width: "100%" }}>
+
               {fpStep < 4 && (
-                <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
+                <div className="lm-steps">
                   {[1, 2, 3].map((s) => (
-                    <div key={s} style={{
-                      width: "10px", height: "10px", borderRadius: "50%",
-                      background: fpStep > s ? red : fpStep === s ? darkRed : "#e5e7eb",
-                      transition: "background 0.3s",
+                    <div key={s} className="lm-step-dot" style={{
+                      width: fpStep === s ? "28px" : "10px",
+                      background: fpStep > s ? "#16a34a" : fpStep === s ? red : "#e5e7eb",
                     }} />
                   ))}
                 </div>
               )}
 
-              <div style={{
-                width: "48px", height: "48px", borderRadius: "50%",
-                background: "#fef2f2", display: "flex", alignItems: "center",
-                justifyContent: "center", margin: "0 auto 16px",
-              }}>
-                <FiLock style={{ fontSize: "20px", color: red }} />
-              </div>
+              {fpStep < 4 ? (
+                <div className="lm-form-icon">
+                  <FiLock />
+                </div>
+              ) : (
+                <div className="lm-success-icon"><FiCheck /></div>
+              )}
 
-              <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#1f2937", fontFamily: font, marginBottom: "6px" }}>
-                {fpTitles[fpStep]}
+              <h2 className="lm-form-title">
+                {["", "Forgot password", "Enter OTP", "New password", "All done!"][fpStep]}
               </h2>
-              <p style={{ fontSize: "13px", color: "#6b7280", fontFamily: font, marginBottom: "20px", textAlign: "center" }}>
-                {fpSubtitles[fpStep]}
+              <p className="lm-form-sub">
+                {fpStep === 1 && "Enter your registered email and we'll send you an OTP."}
+                {fpStep === 2 && `We sent a 6-digit OTP to ${fpEmail}`}
+                {fpStep === 3 && "Choose a strong new password."}
+                {fpStep === 4 && "Your password has been reset successfully."}
               </p>
 
               {fpStep === 1 && (
                 <>
-                  <InputWrapper icon={FiMail}>
-                    <input className="modal-input" style={inputStyle} type="email" placeholder="you@example.com"
+                  <Field icon={FiMail}>
+                    <input className="lm-input" type="email" placeholder="you@example.com"
                       value={fpEmail} onChange={(e) => setFpEmail(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleFpSendOtp()}
-                      onFocus={(e) => e.target.style.borderColor = red}
-                      onBlur={(e) => e.target.style.borderColor = "transparent"}
-                    />
-                  </InputWrapper>
-                  <button onClick={handleFpSendOtp} disabled={fpLoading}
-                    style={{ ...submitBtn, marginTop: "4px" }}
-                    onMouseOver={(e) => e.currentTarget.style.background = darkRed}
-                    onMouseOut={(e) => e.currentTarget.style.background = red}>
+                      onKeyDown={(e) => e.key === "Enter" && handleFpSendOtp()} />
+                  </Field>
+                  <button className="lm-submit" onClick={handleFpSendOtp} disabled={fpLoading}>
                     {fpLoading ? "Sending OTP..." : "Send OTP"}
                   </button>
-                  <span onClick={() => setMode("login")}
-                    style={{ marginTop: "16px", fontSize: "12px", color: red, cursor: "pointer", fontFamily: font }}>
-                    Back to Sign In
+                  <span className="lm-back-link" onClick={() => setMode("login")}>
+                    <FiArrowLeft /> Back to sign in
                   </span>
                 </>
               )}
 
               {fpStep === 2 && (
                 <>
-                  <input className="modal-input"
-                    style={{ ...inputStyle, paddingLeft: "16px", letterSpacing: "0.25em", fontSize: "22px", textAlign: "center", width: "100%", marginBottom: "12px" }}
-                    type="text" placeholder="• • • • • •"
-                    value={fpOtp} maxLength={6}
-                    onChange={(e) => setFpOtp(e.target.value.replace(/\D/g, ""))}
-                    onKeyDown={(e) => e.key === "Enter" && handleFpVerifyOtp()}
-                    onFocus={(e) => e.target.style.borderColor = red}
-                    onBlur={(e) => e.target.style.borderColor = "transparent"}
-                  />
-                  <button onClick={handleFpVerifyOtp} disabled={fpLoading} style={submitBtn}
-                    onMouseOver={(e) => e.currentTarget.style.background = darkRed}
-                    onMouseOut={(e) => e.currentTarget.style.background = red}>
+                  <div className="lm-field">
+                    <input className="lm-input lm-input-otp" type="text" placeholder="• • • • • •"
+                      value={fpOtp} maxLength={6}
+                      onChange={(e) => setFpOtp(e.target.value.replace(/\D/g, ""))}
+                      onKeyDown={(e) => e.key === "Enter" && handleFpVerifyOtp()} />
+                  </div>
+                  <button className="lm-submit" onClick={handleFpVerifyOtp} disabled={fpLoading}>
                     {fpLoading ? "Verifying..." : "Verify OTP"}
                   </button>
-                  <span onClick={() => { setFpStep(1); setFpOtp(""); }}
-                    style={{ marginTop: "14px", fontSize: "12px", color: red, cursor: "pointer", fontFamily: font }}>
-                    Resend OTP
+                  <span className="lm-back-link" onClick={() => { setFpStep(1); setFpOtp(""); }}>
+                    <FiArrowLeft /> Resend OTP
                   </span>
                 </>
               )}
 
               {fpStep === 3 && (
                 <>
-                  <InputWrapper icon={FiLock}>
-                    <input className="modal-input" style={inputStyle} type="password" placeholder="New password (min. 8 chars)"
-                      value={fpNewPassword} onChange={(e) => setFpNewPassword(e.target.value)}
-                      onFocus={(e) => e.target.style.borderColor = red}
-                      onBlur={(e) => e.target.style.borderColor = "transparent"}
-                    />
-                  </InputWrapper>
-                  <InputWrapper icon={FiLock}>
-                    <input className="modal-input" style={inputStyle} type="password" placeholder="Confirm new password"
+                  <Field icon={FiLock}>
+                    <input className="lm-input" type={showPass ? "text" : "password"} placeholder="New password (min. 8 chars)"
+                      value={fpNewPassword} onChange={(e) => setFpNewPassword(e.target.value)} />
+                    <button type="button" className="lm-eye-btn" onClick={() => setShowPass(!showPass)}>
+                      {showPass ? <FiEyeOff /> : <FiEye />}
+                    </button>
+                  </Field>
+                  <Field icon={FiLock}>
+                    <input className="lm-input" type={showConfirm ? "text" : "password"} placeholder="Confirm new password"
                       value={fpConfirmPassword} onChange={(e) => setFpConfirmPassword(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleFpReset()}
-                      onFocus={(e) => e.target.style.borderColor = red}
-                      onBlur={(e) => e.target.style.borderColor = "transparent"}
-                    />
-                  </InputWrapper>
-                  <button onClick={handleFpReset} disabled={fpLoading} style={submitBtn}
-                    onMouseOver={(e) => e.currentTarget.style.background = darkRed}
-                    onMouseOut={(e) => e.currentTarget.style.background = red}>
+                      onKeyDown={(e) => e.key === "Enter" && handleFpReset()} />
+                    <button type="button" className="lm-eye-btn" onClick={() => setShowConfirm(!showConfirm)}>
+                      {showConfirm ? <FiEyeOff /> : <FiEye />}
+                    </button>
+                  </Field>
+                  <button className="lm-submit" onClick={handleFpReset} disabled={fpLoading}>
                     {fpLoading ? "Resetting..." : "Reset Password"}
                   </button>
                 </>
               )}
 
               {fpStep === 4 && (
-                <div style={{ textAlign: "center" }}>
-                  <div style={{
-                    width: "64px", height: "64px", borderRadius: "50%",
-                    background: "#fef2f2", display: "flex", alignItems: "center",
-                    justifyContent: "center", margin: "0 auto 16px",
-                    border: `2px solid ${red}`,
-                  }}>
-                    <FiLock style={{ fontSize: "28px", color: red }} />
-                  </div>
-                  <p style={{ fontSize: "14px", color: "#374151", fontFamily: font, marginBottom: "24px" }}>
-                    You can now sign in with your new password.
-                  </p>
-                  <button onClick={resetFpAndGoLogin}
-                    style={{ ...submitBtn, width: "auto", padding: "11px 36px" }}
-                    onMouseOver={(e) => e.currentTarget.style.background = darkRed}
-                    onMouseOut={(e) => e.currentTarget.style.background = red}>
-                    Go to Sign In
-                  </button>
-                </div>
+                <button className="lm-submit" onClick={resetFpAndGoLogin}>
+                  Go to Sign In
+                </button>
               )}
             </div>
           )}
