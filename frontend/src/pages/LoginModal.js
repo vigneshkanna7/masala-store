@@ -333,7 +333,7 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
           {/* ══ LOGIN ══ */}
           {mode === "login" && (
             <div className="lm-form-panel">
-              <div className="lm-form-icon"><FiLock /></div>
+         {/*     <div className="lm-form-icon"><FiLock /></div>    */}
               <h2 className="lm-form-title">Welcome back</h2>
               <p className="lm-form-sub">Sign in to your account</p>
 
@@ -377,10 +377,8 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
           {/* ══ REGISTER ══ */}
           {mode === "register" && (
             <div className="lm-form-panel">
-              <div className="lm-form-icon"><FiUser /></div>
+            {/*  <div className="lm-form-icon"><FiUser /></div>   */}
               <h2 className="lm-form-title">Create account</h2>
-              <p className="lm-form-sub">Join us and start shopping</p>
-
               {regError && <div className="lm-error">{regError}</div>}
 
               <form onSubmit={handleRegister} style={{ width: "100%" }}>
