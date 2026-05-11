@@ -300,36 +300,73 @@ const Navbar = () => {
                 </>
               ) : (
                 <>
-                  <button onClick={() => { navigate("/profile"); setMenuOpen(false); }}
-                    style={{
-                      flex: 1, padding: "11px 10px",
-                      background: red, color: "#fff",
-                      border: "none", borderRadius: "8px",
-                      fontFamily: font, fontWeight: 600, fontSize: "15px",
-                      cursor: "pointer",
-                    }}>
-                    My Profile
-                  </button>
-                  <button onClick={() => { navigate("/orders"); setMenuOpen(false); }}
-                    style={{
-                      flex: 1, padding: "11px 10px",
-                      background: "transparent", color: "#374151",
-                      border: "1px solid #e5e7eb", borderRadius: "8px",
-                      fontFamily: font, fontWeight: 600, fontSize: "15px",
-                      cursor: "pointer",
-                    }}>
-                    Orders
-                  </button>
-                  <button onClick={handleLogout}
-                    style={{
-                      flex: 1, padding: "11px 10px",
-                      background: "transparent", color: red,
-                      border: `1px solid ${red}`, borderRadius: "8px",
-                      fontFamily: font, fontWeight: 600, fontSize: "15px",
-                      cursor: "pointer",
-                    }}>
-                    Logout
-                  </button>
+<>
+                <button
+                  onClick={() => {
+                    navigate("/profile");
+                    setMenuOpen(false);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "11px 10px",
+                    background: location.pathname === "/profile" ? red : "transparent",
+                    color: location.pathname === "/profile" ? "#fff" : "#374151",
+                    border:
+                      location.pathname === "/profile"
+                        ? `1px solid ${red}`
+                        : "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                    fontFamily: font,
+                    fontWeight: 600,
+                    fontSize: "15px",
+                    cursor: "pointer",
+                  }}
+                >
+                  My Profile
+                </button>
+
+                <button
+                  onClick={() => {
+                    navigate("/orders");
+                    setMenuOpen(false);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "11px 10px",
+                    background: location.pathname === "/orders" ? red : "transparent",
+                    color: location.pathname === "/orders" ? "#fff" : "#374151",
+                    border:
+                      location.pathname === "/orders"
+                        ? `1px solid ${red}`
+                        : "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                    fontFamily: font,
+                    fontWeight: 600,
+                    fontSize: "15px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Orders
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    flex: 1,
+                    padding: "11px 10px",
+                    background: "transparent",
+                    color: red,
+                    border: `1px solid ${red}`,
+                    borderRadius: "8px",
+                    fontFamily: font,
+                    fontWeight: 600,
+                    fontSize: "15px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Logout
+                </button>
+</>
                 </>
               )}
             </div>
