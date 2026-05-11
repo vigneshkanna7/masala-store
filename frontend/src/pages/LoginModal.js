@@ -25,69 +25,14 @@ if (typeof document !== "undefined" && !document.getElementById("lm-styles")) {
     }
     .lm-modal {
       display: flex;
-      width: 100%; max-width: 860px;
+      width: 100%; max-width: 460px;
       border-radius: 20px;
       overflow: hidden;
       box-shadow: 0 40px 100px rgba(0,0,0,0.3);
-      min-height: 540px;
       position: relative;
       font-family: 'Poppins', sans-serif;
       background: #fff;
     }
-    .lm-modal-fp {
-      max-width: 460px;
-      border-radius: 20px;
-    }
-
-    /* ── Brand Panel ── */
-    .lm-brand {
-      flex: 0 0 320px;
-      background: #dc2626;
-      padding: 48px 36px;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      position: relative; overflow: hidden;
-    }
-    .lm-brand-right { border-radius: 0 20px 20px 0; order: 1; }
-    .lm-brand-left  { border-radius: 20px 0 0 20px; order: 0; }
-    .lm-brand-bg {
-      position: absolute; inset: 0; overflow: hidden; pointer-events: none;
-    }
-    .lm-brand-circle {
-      position: absolute; border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.12);
-    }
-    .lm-brand-content { position: relative; z-index: 1; text-align: center; width: 100%; }
-    .lm-brand-avatar {
-      width: 72px; height: 72px; border-radius: 50%;
-      background: rgba(255,255,255,0.15);
-      border: 2px solid rgba(255,255,255,0.3);
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 24px; font-size: 30px; color: #fff;
-    }
-    .lm-brand h3 {
-      font-size: 26px; font-weight: 800; color: #fff;
-      margin: 0 0 12px; line-height: 1.2;
-      font-family: 'Poppins', sans-serif;
-    }
-    .lm-brand p {
-      font-size: 13px; color: rgba(255,255,255,0.8);
-      line-height: 1.75; margin: 0 0 32px;
-      font-family: 'Poppins', sans-serif;
-    }
-    .lm-brand-btn {
-      display: inline-block;
-      padding: 11px 36px;
-      background: transparent;
-      color: #fff;
-      border: 1.5px solid rgba(255,255,255,0.6);
-      border-radius: 50px;
-      font-size: 13px; font-weight: 600;
-      font-family: 'Poppins', sans-serif;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-    }
-    .lm-brand-btn:hover { background: rgba(255,255,255,0.15); border-color: #fff; }
 
     /* ── Form Panel ── */
     .lm-form-panel {
@@ -96,9 +41,6 @@ if (typeof document !== "undefined" && !document.getElementById("lm-styles")) {
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       background: #fff; overflow-y: auto;
-    }
-    .lm-form-panel-fp {
-      border-radius: 20px;
     }
 
     /* ── Form Header ── */
@@ -245,42 +187,22 @@ if (typeof document !== "undefined" && !document.getElementById("lm-styles")) {
     @media (max-width: 640px) {
       .lm-overlay { padding: 0; align-items: flex-end; }
       .lm-modal {
-        flex-direction: column;
         border-radius: 20px 20px 0 0;
         min-height: unset;
         max-width: 100%;
         max-height: 94vh;
         overflow-y: auto;
       }
-      .lm-modal-fp {
-        border-radius: 20px 20px 0 0;
-        max-width: 100%;
-      }
-      .lm-brand {
-        flex: none;
-        border-radius: 20px 20px 0 0 !important;
-        order: 0 !important;
-        padding: 28px 24px;
-        min-height: unset;
-      }
-      .lm-brand-avatar { width: 52px; height: 52px; font-size: 22px; margin-bottom: 14px; }
-      .lm-brand h3 { font-size: 20px; margin-bottom: 8px; }
-      .lm-brand p { font-size: 12px; margin-bottom: 18px; }
-      .lm-brand-btn { padding: 9px 28px; font-size: 12px; }
       .lm-form-panel {
-        padding: 28px 24px 36px;
-        border-radius: 0 !important;
+        padding: 32px 24px 40px;
+        border-radius: 20px 20px 0 0;
+        justify-content: flex-start;
+        padding-top: 40px;
       }
-      .lm-form-panel-fp { border-radius: 20px 20px 0 0 !important; padding: 32px 24px 40px; }
       .lm-form-icon { width: 44px; height: 44px; font-size: 18px; }
       .lm-form-title { font-size: 19px; }
       .lm-close { top: 12px; right: 14px; }
       .lm-toast { top: auto; bottom: 100px; right: 16px; left: 16px; min-width: unset; }
-    }
-
-    @media (min-width: 641px) and (max-width: 860px) {
-      .lm-brand { flex: 0 0 260px; padding: 36px 24px; }
-      .lm-form-panel { padding: 36px 32px; }
     }
   `;
   document.head.appendChild(s);
@@ -288,23 +210,6 @@ if (typeof document !== "undefined" && !document.getElementById("lm-styles")) {
 
 const font = "'Poppins', sans-serif";
 const red = "#dc2626";
-const darkRed = "#b91c1c";
-
-const BrandPanel = ({ side, icon, heading, body, btnLabel, onBtnClick }) => (
-  <div className={`lm-brand ${side === "right" ? "lm-brand-right" : "lm-brand-left"}`}>
-    <div className="lm-brand-bg">
-      <div className="lm-brand-circle" style={{ width: 320, height: 320, top: -100, right: -120 }} />
-      <div className="lm-brand-circle" style={{ width: 200, height: 200, bottom: -60, left: -60 }} />
-      <div className="lm-brand-circle" style={{ width: 100, height: 100, bottom: 60, right: 20 }} />
-    </div>
-    <div className="lm-brand-content">
-      <div className="lm-brand-avatar">{icon}</div>
-      <h3>{heading}</h3>
-      <p>{body}</p>
-      <button className="lm-brand-btn" onClick={onBtnClick}>{btnLabel}</button>
-    </div>
-  </div>
-);
 
 const Field = ({ icon: Icon, children }) => (
   <div className="lm-field">
@@ -422,22 +327,11 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
       )}
 
       <div className="lm-overlay" onClick={onClose}>
-        <div
-          className={`lm-modal ${mode === "forgotPassword" ? "lm-modal-fp" : ""}`}
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="lm-modal" onClick={(e) => e.stopPropagation()}>
           <button className="lm-close" onClick={onClose} aria-label="Close">✕</button>
 
           {/* ══ LOGIN ══ */}
-          {mode === "login" && (<>
-            <BrandPanel
-              side="left"
-              icon={<FiUser />}
-              heading="New here?"
-              body={"Create an account to enjoy\nexclusive offers, track orders\nand more."}
-              btnLabel="Register"
-              onBtnClick={() => { setMode("register"); setLoginError(""); }}
-            />
+          {mode === "login" && (
             <div className="lm-form-panel">
               <div className="lm-form-icon"><FiLock /></div>
               <h2 className="lm-form-title">Welcome back</h2>
@@ -478,10 +372,10 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
                 </span>
               </p>
             </div>
-          </>)}
+          )}
 
           {/* ══ REGISTER ══ */}
-          {mode === "register" && (<>
+          {mode === "register" && (
             <div className="lm-form-panel">
               <div className="lm-form-icon"><FiUser /></div>
               <h2 className="lm-form-title">Create account</h2>
@@ -530,20 +424,11 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
                 </span>
               </p>
             </div>
-
-            <BrandPanel
-              side="right"
-              icon={<FiLock />}
-              heading="Welcome back!"
-              body={"Already have an account?\nSign in to continue shopping\nwhere you left off."}
-              btnLabel="Sign In"
-              onBtnClick={() => { setMode("login"); setRegError(""); }}
-            />
-          </>)}
+          )}
 
           {/* ══ FORGOT PASSWORD ══ */}
           {mode === "forgotPassword" && (
-            <div className="lm-form-panel lm-form-panel-fp" style={{ width: "100%" }}>
+            <div className="lm-form-panel" style={{ width: "100%" }}>
 
               {fpStep < 4 && (
                 <div className="lm-steps">
@@ -557,9 +442,7 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
               )}
 
               {fpStep < 4 ? (
-                <div className="lm-form-icon">
-                  <FiLock />
-                </div>
+                <div className="lm-form-icon"><FiLock /></div>
               ) : (
                 <div className="lm-success-icon"><FiCheck /></div>
               )}
