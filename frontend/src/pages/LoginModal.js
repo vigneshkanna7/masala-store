@@ -439,11 +439,7 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
                 </div>
               )}
 
-              {fpStep < 4 ? (
-              {/*  <div className="lm-form-icon"><FiLock /></div>  */}
-              ) : (
-                <div className="lm-success-icon"><FiCheck /></div>
-              )}
+
 
               <h2 className="lm-form-title">
                 {["", "Forgot password", "Enter OTP", "New password", "All done!"][fpStep]}
