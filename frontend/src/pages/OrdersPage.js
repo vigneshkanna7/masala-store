@@ -238,9 +238,8 @@ function OrdersPage() {
         <ReviewModal order={reviewOrder} onClose={() => setReviewOrder(null)} onSubmitted={handleReviewSubmitted} />
       )}
 
-      <div style={{ fontFamily: font, background: '#fff', minHeight: '100vh', color: '#111' }}>
-        <div className="ord-page-wrap" style={{ maxWidth: '960px', margin: '0 auto', padding: '40px 24px 60px' }}>
-
+      <div style={{ fontFamily: font, background: '#fff', color: '#111' }}>
+      <div className="ord-page-wrap" style={{ maxWidth: '960px', margin: '0 auto', padding: '40px 24px 20px' }}>    
           <h1 className="ord-page-title" style={{
             fontSize: '28px', fontWeight: 800, letterSpacing: '0.06em',
             textTransform: 'uppercase', marginBottom: '32px',

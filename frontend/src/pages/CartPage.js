@@ -49,7 +49,7 @@ const font = "'Poppins', sans-serif";
 
 const styles = {
   /* top/bottom padding removed — app-layout in App.js adds 40px top & 60px bottom */
-  page: { background: "#fff", minHeight: "100vh", fontFamily: font, padding: "0 24px" },
+  page: { background: "#fff", fontFamily: font, padding: "0 24px" },
   container: { maxWidth: "860px", margin: "0 auto" },
   pageTitle: { fontSize: "32px", fontWeight: 700, color: "#1f2937", marginBottom: "32px", fontFamily: font },
   card: {
