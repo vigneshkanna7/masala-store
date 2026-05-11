@@ -440,7 +440,7 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
               )}
 
               {fpStep < 4 ? (
-                <div className="lm-form-icon"><FiLock /></div>
+              {/*  <div className="lm-form-icon"><FiLock /></div>  */}
               ) : (
                 <div className="lm-success-icon"><FiCheck /></div>
               )}
