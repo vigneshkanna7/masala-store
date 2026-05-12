@@ -87,10 +87,10 @@ function AdminDashboard() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
-  const [contacts, setContacts] = useState([]);                // ← NEW
-  const [selectedContact, setSelectedContact] = useState(null); // ← NEW
+  const [contacts, setContacts] = useState([]);
+  const [selectedContact, setSelectedContact] = useState(null);
   const [productForm, setProductForm] = useState({
-    name: '', description: '', price: '', stock: '', category: '', imageUrl: '', ingredients: ''
+    name: '', description: '', price: '', stock: '', category: '', imageUrl: '', ingredients: '', bestSeller: false
   });
   const [editingProduct, setEditingProduct] = useState(null);
   const [message, setMessage] = useState({ text: '', type: '' });
@@ -101,7 +101,7 @@ function AdminDashboard() {
   useEffect(() => {
     const adminToken = localStorage.getItem('adminToken');
     if (!adminToken) { navigate('/admin/login'); return; }
-    fetchProducts(); fetchOrders(); fetchUsers(); fetchContacts(); // ← NEW
+    fetchProducts(); fetchOrders(); fetchUsers(); fetchContacts();
   }, []);
 
   const showMessage = (text, type = 'success') => {
@@ -121,7 +121,6 @@ function AdminDashboard() {
     try { const res = await api.get('/admin/users'); setUsers(res.data); } catch {}
   };
 
-  // ── NEW: fetch contact submissions ──
   const fetchContacts = async () => {
     try { const res = await api.get('/contact'); setContacts(res.data); } catch {}
   };
@@ -147,7 +146,8 @@ function AdminDashboard() {
         await api.post('/admin/products', productForm);
         showMessage('✅ Product added successfully!');
       }
-      setProductForm({ name: '', description: '', price: '', stock: '', category: '', imageUrl: '', ingredients: '' });
+      // FIX 1: bestSeller: false added to reset
+      setProductForm({ name: '', description: '', price: '', stock: '', category: '', imageUrl: '', ingredients: '', bestSeller: false });
       setEditingProduct(null);
       fetchProducts();
     } catch { showMessage('❌ Failed to save product!', 'error'); }
@@ -159,7 +159,8 @@ function AdminDashboard() {
       name: product.name, description: product.description,
       price: product.price, stock: product.stock,
       category: product.category || '', imageUrl: product.imageUrl || '',
-      ingredients: product.ingredients || ''
+      ingredients: product.ingredients || '',
+      bestSeller: product.bestSeller || false
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -181,7 +182,6 @@ function AdminDashboard() {
     } catch { showMessage('❌ Failed to update order!', 'error'); }
   };
 
-  // ── NEW: format date ──
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
     const d = new Date(dateStr);
@@ -193,7 +193,7 @@ function AdminDashboard() {
     { key: 'products', label: 'Products', count: products.length },
     { key: 'orders',   label: 'Orders',   count: orders.length   },
     { key: 'users',    label: 'Users',    count: users.length    },
-    { key: 'contacts', label: 'Contacts', count: contacts.length }, // ← NEW
+    { key: 'contacts', label: 'Contacts', count: contacts.length },
   ];
 
   return (
@@ -342,6 +342,24 @@ function AdminDashboard() {
                   </div>
                 ))}
               </div>
+
+              {/* FIX 2: Checkbox moved ABOVE buttons div */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+                <input
+                  type="checkbox"
+                  id="bestSeller"
+                  checked={productForm.bestSeller}
+                  onChange={e => setProductForm({ ...productForm, bestSeller: e.target.checked })}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: green }}
+                />
+                <label htmlFor="bestSeller" style={{
+                  fontFamily: font, fontSize: '13px', fontWeight: 600,
+                  color: dark, cursor: 'pointer'
+                }}>
+                  Mark as Best Seller ⭐
+                </label>
+              </div>
+
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button
                   onClick={saveProduct}
@@ -361,7 +379,8 @@ function AdminDashboard() {
                   <button
                     onClick={() => {
                       setEditingProduct(null);
-                      setProductForm({ name: '', description: '', price: '', stock: '', category: '', imageUrl: '', ingredients: '' });
+                      // FIX 1: bestSeller: false added to Cancel reset
+                      setProductForm({ name: '', description: '', price: '', stock: '', category: '', imageUrl: '', ingredients: '', bestSeller: false });
                     }}
                     style={{
                       padding: '11px 24px', background: 'transparent', color: dark,
@@ -423,9 +442,22 @@ function AdminDashboard() {
                               🌶️
                             </div>
                           )}
-                          <span style={{ fontFamily: font, fontSize: '14px', fontWeight: 600, color: dark }}>
-                            {product.name}
-                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span style={{ fontFamily: font, fontSize: '14px', fontWeight: 600, color: dark }}>
+                              {product.name}
+                            </span>
+                            {/* FIX 3: Best Seller badge in table */}
+                            {product.bestSeller && (
+                              <span style={{
+                                fontSize: '10px', fontWeight: 700,
+                                background: '#fefce8', color: '#854d0e',
+                                border: '1px solid #fde68a', borderRadius: '999px',
+                                padding: '2px 8px', fontFamily: font,
+                              }}>
+                                ⭐ Best Seller
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td style={{ padding: '14px', fontFamily: font, fontSize: '13px', color: '#6b7280' }}>
@@ -626,7 +658,7 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* ── CONTACTS TAB (NEW) ── */}
+        {/* CONTACTS TAB */}
         {activeTab === 'contacts' && (
           <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
 
@@ -743,7 +775,6 @@ function AdminDashboard() {
                 padding: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
                 position: 'sticky', top: '20px',
               }}>
-                {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                   <h3 style={{ margin: 0, fontFamily: font, fontWeight: 800, fontSize: '16px', color: dark }}>
                     Message Details
@@ -761,7 +792,6 @@ function AdminDashboard() {
                   </button>
                 </div>
 
-                {/* Avatar + Name */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
                   <div style={{
                     width: '48px', height: '48px', borderRadius: '50%', background: dark,
@@ -780,7 +810,6 @@ function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* Info rows */}
                 {[
                   { label: 'Email',   value: selectedContact.email,            icon: '✉️' },
                   { label: 'Phone',   value: selectedContact.phone || '—',     icon: '📞' },
@@ -802,7 +831,6 @@ function AdminDashboard() {
                   </div>
                 ))}
 
-                {/* Message */}
                 <div style={{ marginTop: '16px' }}>
                   <p style={{ margin: '0 0 8px', fontFamily: font, fontSize: '10px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     💬 Message
@@ -818,7 +846,6 @@ function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* Reply button */}
                 <a
                   href={`mailto:${selectedContact.email}?subject=Re: ${selectedContact.subject || 'Your Message'}`}
                   style={{

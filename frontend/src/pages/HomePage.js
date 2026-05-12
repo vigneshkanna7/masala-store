@@ -309,11 +309,11 @@ const HomePage = () => {
     return () => clearInterval(t);
   }, []);
 
-  useEffect(() => {
-    api.get("/products")
-      .then((res) => { setProducts(res.data.slice(0, 10)); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, []);
+useEffect(() => {
+  api.get("/products/best-sellers")
+    .then((res) => { setProducts(res.data); setLoading(false); })
+    .catch(() => setLoading(false));
+}, []);
 
   useEffect(() => {
     api.get("/reviews")
