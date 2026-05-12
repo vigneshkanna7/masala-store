@@ -437,10 +437,12 @@ useEffect(() => {
       <div className="hp-section-wrap">
         <div className="hp-section-hd">
           <h2>Best Sellers</h2>
-          <div className="hp-section-arrows">
-            <ArrowBtn onClick={() => scroll("left")} label="Scroll left">←</ArrowBtn>
-            <ArrowBtn onClick={() => scroll("right")} label="Scroll right">→</ArrowBtn>
-          </div>
+          {products.length > 3 && (
+  <div className="hp-section-arrows">
+    <ArrowBtn onClick={() => scroll("left")}>←</ArrowBtn>
+    <ArrowBtn onClick={() => scroll("right")}>→</ArrowBtn>
+  </div>
+)}
         </div>
 
         {loading ? (
