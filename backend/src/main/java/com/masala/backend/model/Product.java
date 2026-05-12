@@ -24,4 +24,6 @@ public class Product {
     private Integer stock;
     private String category;
     private String ingredients;
+    @Column(name = "best_seller")
+    private boolean bestSeller = false;
 }

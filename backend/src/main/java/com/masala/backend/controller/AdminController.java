@@ -42,6 +42,7 @@ public class AdminController {
         product.setCategory(updated.getCategory());
         product.setImageUrl(updated.getImageUrl());
         product.setIngredients(updated.getIngredients());
+        product.setBestSeller(updated.isBestSeller());
         return ResponseEntity.ok(productRepository.save(product));
     }
 

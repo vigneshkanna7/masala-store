@@ -40,4 +40,8 @@ public class ProductController {
         return ResponseEntity.ok("Product deleted successfully!");
     }
     
+    @GetMapping("/best-sellers")
+    public ResponseEntity<List<Product>> getBestSellers() {
+        return ResponseEntity.ok(productService.getBestSellers());  // ← ADD THIS
+    }
 }
