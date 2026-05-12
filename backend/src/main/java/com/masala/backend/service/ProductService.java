@@ -40,4 +40,7 @@ public class ProductService {
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
     }
+    public List<Product> getBestSellers() {
+        return productRepository.findByBestSellerTrue();
+    }
 }
