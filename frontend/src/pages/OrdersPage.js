@@ -158,13 +158,13 @@ const DetailsDrawer = ({ order, onClose }) => {
               padding: '10px 0', borderBottom: '1px solid #f3f4f6',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {item.imageUrl
-                  ? <img src={item.imageUrl} alt={item.productName} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #e5e7eb' }} />
-                  : <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🌶️</div>
-                }
+                {(item.imageUrl || item.product?.imageUrl)
+  ? <img src={item.imageUrl || item.product?.imageUrl} alt={item.productName || item.product?.name} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #e5e7eb' }} />
+  : <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🌶️</div>
+}
                 <div>
-                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#111' }}>{item.productName}</p>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#9ca3af' }}>Qty: {item.quantity} · {item.weight || '1kg'}</p>
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#111' }}>{item.productName || item.product?.name}</p>
+<p style={{ margin: '0', fontSize: '12px', color: '#9ca3af' }}>Qty: {item.quantity} · {item.weight || '1kg'}</p>
                 </div>
               </div>
               <span style={{ fontWeight: 700, fontSize: '14px', color: '#111' }}>₹{(item.price * item.quantity).toFixed(2)}</span>
@@ -447,7 +447,7 @@ function OrdersPage() {
             const alreadyReviewed = reviewedIds.includes(order.id);
 
             // product names from items
-            const productNames = order.items?.map(i => i.productName).join(', ') || 'Order';
+            const productNames = order.items?.map(i => i.productName || i.product?.name).join(', ') || 'Order';
             const itemCount = order.items?.length || 0;
 
             return (

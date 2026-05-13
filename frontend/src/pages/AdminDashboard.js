@@ -16,10 +16,13 @@ const dark = "#1f2937";
 const red = "#dc2626";
 
 const statusColors = {
-  PENDING:   { bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
+  PLACED:    { bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
   CONFIRMED: { bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
+  PACKED:    { bg: '#fdf4ff', color: '#7e22ce', border: '#e9d5ff' },
+  SHIPPED:   { bg: '#f0f9ff', color: '#0369a1', border: '#bae6fd' },
   DELIVERED: { bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
   CANCELLED: { bg: '#fef2f2', color: red,       border: '#fca5a5' },
+  PENDING:   { bg: '#fff8e1', color: '#b45309', border: '#fde68a' },
 };
 
 const formFields = [
@@ -550,7 +553,7 @@ function AdminDashboard() {
                         #{order.id}
                       </td>
                       <td style={{ padding: '14px', fontFamily: font, fontSize: '13px', color: '#374151', fontWeight: 500 }}>
-                        {order.user?.name || '—'}
+                      {order.user?.name || order.guestName || '—'}
                       </td>
                       <td style={{ padding: '14px', fontFamily: font, fontSize: '14px', fontWeight: 700, color: dark }}>
                         ₹{order.totalAmount?.toFixed(2)}
@@ -577,7 +580,7 @@ function AdminDashboard() {
                           onFocus={e => e.target.style.borderColor = green}
                           onBlur={e => e.target.style.borderColor = '#e5e7eb'}
                         >
-                          {['PENDING', 'CONFIRMED', 'DELIVERED', 'CANCELLED'].map(s => (
+                          {['PLACED', 'CONFIRMED', 'PACKED', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map(s => (
                             <option key={s} value={s}>{s}</option>
                           ))}
                         </select>
