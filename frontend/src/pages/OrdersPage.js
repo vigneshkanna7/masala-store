@@ -6,14 +6,29 @@ const font = "'DM Sans', sans-serif";
 const red = '#c0392b';
 
 const statusConfig = {
-  PENDING:   { bg: '#fff8e1', color: '#b45309', label: 'Pending' },
+  PLACED:    { bg: '#fff7ed', color: '#c2410c', label: 'Placed' },
   CONFIRMED: { bg: '#eff6ff', color: '#1d4ed8', label: 'Confirmed' },
+  PACKED:    { bg: '#fdf4ff', color: '#7e22ce', label: 'Packed' },
+  SHIPPED:   { bg: '#f0f9ff', color: '#0369a1', label: 'Shipped' },
   DELIVERED: { bg: '#f0fdf4', color: '#15803d', label: 'Delivered' },
   CANCELLED: { bg: '#fef2f2', color: '#b91c1c', label: 'Cancelled' },
+  // legacy
+  PENDING:   { bg: '#fff8e1', color: '#b45309', label: 'Pending' },
 };
 
 const getStatus = (s) => statusConfig[s] || { bg: '#f5f5f5', color: '#555', label: s };
 
+// ── Track steps ──────────────────────────────────────────────
+const STEPS = ['PLACED', 'CONFIRMED', 'PACKED', 'SHIPPED', 'DELIVERED'];
+const STEP_META = {
+  PLACED:    { label: 'Placed',    icon: '🛒' },
+  CONFIRMED: { label: 'Confirmed', icon: '✅' },
+  PACKED:    { label: 'Packed',    icon: '📦' },
+  SHIPPED:   { label: 'Shipped',   icon: '🚚' },
+  DELIVERED: { label: 'Delivered', icon: '🏠' },
+};
+
+// ── Star Rating ───────────────────────────────────────────────
 const StarRating = ({ value, onChange }) => (
   <div style={{ display: 'flex', gap: '6px' }}>
     {[1, 2, 3, 4, 5].map((star) => (
@@ -26,6 +41,7 @@ const StarRating = ({ value, onChange }) => (
   </div>
 );
 
+// ── Review Modal ──────────────────────────────────────────────
 const ReviewModal = ({ order, onClose, onSubmitted }) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -100,11 +116,211 @@ const ReviewModal = ({ order, onClose, onSubmitted }) => {
   );
 };
 
+// ── Details Drawer ────────────────────────────────────────────
+const DetailsDrawer = ({ order, onClose }) => {
+  const st = getStatus(order.status);
+  return (
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+      zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        background: '#fff', borderRadius: '20px 20px 0 0',
+        width: '100%', maxWidth: '560px',
+        padding: '28px 24px 36px', fontFamily: font,
+        animation: 'drawerUp 0.28s ease',
+        boxShadow: '0 -4px 32px rgba(0,0,0,0.12)',
+        maxHeight: '85vh', overflowY: 'auto',
+      }}>
+        {/* Handle */}
+        <div style={{ width: '40px', height: '4px', background: '#e5e7eb', borderRadius: '99px', margin: '0 auto 20px' }} />
+
+        {/* Title row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#111' }}>Order Details</h3>
+            <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#9ca3af' }}>#{order.id}</p>
+          </div>
+          <span style={{
+            padding: '4px 14px', borderRadius: '20px', fontSize: '12px',
+            fontWeight: 700, background: st.bg, color: st.color,
+          }}>{st.label}</span>
+        </div>
+
+        {/* Items */}
+        <div style={{ marginBottom: '20px' }}>
+          <p style={{ fontSize: '11px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>
+            Items Ordered
+          </p>
+          {order.items?.map((item, i) => (
+            <div key={i} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '10px 0', borderBottom: '1px solid #f3f4f6',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {item.imageUrl
+                  ? <img src={item.imageUrl} alt={item.productName} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #e5e7eb' }} />
+                  : <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🌶️</div>
+                }
+                <div>
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#111' }}>{item.productName}</p>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#9ca3af' }}>Qty: {item.quantity} · {item.weight || '1kg'}</p>
+                </div>
+              </div>
+              <span style={{ fontWeight: 700, fontSize: '14px', color: '#111' }}>₹{(item.price * item.quantity).toFixed(2)}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Info rows */}
+        {[
+          { icon: '📍', label: 'Delivery Address', value: order.shippingAddress },
+          { icon: '💳', label: 'Payment Mode', value: `${order.paymentMethod} — ${order.paymentStatus}` },
+          { icon: '🕐', label: 'Order Date', value: new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) },
+        ].map(row => (
+          <div key={row.label} style={{
+            display: 'flex', gap: '12px', padding: '12px 0',
+            borderBottom: '1px solid #f3f4f6',
+          }}>
+            <span style={{ fontSize: '16px', marginTop: '1px' }}>{row.icon}</span>
+            <div>
+              <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{row.label}</p>
+              <p style={{ margin: '3px 0 0', fontSize: '14px', color: '#111', fontWeight: 500 }}>{row.value}</p>
+            </div>
+          </div>
+        ))}
+
+        {/* Total */}
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          marginTop: '20px', padding: '16px 20px',
+          background: '#fff7ed', borderRadius: '12px', border: '1px solid #fed7aa',
+        }}>
+          <span style={{ fontSize: '15px', fontWeight: 700, color: '#92400e' }}>Total Amount</span>
+          <span style={{ fontSize: '20px', fontWeight: 900, color: red }}>₹{order.totalAmount?.toFixed(2)}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Track Drawer ──────────────────────────────────────────────
+const TrackDrawer = ({ order, onClose }) => {
+  const currentIndex = STEPS.indexOf(order.status);
+  const isCancelled = order.status === 'CANCELLED';
+
+  return (
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+      zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        background: '#fff', borderRadius: '20px 20px 0 0',
+        width: '100%', maxWidth: '560px',
+        padding: '28px 24px 40px', fontFamily: font,
+        animation: 'drawerUp 0.28s ease',
+        boxShadow: '0 -4px 32px rgba(0,0,0,0.12)',
+      }}>
+        {/* Handle */}
+        <div style={{ width: '40px', height: '4px', background: '#e5e7eb', borderRadius: '99px', margin: '0 auto 20px' }} />
+
+        <h3 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: '#111' }}>Track Order</h3>
+        <p style={{ margin: '0 0 28px', fontSize: '13px', color: '#9ca3af' }}>#{order.id}</p>
+
+        {isCancelled ? (
+          <div style={{
+            textAlign: 'center', padding: '32px',
+            background: '#fef2f2', borderRadius: '12px',
+            border: '1px solid #fca5a5',
+          }}>
+            <p style={{ fontSize: '32px', margin: '0 0 8px' }}>❌</p>
+            <p style={{ fontSize: '16px', fontWeight: 700, color: '#b91c1c', margin: 0 }}>Order Cancelled</p>
+            <p style={{ fontSize: '13px', color: '#9ca3af', margin: '4px 0 0' }}>This order has been cancelled.</p>
+          </div>
+        ) : (
+          <div style={{ position: 'relative' }}>
+            {/* Vertical line */}
+            <div style={{
+              position: 'absolute', left: '18px', top: '18px',
+              width: '2px',
+              height: `calc(100% - 36px)`,
+              background: '#e5e7eb',
+              zIndex: 0,
+            }} />
+            {/* Progress line */}
+            <div style={{
+              position: 'absolute', left: '18px', top: '18px',
+              width: '2px',
+              height: currentIndex <= 0 ? '0%' : `${(currentIndex / (STEPS.length - 1)) * 100}%`,
+              background: red,
+              zIndex: 1,
+              transition: 'height 0.6s ease',
+            }} />
+
+            {STEPS.map((step, i) => {
+              const done = i <= currentIndex;
+              const active = i === currentIndex;
+              return (
+                <div key={step} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '16px',
+                  marginBottom: i < STEPS.length - 1 ? '28px' : '0',
+                  position: 'relative', zIndex: 2,
+                }}>
+                  {/* Circle */}
+                  <div style={{
+                    width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
+                    background: done ? red : '#f3f4f6',
+                    border: active ? `3px solid ${red}` : done ? 'none' : '2px solid #e5e7eb',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: done ? '14px' : '18px',
+                    boxShadow: active ? `0 0 0 4px rgba(192,57,43,0.15)` : 'none',
+                    transition: 'all 0.3s',
+                  }}>
+                    {done
+                      ? <span style={{ color: '#fff', fontWeight: 700, fontSize: '14px' }}>✓</span>
+                      : <span style={{ opacity: 0.4 }}>{STEP_META[step].icon}</span>
+                    }
+                  </div>
+
+                  {/* Label */}
+                  <div style={{ paddingTop: '6px' }}>
+                    <p style={{
+                      margin: 0, fontSize: '15px',
+                      fontWeight: active ? 800 : done ? 600 : 500,
+                      color: active ? '#111' : done ? '#374151' : '#9ca3af',
+                    }}>
+                      {STEP_META[step].label}
+                      {active && (
+                        <span style={{
+                          marginLeft: '8px', fontSize: '11px', fontWeight: 700,
+                          background: '#fff7ed', color: '#c2410c',
+                          border: '1px solid #fed7aa', borderRadius: '99px',
+                          padding: '2px 8px',
+                        }}>Current</span>
+                      )}
+                    </p>
+                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#9ca3af' }}>
+                      {done && !active ? '✓ Completed' : active ? 'In progress...' : 'Pending'}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ── Main Page ─────────────────────────────────────────────────
 function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reviewOrder, setReviewOrder] = useState(null);
   const [reviewedIds, setReviewedIds] = useState([]);
+  const [detailsOrder, setDetailsOrder] = useState(null);
+  const [trackOrder, setTrackOrder] = useState(null);
   const [toast, setToast] = useState({ visible: false, message: '' });
   const navigate = useNavigate();
 
@@ -128,11 +344,11 @@ function OrdersPage() {
   };
 
   const Skeleton = () => (
-    <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '20px', marginBottom: '14px' }}>
-      {[['60%', '12px'], ['40%', '12px'], ['80%', '12px'], ['30%', '12px']].map(([w, h], i) => (
+    <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', padding: '20px', marginBottom: '12px' }}>
+      {[['50%', '16px'], ['70%', '12px'], ['40%', '12px']].map(([w, h], i) => (
         <div key={i} style={{
           width: w, height: h, background: '#f0f0f0', borderRadius: '6px',
-          marginBottom: i < 3 ? '12px' : '0', animation: 'pulse 1.5s ease-in-out infinite',
+          marginBottom: i < 2 ? '12px' : '0', animation: 'pulse 1.5s ease-in-out infinite',
         }} />
       ))}
     </div>
@@ -168,6 +384,7 @@ function OrdersPage() {
         * { box-sizing: border-box; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
         @keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+        @keyframes drawerUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
         @keyframes slideIn { from{opacity:0;transform:translateX(60px)} to{opacity:1;transform:translateX(0)} }
 
         .toast {
@@ -178,6 +395,13 @@ function OrdersPage() {
           align-items: center; gap: 10px;
           box-shadow: 0 8px 24px rgba(0,0,0,0.12); animation: slideIn 0.3s ease;
           background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;
+        }
+
+        .ord-action-btn {
+          flex: 1; padding: 9px 0;
+          border-radius: 8px; font-size: 13px; font-weight: 600;
+          font-family: 'DM Sans', sans-serif; cursor: pointer;
+          transition: all 0.18s; border: none;
         }
 
         .review-btn {
@@ -194,42 +418,9 @@ function OrdersPage() {
           font-weight: 600; font-family: 'DM Sans', sans-serif; white-space: nowrap;
         }
 
-        /* Order card header: wrap on very small screens */
-        .ord-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 14px;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-        .ord-id { font-weight: 700; font-size: 15px; }
-        .ord-status {
-          padding: 4px 14px; border-radius: 20px;
-          font-size: 12px; font-weight: 700; letter-spacing: 0.03em;
-          flex-shrink: 0;
-        }
-
-        /* Body rows: truncate long address on mobile */
-        .ord-body-row { font-size: 13.5px; color: #555; word-break: break-word; }
-
-        /* Footer: wrap total on small screens */
-        .ord-footer {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-top: 12px;
-          flex-wrap: wrap;
-          gap: 6px;
-        }
-
         @media (max-width: 480px) {
           .ord-page-wrap { padding: 24px 12px 48px !important; }
           .ord-page-title { font-size: 20px !important; margin-bottom: 20px !important; }
-          .ord-card { padding: 14px 14px !important; }
-          .ord-id { font-size: 14px !important; }
-          .ord-body-row { font-size: 12.5px !important; }
-          .ord-footer-amount { font-size: 15px !important; }
         }
       `}</style>
 
@@ -237,14 +428,17 @@ function OrdersPage() {
       {reviewOrder && (
         <ReviewModal order={reviewOrder} onClose={() => setReviewOrder(null)} onSubmitted={handleReviewSubmitted} />
       )}
+      {detailsOrder && <DetailsDrawer order={detailsOrder} onClose={() => setDetailsOrder(null)} />}
+      {trackOrder && <TrackDrawer order={trackOrder} onClose={() => setTrackOrder(null)} />}
 
       <div style={{ fontFamily: font, background: '#fff', color: '#111' }}>
-      <div className="ord-page-wrap" style={{ maxWidth: '960px', margin: '0 auto', padding: '40px 24px 20px' }}>    
+        <div className="ord-page-wrap" style={{ maxWidth: '680px', margin: '0 auto', padding: '40px 24px 48px' }}>
+
           <h1 className="ord-page-title" style={{
             fontSize: '28px', fontWeight: 800, letterSpacing: '0.06em',
             textTransform: 'uppercase', marginBottom: '32px',
           }}>
-            Orders
+            My Orders
           </h1>
 
           {orders.map((order) => {
@@ -252,49 +446,74 @@ function OrdersPage() {
             const isDelivered = order.status === 'DELIVERED';
             const alreadyReviewed = reviewedIds.includes(order.id);
 
+            // product names from items
+            const productNames = order.items?.map(i => i.productName).join(', ') || 'Order';
+            const itemCount = order.items?.length || 0;
+
             return (
-              <div key={order.id} className="ord-card" style={{
-                border: '1px solid #e5e7eb', borderRadius: '10px',
+              <div key={order.id} style={{
+                border: '1px solid #e5e7eb', borderRadius: '14px',
                 padding: '18px 20px', marginBottom: '14px',
-                transition: 'border-color 0.18s, box-shadow 0.18s', background: '#fff',
+                background: '#fff', transition: 'box-shadow 0.18s, border-color 0.18s',
               }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.07)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none'; }}
               >
-                {/* Header */}
-                <div className="ord-header">
-                  <span className="ord-id">Order #{order.id}</span>
-                  <span className="ord-status" style={{ background: st.bg, color: st.color }}>{st.label}</span>
+                {/* Top: order id + status badge */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 600 }}>#{order.id}</span>
+                  <span style={{
+                    padding: '3px 12px', borderRadius: '20px',
+                    fontSize: '11px', fontWeight: 700,
+                    background: st.bg, color: st.color,
+                  }}>{st.label}</span>
                 </div>
 
-                {/* Body */}
-                <div style={{ borderTop: '1px solid #f3f4f6', borderBottom: '1px solid #f3f4f6', padding: '12px 0', display: 'flex', flexDirection: 'column', gap: '7px' }}>
-                  <p className="ord-body-row" style={{ margin: 0 }}>
-                    💳 <span style={{ color: '#888' }}>Payment:</span>{' '}
-                    <span style={{ fontWeight: 600, color: '#111' }}>{order.paymentMethod}</span>
-                    {' — '}
-                    <span style={{ fontWeight: 600, color: '#111' }}>{order.paymentStatus}</span>
-                  </p>
-                  <p className="ord-body-row" style={{ margin: 0 }}>
-                    📍 <span style={{ color: '#888' }}>Address:</span>{' '}
-                    <span style={{ fontWeight: 600, color: '#111' }}>{order.shippingAddress}</span>
-                  </p>
-                  <p className="ord-body-row" style={{ margin: 0 }}>
-                    🕐 <span style={{ color: '#888' }}>Date:</span>{' '}
-                    <span style={{ fontWeight: 600, color: '#111' }}>
-                      {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </span>
-                  </p>
-                </div>
+                {/* Product name */}
+                <p style={{
+                  margin: '0 0 4px', fontSize: '16px', fontWeight: 700,
+                  color: '#111', lineHeight: 1.3,
+                  display: '-webkit-box', WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                }}>
+                  {productNames}
+                </p>
 
-                {/* Footer */}
-                <div className="ord-footer">
-                  <span style={{ fontSize: '13px', color: '#aaa' }}>
-                    {order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''}
-                  </span>
-                  <span className="ord-footer-amount" style={{ fontWeight: 800, fontSize: '16px', color: red }}>
-                    ₹{order.totalAmount.toFixed(2)}
-                  </span>
+                {/* Short description */}
+                <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#9ca3af' }}>
+                  {itemCount} item{itemCount !== 1 ? 's' : ''} · ₹{order.totalAmount?.toFixed(2)} ·{' '}
+                  {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </p>
+
+                {/* Action buttons */}
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    className="ord-action-btn"
+                    onClick={() => setDetailsOrder(order)}
+                    style={{
+                      background: '#f3f4f6', color: '#374151',
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.background = '#e5e7eb'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.background = '#f3f4f6'; }}
+                  >
+                    View Details
+                  </button>
+                  <button
+                    className="ord-action-btn"
+                    onClick={() => setTrackOrder(order)}
+                    style={{
+                      background: order.status === 'CANCELLED' ? '#fef2f2' : red,
+                      color: order.status === 'CANCELLED' ? '#b91c1c' : '#fff',
+                    }}
+                    onMouseOver={(e) => {
+                      if (order.status !== 'CANCELLED') e.currentTarget.style.background = '#a93226';
+                    }}
+                    onMouseOut={(e) => {
+                      if (order.status !== 'CANCELLED') e.currentTarget.style.background = red;
+                    }}
+                  >
+                    {order.status === 'CANCELLED' ? 'Cancelled' : 'Track Order'}
+                  </button>
                 </div>
 
                 {/* Review section */}
@@ -313,6 +532,7 @@ function OrdersPage() {
               </div>
             );
           })}
+
         </div>
       </div>
     </>
