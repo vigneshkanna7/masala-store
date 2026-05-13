@@ -34,7 +34,7 @@ public class OrderService {
         order.setGuestName(request.getGuestName());
         order.setGuestEmail(request.getGuestEmail());
         order.setGuestPhone(request.getGuestPhone());
-        order.setStatus("PENDING");
+        order.setStatus("PLACED");
         order.setPaymentMethod(request.getPaymentMethod());
         order.setPaymentStatus(request.getPaymentMethod().equals("COD") ? "UNPAID" : "PAID");
         order.setShippingAddress(request.getShippingAddress());
@@ -71,24 +71,44 @@ public class OrderService {
     public Order placeOrder(String email, OrderRequest request) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found!"));
-        List<CartItem> cartItems = cartItemRepository.findByUser_IdAndOrderIsNull(user.getId());
-        if (cartItems.isEmpty()) {
+
+        if (request.getCartItems() == null || request.getCartItems().isEmpty()) {
             throw new RuntimeException("Cart is empty!");
         }
-        double total = cartItems.stream().mapToDouble(CartItem::getPrice).sum();
+
         Order order = new Order();
         order.setUser(user);
-        order.setTotalAmount(total);
-        order.setStatus("PENDING");
+        order.setStatus("PLACED");  // use PLACED not PENDING to match your frontend statusConfig
         order.setPaymentMethod(request.getPaymentMethod());
         order.setPaymentStatus(request.getPaymentMethod().equals("COD") ? "UNPAID" : "PAID");
         order.setShippingAddress(request.getShippingAddress());
-        Order savedOrder = orderRepository.save(order);
-        cartItems.forEach(item -> item.setOrder(savedOrder));
-        cartItemRepository.saveAll(cartItems);
-        return savedOrder;
-    }
 
+        List<CartItem> cartItems = new ArrayList<>();
+        double total = 0;
+
+        for (Map<String, Object> itemData : request.getCartItems()) {
+            Long productId = Long.valueOf(itemData.get("productId").toString());
+            int quantity = Integer.parseInt(itemData.get("quantity").toString());
+            double price = Double.parseDouble(itemData.get("price").toString());
+            String weight = itemData.get("weight") != null ? itemData.get("weight").toString() : "250g";
+
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
+
+            CartItem item = new CartItem();
+            item.setProduct(product);
+            item.setQuantity(quantity);
+            item.setPrice(price);
+            item.setWeight(weight);
+            item.setOrder(order);
+            cartItems.add(item);
+            total += price;
+        }
+
+        order.setTotalAmount(total);
+        order.setItems(cartItems);
+        return orderRepository.save(order);
+    }
     // ✅ Link guest orders to user after registration
     public void linkGuestOrdersToUser(String phone, User user) {
         List<Order> guestOrders = orderRepository.findByGuestPhoneAndUserIsNull(phone);
