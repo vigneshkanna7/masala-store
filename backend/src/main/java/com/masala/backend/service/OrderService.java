@@ -78,6 +78,9 @@ public class OrderService {
 
         Order order = new Order();
         order.setUser(user);
+        order.setGuestName(user.getName());
+        order.setGuestEmail(user.getEmail());
+        order.setGuestPhone(user.getPhone());
         order.setStatus("PLACED");  // use PLACED not PENDING to match your frontend statusConfig
         order.setPaymentMethod(request.getPaymentMethod());
         order.setPaymentStatus(request.getPaymentMethod().equals("COD") ? "UNPAID" : "PAID");
