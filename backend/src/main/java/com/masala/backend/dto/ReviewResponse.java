@@ -1,5 +1,4 @@
 package com.masala.backend.dto;
-
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -10,4 +9,5 @@ public class ReviewResponse {
     private int rating;
     private String comment;
     private LocalDateTime createdAt;
+    private boolean verified; // ✅ included so frontend/admin can see status
 }
