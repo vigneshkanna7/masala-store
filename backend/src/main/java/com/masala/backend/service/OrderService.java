@@ -11,6 +11,7 @@ import com.masala.backend.repository.ProductRepository;
 import com.masala.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +24,11 @@ public class OrderService {
     private final UserRepository userRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
+    private final EmailService emailService;          // ✅ NEW — inject EmailService
+
     private static final double DELIVERY_CHARGE = 40.0;
 
+    // ── Guest order ──────────────────────────────────────────────────────────
     public Order placeGuestOrder(OrderRequest request) {
         if (request.getCartItems() == null || request.getCartItems().isEmpty()) {
             throw new RuntimeException("Cart is empty!");
@@ -39,17 +43,14 @@ public class OrderService {
         order.setPaymentStatus(request.getPaymentMethod().equals("COD") ? "UNPAID" : "PAID");
         order.setShippingAddress(request.getShippingAddress());
 
-        // Build cart items from request
         List<CartItem> cartItems = new ArrayList<>();
         double total = 0;
-        
 
         for (Map<String, Object> itemData : request.getCartItems()) {
             Long productId = Long.valueOf(itemData.get("productId").toString());
-            int quantity = Integer.parseInt(itemData.get("quantity").toString());
-            double price = Double.parseDouble(itemData.get("price").toString());
-            String weight = itemData.get("weight") != null ? itemData.get("weight").toString() : "250g";
-            
+            int quantity   = Integer.parseInt(itemData.get("quantity").toString());
+            double price   = Double.parseDouble(itemData.get("price").toString());
+            String weight  = itemData.get("weight") != null ? itemData.get("weight").toString() : "250g";
 
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -61,14 +62,15 @@ public class OrderService {
             item.setWeight(weight);
             item.setOrder(order);
             cartItems.add(item);
-            total += price * quantity;        }
+            total += price * quantity;
+        }
 
         order.setTotalAmount(total + DELIVERY_CHARGE);
         order.setItems(cartItems);
         return orderRepository.save(order);
     }
 
-    // ✅ Logged-in user order
+    // ── Logged-in user order ─────────────────────────────────────────────────
     public Order placeOrder(String email, OrderRequest request) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found!"));
@@ -82,7 +84,7 @@ public class OrderService {
         order.setGuestName(user.getName() != null ? user.getName() : "");
         order.setGuestEmail(user.getEmail() != null ? user.getEmail() : "");
         order.setGuestPhone(user.getPhone() != null ? user.getPhone() : "");
-        order.setStatus("PLACED");  // use PLACED not PENDING to match your frontend statusConfig
+        order.setStatus("PLACED");
         order.setPaymentMethod(request.getPaymentMethod());
         order.setPaymentStatus(request.getPaymentMethod().equals("COD") ? "UNPAID" : "PAID");
         order.setShippingAddress(request.getShippingAddress());
@@ -92,9 +94,9 @@ public class OrderService {
 
         for (Map<String, Object> itemData : request.getCartItems()) {
             Long productId = Long.valueOf(itemData.get("productId").toString());
-            int quantity = Integer.parseInt(itemData.get("quantity").toString());
-            double price = Double.parseDouble(itemData.get("price").toString());
-            String weight = itemData.get("weight") != null ? itemData.get("weight").toString() : "250g";
+            int quantity   = Integer.parseInt(itemData.get("quantity").toString());
+            double price   = Double.parseDouble(itemData.get("price").toString());
+            String weight  = itemData.get("weight") != null ? itemData.get("weight").toString() : "250g";
 
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -113,7 +115,8 @@ public class OrderService {
         order.setItems(cartItems);
         return orderRepository.save(order);
     }
-    // ✅ Link guest orders to user after registration
+
+    // ── Link guest orders to user after registration ─────────────────────────
     public void linkGuestOrdersToUser(String phone, User user) {
         List<Order> guestOrders = orderRepository.findByGuestPhoneAndUserIsNull(phone);
         guestOrders.forEach(order -> order.setUser(user));
@@ -135,9 +138,44 @@ public class OrderService {
         return orderRepository.findAll();
     }
 
+    // ── ✅ UPDATED: Send review email when admin marks order as DELIVERED ────
     public Order updateOrderStatus(Long id, String status) {
         Order order = getOrderById(id);
+        String previousStatus = order.getStatus();
         order.setStatus(status);
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+
+        // Send review email only when status changes TO "DELIVERED"
+        if ("DELIVERED".equalsIgnoreCase(status) && !"DELIVERED".equalsIgnoreCase(previousStatus)) {
+            sendReviewEmailForOrder(savedOrder);
+        }
+
+        return savedOrder;
+    }
+
+    // ── Helper: pick email + name from order (works for both guest & logged-in)
+    private void sendReviewEmailForOrder(Order order) {
+        try {
+            // Prefer the linked User's email; fall back to guest fields
+            String toEmail = (order.getUser() != null && order.getUser().getEmail() != null)
+                    ? order.getUser().getEmail()
+                    : order.getGuestEmail();
+
+            String customerName = (order.getUser() != null && order.getUser().getName() != null)
+                    ? order.getUser().getName()
+                    : order.getGuestName();
+
+            if (toEmail == null || toEmail.isBlank()) {
+                System.out.println("⚠️ No email found for order #" + order.getId() + ", skipping review email.");
+                return;
+            }
+
+            emailService.sendReviewRequestEmail(toEmail, customerName, order.getId());
+            System.out.println("✅ Review email sent for order #" + order.getId() + " to " + toEmail);
+
+        } catch (Exception e) {
+            // Never let email failure break the status update
+            System.err.println("❌ Failed to send review email for order #" + order.getId() + ": " + e.getMessage());
+        }
     }
 }
