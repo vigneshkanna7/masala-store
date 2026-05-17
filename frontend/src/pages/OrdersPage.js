@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../api/api";
 
 const font = "'DM Sans', sans-serif";
@@ -17,15 +17,12 @@ const statusConfig = {
 
 const getStatus = (s) => statusConfig[s] || { bg: '#f5f5f5', color: '#555', label: s };
 
-// ── Simplified status for order card badge (Pending / Delivered / Cancelled only)
 const getDisplayStatus = (status) => {
   if (status === 'DELIVERED') return statusConfig['DELIVERED'];
   if (status === 'CANCELLED') return statusConfig['CANCELLED'];
-  // PLACED, CONFIRMED, PACKED, SHIPPED → show as Pending
   return { bg: '#fff8e1', color: '#b45309', label: 'Pending' };
 };
 
-// ── Track steps ──────────────────────────────────────────────
 const STEPS = ['PLACED', 'CONFIRMED', 'PACKED', 'SHIPPED', 'DELIVERED'];
 const STEP_META = {
   PLACED:    { label: 'Placed',    icon: '🛒' },
@@ -125,7 +122,7 @@ const ReviewModal = ({ order, onClose, onSubmitted }) => {
 
 // ── Details Drawer ────────────────────────────────────────────
 const DetailsDrawer = ({ order, onClose }) => {
-  const st = getStatus(order.status); // full real status in drawer
+  const st = getStatus(order.status);
   return (
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
@@ -140,7 +137,6 @@ const DetailsDrawer = ({ order, onClose }) => {
         maxHeight: '85vh', overflowY: 'auto',
       }}>
         <div style={{ width: '40px', height: '4px', background: '#e5e7eb', borderRadius: '99px', margin: '0 auto 20px' }} />
-
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
             <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#111' }}>Order Details</h3>
@@ -151,7 +147,6 @@ const DetailsDrawer = ({ order, onClose }) => {
             fontWeight: 700, background: st.bg, color: st.color,
           }}>{st.label}</span>
         </div>
-
         <div style={{ marginBottom: '20px' }}>
           <p style={{ fontSize: '11px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>
             Items Ordered
@@ -171,13 +166,10 @@ const DetailsDrawer = ({ order, onClose }) => {
                   <p style={{ margin: '0', fontSize: '12px', color: '#9ca3af' }}>Qty: {item.quantity} · {item.weight || '1kg'}</p>
                 </div>
               </div>
-              <span style={{ fontWeight: 700, fontSize: '14px', color: '#111' }}>
-                ₹{(item.price).toFixed(2)}
-              </span>
+              <span style={{ fontWeight: 700, fontSize: '14px', color: '#111' }}>₹{(item.price).toFixed(2)}</span>
             </div>
           ))}
         </div>
-
         {[
           { icon: '📍', label: 'Delivery Address', value: order.shippingAddress },
           { icon: '💳', label: 'Payment Mode', value: `${order.paymentMethod} — ${order.paymentStatus}` },
@@ -191,7 +183,6 @@ const DetailsDrawer = ({ order, onClose }) => {
             </div>
           </div>
         ))}
-
         <div style={{ marginTop: '20px', padding: '16px 20px', background: '#fff7ed', borderRadius: '12px', border: '1px solid #fed7aa' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ fontSize: '13px', color: '#92400e' }}>Items Subtotal</span>
@@ -232,7 +223,6 @@ const TrackDrawer = ({ order, onClose }) => {
         <div style={{ width: '40px', height: '4px', background: '#e5e7eb', borderRadius: '99px', margin: '0 auto 20px' }} />
         <h3 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: '#111' }}>Track Order</h3>
         <p style={{ margin: '0 0 28px', fontSize: '13px', color: '#9ca3af' }}>#{order.id}</p>
-
         {isCancelled ? (
           <div style={{ textAlign: 'center', padding: '32px', background: '#fef2f2', borderRadius: '12px', border: '1px solid #fca5a5' }}>
             <p style={{ fontSize: '32px', margin: '0 0 8px' }}>❌</p>
@@ -285,15 +275,12 @@ const TrackDrawer = ({ order, onClose }) => {
                         }}>Current</span>
                       )}
                     </p>
-                                            <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#9ca3af' }}>
-                          {order.status === 'DELIVERED' && done
-                            ? '✓ Completed'
-                            : done && !active
-                            ? '✓ Completed'
-                            : active
-                            ? 'In progress...'
-                            : 'Pending'}
-                        </p>
+                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#9ca3af' }}>
+                      {order.status === 'DELIVERED' && done ? '✓ Completed'
+                        : done && !active ? '✓ Completed'
+                        : active ? 'In progress...'
+                        : 'Pending'}
+                    </p>
                   </div>
                 </div>
               );
@@ -307,21 +294,48 @@ const TrackDrawer = ({ order, onClose }) => {
 
 // ── Main Page ─────────────────────────────────────────────────
 function OrdersPage() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [orders, setOrders]           = useState([]);
+  const [loading, setLoading]         = useState(true);
   const [reviewOrder, setReviewOrder] = useState(null);
   const [reviewedIds, setReviewedIds] = useState([]);
   const [detailsOrder, setDetailsOrder] = useState(null);
-  const [trackOrder, setTrackOrder] = useState(null);
-  const [toast, setToast] = useState({ visible: false, message: '' });
+  const [trackOrder, setTrackOrder]   = useState(null);
+  const [toast, setToast]             = useState({ visible: false, message: '' });
   const navigate = useNavigate();
+
+  // ✅ NEW — read ?reviewOrderId=123 from the email link
+  const [searchParams] = useSearchParams();
+  const reviewOrderIdFromEmail = searchParams.get('reviewOrderId')
+    ? Number(searchParams.get('reviewOrderId'))
+    : null;
+
+  // ✅ Ref so we can scroll to the highlighted card
+  const highlightRef = useRef(null);
 
   useEffect(() => { fetchOrders(); }, []);
 
   const fetchOrders = async () => {
-    try { const res = await api.get("/orders/my"); setOrders(res.data); }
-    catch (err) { console.error("Error fetching orders", err); }
-    finally { setLoading(false); }
+    try {
+      const res = await api.get("/orders/my");
+      const fetchedOrders = res.data;
+      setOrders(fetchedOrders);
+
+      // ✅ If email link has a reviewOrderId, auto-open the ReviewModal for that order
+      if (reviewOrderIdFromEmail) {
+        const target = fetchedOrders.find(o => o.id === reviewOrderIdFromEmail);
+        if (target && target.status === 'DELIVERED') {
+          // Small delay so the page renders first, then open modal + scroll
+          setTimeout(() => {
+            setReviewOrder(target);
+            highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 400);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching orders", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const showToast = (message) => {
@@ -374,10 +388,23 @@ function OrdersPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        @keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+        @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        @keyframes modalIn  { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
         @keyframes drawerUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes slideIn { from{opacity:0;transform:translateX(60px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes slideIn  { from{opacity:0;transform:translateX(60px)} to{opacity:1;transform:translateX(0)} }
+
+        /* ✅ NEW — pulse glow on the card from the email link */
+        @keyframes cardGlow {
+          0%   { box-shadow: 0 0 0 0 rgba(192,57,43,0.4); border-color: #c0392b; }
+          50%  { box-shadow: 0 0 0 8px rgba(192,57,43,0);  border-color: #c0392b; }
+          100% { box-shadow: 0 0 0 0 rgba(192,57,43,0);    border-color: #c0392b; }
+        }
+        .card-highlight {
+          border-color: #c0392b !important;
+          background: #fff5f5 !important;
+          animation: cardGlow 1.4s ease 3;
+        }
+
         .toast {
           position: fixed; top: 20px; right: 16px; z-index: 9999;
           min-width: 240px; max-width: 90vw; padding: 14px 18px;
@@ -404,17 +431,15 @@ function OrdersPage() {
           font-weight: 600; font-family: 'DM Sans', sans-serif; white-space: nowrap;
         }
         @media (max-width: 480px) {
-          .ord-page-wrap { padding: 24px 12px 48px !important; }
+          .ord-page-wrap  { padding: 24px 12px 48px !important; }
           .ord-page-title { font-size: 20px !important; margin-bottom: 20px !important; }
         }
       `}</style>
 
       {toast.visible && <div className="toast">{toast.message}</div>}
-      {reviewOrder && (
-        <ReviewModal order={reviewOrder} onClose={() => setReviewOrder(null)} onSubmitted={handleReviewSubmitted} />
-      )}
+      {reviewOrder  && <ReviewModal order={reviewOrder} onClose={() => setReviewOrder(null)} onSubmitted={handleReviewSubmitted} />}
       {detailsOrder && <DetailsDrawer order={detailsOrder} onClose={() => setDetailsOrder(null)} />}
-      {trackOrder && <TrackDrawer order={trackOrder} onClose={() => setTrackOrder(null)} />}
+      {trackOrder   && <TrackDrawer  order={trackOrder}  onClose={() => setTrackOrder(null)} />}
 
       <div style={{ fontFamily: font, background: '#fff', color: '#111' }}>
         <div className="ord-page-wrap" style={{ maxWidth: '680px', margin: '0 auto', padding: '40px 24px 48px' }}>
@@ -422,30 +447,34 @@ function OrdersPage() {
           <h1 className="ord-page-title" style={{
             fontSize: '28px', fontWeight: 800, letterSpacing: '0.06em',
             textTransform: 'uppercase', marginBottom: '32px',
-          }}>
-            My Orders
-          </h1>
+          }}>My Orders</h1>
 
           {orders.map((order) => {
-            // ── Card badge uses simplified status (Pending / Delivered / Cancelled)
-            const displaySt = getDisplayStatus(order.status);
-            // ── Full status still used for Track button color logic
-            const isDelivered = order.status === 'DELIVERED';
-            const isCancelled = order.status === 'CANCELLED';
+            const displaySt     = getDisplayStatus(order.status);
+            const isDelivered   = order.status === 'DELIVERED';
+            const isCancelled   = order.status === 'CANCELLED';
             const alreadyReviewed = reviewedIds.includes(order.id);
-            const productNames = order.items?.map(i => i.productName || i.product?.name).join(', ') || 'Order';
-            const itemCount = order.items?.length || 0;
+            const productNames  = order.items?.map(i => i.productName || i.product?.name).join(', ') || 'Order';
+            const itemCount     = order.items?.length || 0;
+
+            // ✅ Is this the card the email link pointed to?
+            const isEmailTarget = order.id === reviewOrderIdFromEmail;
 
             return (
-              <div key={order.id} style={{
-                border: '1px solid #e5e7eb', borderRadius: '14px',
-                padding: '18px 20px', marginBottom: '14px',
-                background: '#fff', transition: 'box-shadow 0.18s, border-color 0.18s',
-              }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.07)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none'; }}
+              <div
+                key={order.id}
+                // ✅ Attach ref so we can scroll to this card
+                ref={isEmailTarget ? highlightRef : null}
+                className={isEmailTarget ? 'card-highlight' : ''}
+                style={{
+                  border: '1px solid #e5e7eb', borderRadius: '14px',
+                  padding: '18px 20px', marginBottom: '14px',
+                  background: '#fff', transition: 'box-shadow 0.18s, border-color 0.18s',
+                }}
+                onMouseEnter={(e) => { if (!isEmailTarget) { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.07)'; }}}
+                onMouseLeave={(e) => { if (!isEmailTarget) { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none'; }}}
               >
-                {/* Top: order id + simplified status badge */}
+                {/* Top: order id + status badge */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                   <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 600 }}>#{order.id}</span>
                   <span style={{
@@ -461,11 +490,9 @@ function OrdersPage() {
                   color: '#111', lineHeight: 1.3,
                   display: '-webkit-box', WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                }}>
-                  {productNames}
-                </p>
+                }}>{productNames}</p>
 
-                {/* Short description */}
+                {/* Short info */}
                 <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#9ca3af' }}>
                   {itemCount} item{itemCount !== 1 ? 's' : ''} · ₹{order.totalAmount?.toFixed(2)} ·{' '}
                   {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -479,21 +506,14 @@ function OrdersPage() {
                     style={{ background: '#f3f4f6', color: '#374151' }}
                     onMouseOver={(e) => { e.currentTarget.style.background = '#e5e7eb'; }}
                     onMouseOut={(e) => { e.currentTarget.style.background = '#f3f4f6'; }}
-                  >
-                    View Details
-                  </button>
+                  >View Details</button>
                   <button
                     className="ord-action-btn"
                     onClick={() => setTrackOrder(order)}
-                    style={{
-                      background: isCancelled ? '#fef2f2' : red,
-                      color: isCancelled ? '#b91c1c' : '#fff',
-                    }}
+                    style={{ background: isCancelled ? '#fef2f2' : red, color: isCancelled ? '#b91c1c' : '#fff' }}
                     onMouseOver={(e) => { if (!isCancelled) e.currentTarget.style.background = '#a93226'; }}
-                    onMouseOut={(e) => { if (!isCancelled) e.currentTarget.style.background = red; }}
-                  >
-                    {isCancelled ? 'Cancelled' : 'Track Order'}
-                  </button>
+                    onMouseOut={(e)  => { if (!isCancelled) e.currentTarget.style.background = red; }}
+                  >{isCancelled ? 'Cancelled' : 'Track Order'}</button>
                 </div>
 
                 {/* Review section — only for delivered orders */}
@@ -505,7 +525,10 @@ function OrdersPage() {
                   }}>
                     {alreadyReviewed
                       ? <span className="reviewed-badge">✓ Reviewed</span>
-                      : <button className="review-btn" onClick={() => setReviewOrder(order)}>Write a Review</button>
+                      : <button className="review-btn" onClick={() => setReviewOrder(order)}>
+                          {/* ✅ Label changes if user came from the email */}
+                          {isEmailTarget ? '✍️ Write Your Review →' : 'Write a Review'}
+                        </button>
                     }
                   </div>
                 )}
