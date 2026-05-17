@@ -378,6 +378,7 @@ const Navbar = () => {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         defaultMode={modalMode}
+        redirectTo={location.state?.from}
       />
 
       <style>{`

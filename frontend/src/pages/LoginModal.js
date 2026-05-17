@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../api/api";
 import Spinner from "../components/Spinner";
 import { FiUser, FiLock, FiMail, FiPhone, FiEye, FiEyeOff, FiArrowLeft, FiCheck } from "react-icons/fi";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 
 if (typeof document !== "undefined" && !document.getElementById("lm-font")) {
@@ -220,7 +220,7 @@ const Field = ({ icon: Icon, children }) => (
   </div>
 );
 
-const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
+const LoginModal = ({ isOpen, onClose, defaultMode = "login", redirectTo }) => {
   const [mode, setMode] = useState(defaultMode);
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -248,7 +248,6 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
   };
 
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => { setMode(defaultMode); setLoginError(""); setRegError(""); }, [defaultMode, isOpen]);
   useEffect(() => {
@@ -269,14 +268,13 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userName", res.data.name);
       localStorage.setItem("user", JSON.stringify({ name: res.data.name, email: res.data.email, role: res.data.role }));
-          onClose();
-          const from = location.state?.from;
-          if (from) {
-            navigate(from.pathname + (from.search || ""), { replace: true });
-          } else {
-            window.location.reload();
-          } 
-        } catch { setLoginError("Invalid email or password!"); }
+      onClose();
+      if (redirectTo) {
+        navigate(redirectTo.pathname + (redirectTo.search || ""), { replace: true });
+      } else {
+        window.location.reload();
+      }
+    } catch { setLoginError("Invalid email or password!"); }
     finally { setLoginLoading(false); }
   };
 
@@ -291,13 +289,12 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
       localStorage.setItem("token", token); localStorage.setItem("userName", name);
       localStorage.setItem("user", JSON.stringify({ name, email, role }));
       localStorage.removeItem("guestCart");
-                  onClose();
-            const from = location.state?.from;
-            if (from) {
-              navigate(from.pathname + (from.search || ""), { replace: true });
-            } else {
-              window.location.reload();
-            }
+      onClose();
+      if (redirectTo) {
+        navigate(redirectTo.pathname + (redirectTo.search || ""), { replace: true });
+      } else {
+        window.location.reload();
+      }
     } catch (err) { setRegError(err.response?.data?.message || "Registration failed. Try again!"); }
     finally { setRegLoading(false); }
   };
@@ -455,8 +452,6 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
                   ))}
                 </div>
               )}
-
-
 
               <h2 className="lm-form-title">
                 {["", "Forgot password", "Enter OTP", "New password", "All done!"][fpStep]}
