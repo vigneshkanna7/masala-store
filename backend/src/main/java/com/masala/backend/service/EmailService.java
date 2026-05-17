@@ -8,6 +8,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+
+
 @Service
 public class EmailService {
 
@@ -39,8 +41,7 @@ public class EmailService {
         try {
             // Deep-link to the Orders section on ProfilePage with orderId highlighted
             // Format: http://localhost:3000/profile?tab=orders&reviewOrderId=123
-            String reviewUrl = "http://localhost:3000/orders?reviewOrderId=" + orderId;
-
+        	String reviewUrl = frontendUrl + "/orders?reviewOrderId=" + orderId;
             String htmlContent = buildReviewEmailHtml(customerName, orderId, reviewUrl);
 
             String escapedHtml = htmlContent
@@ -180,4 +181,7 @@ public class EmailService {
             </html>
         """.formatted(customerName, orderId, reviewUrl, reviewUrl);
     }
+    
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 }
