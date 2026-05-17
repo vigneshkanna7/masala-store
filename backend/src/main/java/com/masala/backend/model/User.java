@@ -27,6 +27,7 @@ public class User {
     private String role;
 
     private String address;
+    @Column(nullable = true)
     private String phone;
 
     private String resetOtp;
