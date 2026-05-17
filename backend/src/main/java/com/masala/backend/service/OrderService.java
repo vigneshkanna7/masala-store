@@ -23,6 +23,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
+    private static final double DELIVERY_CHARGE = 40.0;
 
     public Order placeGuestOrder(OrderRequest request) {
         if (request.getCartItems() == null || request.getCartItems().isEmpty()) {
@@ -41,12 +42,14 @@ public class OrderService {
         // Build cart items from request
         List<CartItem> cartItems = new ArrayList<>();
         double total = 0;
+        
 
         for (Map<String, Object> itemData : request.getCartItems()) {
             Long productId = Long.valueOf(itemData.get("productId").toString());
             int quantity = Integer.parseInt(itemData.get("quantity").toString());
             double price = Double.parseDouble(itemData.get("price").toString());
             String weight = itemData.get("weight") != null ? itemData.get("weight").toString() : "250g";
+            
 
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -58,10 +61,9 @@ public class OrderService {
             item.setWeight(weight);
             item.setOrder(order);
             cartItems.add(item);
-            total += price;
-        }
+            total += price * quantity;        }
 
-        order.setTotalAmount(total);
+        order.setTotalAmount(total + DELIVERY_CHARGE);
         order.setItems(cartItems);
         return orderRepository.save(order);
     }
@@ -107,7 +109,7 @@ public class OrderService {
             total += price;
         }
 
-        order.setTotalAmount(total);
+        order.setTotalAmount(total + DELIVERY_CHARGE);
         order.setItems(cartItems);
         return orderRepository.save(order);
     }
