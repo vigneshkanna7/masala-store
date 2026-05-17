@@ -12,11 +12,18 @@ const statusConfig = {
   SHIPPED:   { bg: '#f0f9ff', color: '#0369a1', label: 'Shipped' },
   DELIVERED: { bg: '#f0fdf4', color: '#15803d', label: 'Delivered' },
   CANCELLED: { bg: '#fef2f2', color: '#b91c1c', label: 'Cancelled' },
-  // legacy
   PENDING:   { bg: '#fff8e1', color: '#b45309', label: 'Pending' },
 };
 
 const getStatus = (s) => statusConfig[s] || { bg: '#f5f5f5', color: '#555', label: s };
+
+// ── Simplified status for order card badge (Pending / Delivered / Cancelled only)
+const getDisplayStatus = (status) => {
+  if (status === 'DELIVERED') return statusConfig['DELIVERED'];
+  if (status === 'CANCELLED') return statusConfig['CANCELLED'];
+  // PLACED, CONFIRMED, PACKED, SHIPPED → show as Pending
+  return { bg: '#fff8e1', color: '#b45309', label: 'Pending' };
+};
 
 // ── Track steps ──────────────────────────────────────────────
 const STEPS = ['PLACED', 'CONFIRMED', 'PACKED', 'SHIPPED', 'DELIVERED'];
@@ -118,7 +125,7 @@ const ReviewModal = ({ order, onClose, onSubmitted }) => {
 
 // ── Details Drawer ────────────────────────────────────────────
 const DetailsDrawer = ({ order, onClose }) => {
-  const st = getStatus(order.status);
+  const st = getStatus(order.status); // full real status in drawer
   return (
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
@@ -132,10 +139,8 @@ const DetailsDrawer = ({ order, onClose }) => {
         boxShadow: '0 -4px 32px rgba(0,0,0,0.12)',
         maxHeight: '85vh', overflowY: 'auto',
       }}>
-        {/* Handle */}
         <div style={{ width: '40px', height: '4px', background: '#e5e7eb', borderRadius: '99px', margin: '0 auto 20px' }} />
 
-        {/* Title row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
             <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#111' }}>Order Details</h3>
@@ -147,7 +152,6 @@ const DetailsDrawer = ({ order, onClose }) => {
           }}>{st.label}</span>
         </div>
 
-        {/* Items */}
         <div style={{ marginBottom: '20px' }}>
           <p style={{ fontSize: '11px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>
             Items Ordered
@@ -159,31 +163,27 @@ const DetailsDrawer = ({ order, onClose }) => {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 {(item.imageUrl || item.product?.imageUrl)
-  ? <img src={item.imageUrl || item.product?.imageUrl} alt={item.productName || item.product?.name} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #e5e7eb' }} />
-  : <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🌶️</div>
-}
+                  ? <img src={item.imageUrl || item.product?.imageUrl} alt={item.productName || item.product?.name} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #e5e7eb' }} />
+                  : <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🌶️</div>
+                }
                 <div>
                   <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#111' }}>{item.productName || item.product?.name}</p>
-<p style={{ margin: '0', fontSize: '12px', color: '#9ca3af' }}>Qty: {item.quantity} · {item.weight || '1kg'}</p>
+                  <p style={{ margin: '0', fontSize: '12px', color: '#9ca3af' }}>Qty: {item.quantity} · {item.weight || '1kg'}</p>
                 </div>
               </div>
-<span style={{ fontWeight: 700, fontSize: '14px', color: '#111' }}>
-  ₹{(item.price).toFixed(2)}
-</span>
+              <span style={{ fontWeight: 700, fontSize: '14px', color: '#111' }}>
+                ₹{(item.price).toFixed(2)}
+              </span>
             </div>
           ))}
         </div>
 
-        {/* Info rows */}
         {[
           { icon: '📍', label: 'Delivery Address', value: order.shippingAddress },
           { icon: '💳', label: 'Payment Mode', value: `${order.paymentMethod} — ${order.paymentStatus}` },
           { icon: '🕐', label: 'Order Date', value: new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) },
         ].map(row => (
-          <div key={row.label} style={{
-            display: 'flex', gap: '12px', padding: '12px 0',
-            borderBottom: '1px solid #f3f4f6',
-          }}>
+          <div key={row.label} style={{ display: 'flex', gap: '12px', padding: '12px 0', borderBottom: '1px solid #f3f4f6' }}>
             <span style={{ fontSize: '16px', marginTop: '1px' }}>{row.icon}</span>
             <div>
               <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{row.label}</p>
@@ -192,33 +192,21 @@ const DetailsDrawer = ({ order, onClose }) => {
           </div>
         ))}
 
-        {/* Total */}
-        <div style={{
-  marginTop: '20px', padding: '16px 20px',
-  background: '#fff7ed', borderRadius: '12px', border: '1px solid #fed7aa',
-}}>
-  {/* Items subtotal */}
-  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-    <span style={{ fontSize: '13px', color: '#92400e' }}>Items Subtotal</span>
-    <span style={{ fontSize: '13px', color: '#92400e' }}>
-      ₹{((order.totalAmount || 0) - 40).toFixed(2)}
-    </span>
-  </div>
-  {/* Delivery */}
-  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-    <span style={{ fontSize: '13px', color: '#92400e' }}>Delivery Charge</span>
-    <span style={{ fontSize: '13px', color: '#92400e' }}>₹40.00</span>
-  </div>
-  {/* Divider */}
-  <div style={{ borderTop: '1px solid #fed7aa', marginBottom: '12px' }} />
-  {/* Grand Total */}
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-    <span style={{ fontSize: '15px', fontWeight: 700, color: '#92400e' }}>Total Amount</span>
-    <span style={{ fontSize: '20px', fontWeight: 900, color: red }}>
-      ₹{order.totalAmount?.toFixed(2)}
-    </span>
-  </div>
-</div>
+        <div style={{ marginTop: '20px', padding: '16px 20px', background: '#fff7ed', borderRadius: '12px', border: '1px solid #fed7aa' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', color: '#92400e' }}>Items Subtotal</span>
+            <span style={{ fontSize: '13px', color: '#92400e' }}>₹{((order.totalAmount || 0) - 40).toFixed(2)}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <span style={{ fontSize: '13px', color: '#92400e' }}>Delivery Charge</span>
+            <span style={{ fontSize: '13px', color: '#92400e' }}>₹40.00</span>
+          </div>
+          <div style={{ borderTop: '1px solid #fed7aa', marginBottom: '12px' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '15px', fontWeight: 700, color: '#92400e' }}>Total Amount</span>
+            <span style={{ fontSize: '20px', fontWeight: 900, color: red }}>₹{order.totalAmount?.toFixed(2)}</span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -241,42 +229,24 @@ const TrackDrawer = ({ order, onClose }) => {
         animation: 'drawerUp 0.28s ease',
         boxShadow: '0 -4px 32px rgba(0,0,0,0.12)',
       }}>
-        {/* Handle */}
         <div style={{ width: '40px', height: '4px', background: '#e5e7eb', borderRadius: '99px', margin: '0 auto 20px' }} />
-
         <h3 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: '#111' }}>Track Order</h3>
         <p style={{ margin: '0 0 28px', fontSize: '13px', color: '#9ca3af' }}>#{order.id}</p>
 
         {isCancelled ? (
-          <div style={{
-            textAlign: 'center', padding: '32px',
-            background: '#fef2f2', borderRadius: '12px',
-            border: '1px solid #fca5a5',
-          }}>
+          <div style={{ textAlign: 'center', padding: '32px', background: '#fef2f2', borderRadius: '12px', border: '1px solid #fca5a5' }}>
             <p style={{ fontSize: '32px', margin: '0 0 8px' }}>❌</p>
             <p style={{ fontSize: '16px', fontWeight: 700, color: '#b91c1c', margin: 0 }}>Order Cancelled</p>
             <p style={{ fontSize: '13px', color: '#9ca3af', margin: '4px 0 0' }}>This order has been cancelled.</p>
           </div>
         ) : (
           <div style={{ position: 'relative' }}>
-            {/* Vertical line */}
+            <div style={{ position: 'absolute', left: '18px', top: '18px', width: '2px', height: 'calc(100% - 36px)', background: '#e5e7eb', zIndex: 0 }} />
             <div style={{
-              position: 'absolute', left: '18px', top: '18px',
-              width: '2px',
-              height: `calc(100% - 36px)`,
-              background: '#e5e7eb',
-              zIndex: 0,
-            }} />
-            {/* Progress line */}
-            <div style={{
-              position: 'absolute', left: '18px', top: '18px',
-              width: '2px',
+              position: 'absolute', left: '18px', top: '18px', width: '2px',
               height: currentIndex <= 0 ? '0%' : `${(currentIndex / (STEPS.length - 1)) * 100}%`,
-              background: red,
-              zIndex: 1,
-              transition: 'height 0.6s ease',
+              background: red, zIndex: 1, transition: 'height 0.6s ease',
             }} />
-
             {STEPS.map((step, i) => {
               const done = i <= currentIndex;
               const active = i === currentIndex;
@@ -286,7 +256,6 @@ const TrackDrawer = ({ order, onClose }) => {
                   marginBottom: i < STEPS.length - 1 ? '28px' : '0',
                   position: 'relative', zIndex: 2,
                 }}>
-                  {/* Circle */}
                   <div style={{
                     width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
                     background: done ? red : '#f3f4f6',
@@ -301,8 +270,6 @@ const TrackDrawer = ({ order, onClose }) => {
                       : <span style={{ opacity: 0.4 }}>{STEP_META[step].icon}</span>
                     }
                   </div>
-
-                  {/* Label */}
                   <div style={{ paddingTop: '6px' }}>
                     <p style={{
                       margin: 0, fontSize: '15px',
@@ -314,14 +281,19 @@ const TrackDrawer = ({ order, onClose }) => {
                         <span style={{
                           marginLeft: '8px', fontSize: '11px', fontWeight: 700,
                           background: '#fff7ed', color: '#c2410c',
-                          border: '1px solid #fed7aa', borderRadius: '99px',
-                          padding: '2px 8px',
+                          border: '1px solid #fed7aa', borderRadius: '99px', padding: '2px 8px',
                         }}>Current</span>
                       )}
                     </p>
-                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#9ca3af' }}>
-                      {done && !active ? '✓ Completed' : active ? 'In progress...' : 'Pending'}
-                    </p>
+                                            <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#9ca3af' }}>
+                          {order.status === 'DELIVERED' && done
+                            ? '✓ Completed'
+                            : done && !active
+                            ? '✓ Completed'
+                            : active
+                            ? 'In progress...'
+                            : 'Pending'}
+                        </p>
                   </div>
                 </div>
               );
@@ -406,7 +378,6 @@ function OrdersPage() {
         @keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
         @keyframes drawerUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
         @keyframes slideIn { from{opacity:0;transform:translateX(60px)} to{opacity:1;transform:translateX(0)} }
-
         .toast {
           position: fixed; top: 20px; right: 16px; z-index: 9999;
           min-width: 240px; max-width: 90vw; padding: 14px 18px;
@@ -416,14 +387,10 @@ function OrdersPage() {
           box-shadow: 0 8px 24px rgba(0,0,0,0.12); animation: slideIn 0.3s ease;
           background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;
         }
-
         .ord-action-btn {
-          flex: 1; padding: 9px 0;
-          border-radius: 8px; font-size: 13px; font-weight: 600;
-          font-family: 'DM Sans', sans-serif; cursor: pointer;
-          transition: all 0.18s; border: none;
+          flex: 1; padding: 9px 0; border-radius: 8px; font-size: 13px; font-weight: 600;
+          font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.18s; border: none;
         }
-
         .review-btn {
           padding: 7px 16px; background: #c0392b; color: #fff;
           border: none; border-radius: 20px; font-size: 13px;
@@ -431,13 +398,11 @@ function OrdersPage() {
           cursor: pointer; transition: background 0.2s; white-space: nowrap;
         }
         .review-btn:hover { background: #a93226; }
-
         .reviewed-badge {
           padding: 7px 16px; background: #f0fdf4; color: #15803d;
           border: 1px solid #bbf7d0; border-radius: 20px; font-size: 13px;
           font-weight: 600; font-family: 'DM Sans', sans-serif; white-space: nowrap;
         }
-
         @media (max-width: 480px) {
           .ord-page-wrap { padding: 24px 12px 48px !important; }
           .ord-page-title { font-size: 20px !important; margin-bottom: 20px !important; }
@@ -462,11 +427,12 @@ function OrdersPage() {
           </h1>
 
           {orders.map((order) => {
-            const st = getStatus(order.status);
+            // ── Card badge uses simplified status (Pending / Delivered / Cancelled)
+            const displaySt = getDisplayStatus(order.status);
+            // ── Full status still used for Track button color logic
             const isDelivered = order.status === 'DELIVERED';
+            const isCancelled = order.status === 'CANCELLED';
             const alreadyReviewed = reviewedIds.includes(order.id);
-
-            // product names from items
             const productNames = order.items?.map(i => i.productName || i.product?.name).join(', ') || 'Order';
             const itemCount = order.items?.length || 0;
 
@@ -479,14 +445,14 @@ function OrdersPage() {
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.07)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none'; }}
               >
-                {/* Top: order id + status badge */}
+                {/* Top: order id + simplified status badge */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                   <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 600 }}>#{order.id}</span>
                   <span style={{
                     padding: '3px 12px', borderRadius: '20px',
                     fontSize: '11px', fontWeight: 700,
-                    background: st.bg, color: st.color,
-                  }}>{st.label}</span>
+                    background: displaySt.bg, color: displaySt.color,
+                  }}>{displaySt.label}</span>
                 </div>
 
                 {/* Product name */}
@@ -510,9 +476,7 @@ function OrdersPage() {
                   <button
                     className="ord-action-btn"
                     onClick={() => setDetailsOrder(order)}
-                    style={{
-                      background: '#f3f4f6', color: '#374151',
-                    }}
+                    style={{ background: '#f3f4f6', color: '#374151' }}
                     onMouseOver={(e) => { e.currentTarget.style.background = '#e5e7eb'; }}
                     onMouseOut={(e) => { e.currentTarget.style.background = '#f3f4f6'; }}
                   >
@@ -522,21 +486,17 @@ function OrdersPage() {
                     className="ord-action-btn"
                     onClick={() => setTrackOrder(order)}
                     style={{
-                      background: order.status === 'CANCELLED' ? '#fef2f2' : red,
-                      color: order.status === 'CANCELLED' ? '#b91c1c' : '#fff',
+                      background: isCancelled ? '#fef2f2' : red,
+                      color: isCancelled ? '#b91c1c' : '#fff',
                     }}
-                    onMouseOver={(e) => {
-                      if (order.status !== 'CANCELLED') e.currentTarget.style.background = '#a93226';
-                    }}
-                    onMouseOut={(e) => {
-                      if (order.status !== 'CANCELLED') e.currentTarget.style.background = red;
-                    }}
+                    onMouseOver={(e) => { if (!isCancelled) e.currentTarget.style.background = '#a93226'; }}
+                    onMouseOut={(e) => { if (!isCancelled) e.currentTarget.style.background = red; }}
                   >
-                    {order.status === 'CANCELLED' ? 'Cancelled' : 'Track Order'}
+                    {isCancelled ? 'Cancelled' : 'Track Order'}
                   </button>
                 </div>
 
-                {/* Review section */}
+                {/* Review section — only for delivered orders */}
                 {isDelivered && (
                   <div style={{
                     marginTop: '14px', paddingTop: '14px',
@@ -552,7 +512,6 @@ function OrdersPage() {
               </div>
             );
           })}
-
         </div>
       </div>
     </>
