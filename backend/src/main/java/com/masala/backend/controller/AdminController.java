@@ -1,6 +1,7 @@
 package com.masala.backend.controller;
 
 import com.masala.backend.model.Order;
+import com.masala.backend.service.OrderService;
 import com.masala.backend.model.Product;
 import com.masala.backend.model.User;
 import com.masala.backend.repository.OrderRepository;
@@ -20,7 +21,10 @@ public class AdminController {
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final OrderService orderService;
 
+    
+    
     @GetMapping("/products")
     public List<Product> getAllProducts() {
         return productRepository.findAll();
@@ -59,10 +63,8 @@ public class AdminController {
 
     @PutMapping("/orders/{id}/status")
     public ResponseEntity<Order> updateOrderStatus(@PathVariable Long id, @RequestParam String status) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-        order.setStatus(status);
-        return ResponseEntity.ok(orderRepository.save(order));
+        Order order = orderService.updateOrderStatus(id, status);
+        return ResponseEntity.ok(order);
     }
 
     @GetMapping("/users")
