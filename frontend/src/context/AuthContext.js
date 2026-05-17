@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }) => {
     id: userData.id,
     name: userData.name,
     email: userData.email,
+    phone: userData.phone,
     role: userData.role
   }));
   setUser(userData);

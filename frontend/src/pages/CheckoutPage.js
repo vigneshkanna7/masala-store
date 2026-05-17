@@ -108,6 +108,7 @@ const COUNTRIES = [
 ];
 
 const CheckoutPage = () => {
+  const { user } = useAuth();
   const [form, setForm] = useState({
     firstName: "", lastName: "", streetAddress: "", apartment: "",
     city: "", state: "Kerala", country: "India", pinCode: "",
