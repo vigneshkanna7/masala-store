@@ -55,7 +55,10 @@ if (typeof document !== "undefined" && !document.getElementById("app-layout-css"
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
-  return token ? children : <Navigate to="/" />;
+  const location = useLocation();
+  return token 
+    ? children 
+    : <Navigate to="/" state={{ from: location }} replace />;
 };
 
 const AdminRoute = ({ children }) => {

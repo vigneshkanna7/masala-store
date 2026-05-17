@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import api from "../api/api";
 import Spinner from "../components/Spinner";
 import { FiUser, FiLock, FiMail, FiPhone, FiEye, FiEyeOff, FiArrowLeft, FiCheck } from "react-icons/fi";
+import { useNavigate, useLocation } from "react-router-dom";
+
 
 if (typeof document !== "undefined" && !document.getElementById("lm-font")) {
   const link = document.createElement("link");
@@ -245,6 +247,9 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
     setTimeout(() => setToast({ visible: false, message: "", success: true }), 3000);
   };
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
   useEffect(() => { setMode(defaultMode); setLoginError(""); setRegError(""); }, [defaultMode, isOpen]);
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
@@ -264,8 +269,14 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userName", res.data.name);
       localStorage.setItem("user", JSON.stringify({ name: res.data.name, email: res.data.email, role: res.data.role }));
-      onClose(); window.location.reload();
-    } catch { setLoginError("Invalid email or password!"); }
+          onClose();
+          const from = location.state?.from;
+          if (from) {
+            navigate(from.pathname + (from.search || ""), { replace: true });
+          } else {
+            window.location.reload();
+          } 
+        } catch { setLoginError("Invalid email or password!"); }
     finally { setLoginLoading(false); }
   };
 
@@ -280,7 +291,13 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
       localStorage.setItem("token", token); localStorage.setItem("userName", name);
       localStorage.setItem("user", JSON.stringify({ name, email, role }));
       localStorage.removeItem("guestCart");
-      onClose(); window.location.reload();
+                  onClose();
+            const from = location.state?.from;
+            if (from) {
+              navigate(from.pathname + (from.search || ""), { replace: true });
+            } else {
+              window.location.reload();
+            }
     } catch (err) { setRegError(err.response?.data?.message || "Registration failed. Try again!"); }
     finally { setRegLoading(false); }
   };
