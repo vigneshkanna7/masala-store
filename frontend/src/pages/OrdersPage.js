@@ -167,7 +167,9 @@ const DetailsDrawer = ({ order, onClose }) => {
 <p style={{ margin: '0', fontSize: '12px', color: '#9ca3af' }}>Qty: {item.quantity} · {item.weight || '1kg'}</p>
                 </div>
               </div>
-              <span style={{ fontWeight: 700, fontSize: '14px', color: '#111' }}>₹{(item.price * item.quantity).toFixed(2)}</span>
+<span style={{ fontWeight: 700, fontSize: '14px', color: '#111' }}>
+  ₹{(item.price).toFixed(2)}
+</span>
             </div>
           ))}
         </div>
@@ -192,13 +194,31 @@ const DetailsDrawer = ({ order, onClose }) => {
 
         {/* Total */}
         <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          marginTop: '20px', padding: '16px 20px',
-          background: '#fff7ed', borderRadius: '12px', border: '1px solid #fed7aa',
-        }}>
-          <span style={{ fontSize: '15px', fontWeight: 700, color: '#92400e' }}>Total Amount</span>
-          <span style={{ fontSize: '20px', fontWeight: 900, color: red }}>₹{order.totalAmount?.toFixed(2)}</span>
-        </div>
+  marginTop: '20px', padding: '16px 20px',
+  background: '#fff7ed', borderRadius: '12px', border: '1px solid #fed7aa',
+}}>
+  {/* Items subtotal */}
+  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+    <span style={{ fontSize: '13px', color: '#92400e' }}>Items Subtotal</span>
+    <span style={{ fontSize: '13px', color: '#92400e' }}>
+      ₹{((order.totalAmount || 0) - 40).toFixed(2)}
+    </span>
+  </div>
+  {/* Delivery */}
+  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+    <span style={{ fontSize: '13px', color: '#92400e' }}>Delivery Charge</span>
+    <span style={{ fontSize: '13px', color: '#92400e' }}>₹40.00</span>
+  </div>
+  {/* Divider */}
+  <div style={{ borderTop: '1px solid #fed7aa', marginBottom: '12px' }} />
+  {/* Grand Total */}
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <span style={{ fontSize: '15px', fontWeight: 700, color: '#92400e' }}>Total Amount</span>
+    <span style={{ fontSize: '20px', fontWeight: 900, color: red }}>
+      ₹{order.totalAmount?.toFixed(2)}
+    </span>
+  </div>
+</div>
       </div>
     </div>
   );
