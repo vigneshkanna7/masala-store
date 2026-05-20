@@ -75,6 +75,13 @@ const Navbar = () => {
     setMenuOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+  if (location.state?.from) {
+    setModalMode("login");
+    setModalOpen(true);
+  }
+}, []);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userName");
