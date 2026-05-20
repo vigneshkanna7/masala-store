@@ -56,9 +56,12 @@ if (typeof document !== "undefined" && !document.getElementById("app-layout-css"
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   const location = useLocation();
-  return token 
-    ? children 
-    : <Navigate to="/" state={{ from: location }} replace />;
+  if (!token) {
+    // Save full path+query to sessionStorage before redirecting
+    sessionStorage.setItem("redirectAfterLogin", location.pathname + location.search);
+    return <Navigate to="/" replace />;
+  }
+  return children;
 };
 
 const AdminRoute = ({ children }) => {

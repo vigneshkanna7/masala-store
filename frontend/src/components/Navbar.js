@@ -75,8 +75,8 @@ const Navbar = () => {
     setMenuOpen(false);
   }, [location.pathname]);
 
-  useEffect(() => {
-  if (location.state?.from) {
+useEffect(() => {
+  if (sessionStorage.getItem("redirectAfterLogin")) {
     setModalMode("login");
     setModalOpen(true);
   }

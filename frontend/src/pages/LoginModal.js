@@ -220,7 +220,7 @@ const Field = ({ icon: Icon, children }) => (
   </div>
 );
 
-const LoginModal = ({ isOpen, onClose, defaultMode = "login", redirectTo }) => {
+const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
   const [mode, setMode] = useState(defaultMode);
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -269,11 +269,13 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login", redirectTo }) => {
       localStorage.setItem("userName", res.data.name);
       localStorage.setItem("user", JSON.stringify({ name: res.data.name, email: res.data.email, role: res.data.role }));
       onClose();
-      if (redirectTo) {
-        navigate(redirectTo.pathname + (redirectTo.search || ""), { replace: true });
-      } else {
-        window.location.reload();
-      }
+const redirectTo = sessionStorage.getItem("redirectAfterLogin");
+if (redirectTo) {
+  sessionStorage.removeItem("redirectAfterLogin");
+  navigate(redirectTo, { replace: true });
+} else {
+  window.location.reload();
+}
     } catch { setLoginError("Invalid email or password!"); }
     finally { setLoginLoading(false); }
   };
@@ -290,11 +292,14 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login", redirectTo }) => {
       localStorage.setItem("user", JSON.stringify({ name, email, role }));
       localStorage.removeItem("guestCart");
       onClose();
-      if (redirectTo) {
-        navigate(redirectTo.pathname + (redirectTo.search || ""), { replace: true });
-      } else {
-        window.location.reload();
-      }
+     onClose();
+const redirectTo = sessionStorage.getItem("redirectAfterLogin");
+if (redirectTo) {
+  sessionStorage.removeItem("redirectAfterLogin");
+  navigate(redirectTo, { replace: true });
+} else {
+  window.location.reload();
+}
     } catch (err) { setRegError(err.response?.data?.message || "Registration failed. Try again!"); }
     finally { setRegLoading(false); }
   };
