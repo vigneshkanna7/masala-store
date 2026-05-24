@@ -99,10 +99,10 @@ useEffect(() => {
           <Link to="/" style={{ textDecoration: "none", flexShrink: 0 }} aria-label="Home">
   <img
     src="/logo.png"
-    alt="Kalki - The Cooking's Companion"
+    alt="Kalki"
     style={{
-      width: "58px",
-      height: "58px",
+      height: "64px",
+      width: "auto",
       objectFit: "contain",
       display: "block",
     }}
