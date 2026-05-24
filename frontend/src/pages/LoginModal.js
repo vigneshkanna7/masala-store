@@ -114,10 +114,10 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
   }, [onClose]);
 
 const doRedirect = () => {
-  const params = new URLSearchParams(window.location.search);
-  const redirect = params.get("redirect");
-  if (redirect) {
-    navigate(decodeURIComponent(redirect), { replace: true });
+  const redirectTo = sessionStorage.getItem("redirectAfterLogin");
+  if (redirectTo) {
+    sessionStorage.removeItem("redirectAfterLogin");
+    navigate(redirectTo, { replace: true });
   } else {
     window.location.reload();
   }
