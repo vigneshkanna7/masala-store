@@ -97,7 +97,7 @@ function AppContent() {
         <Route path="/videos"         element={<Layout><VideosPage /></Layout>} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        <Route path="/orders"  element={<ProtectedRoute><Layout><OrdersPage /></Layout></ProtectedRoute>} />
+        <Route path="/orders" element={<Layout><OrdersPage /></Layout>} />
         <Route path="/profile" element={<ProtectedRoute><Layout><ProfilePage /></Layout></ProtectedRoute>} />
 
         <Route path="/admin/login"      element={<AdminLoginPage />} />

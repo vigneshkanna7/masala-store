@@ -294,6 +294,17 @@ const TrackDrawer = ({ order, onClose }) => {
 
 // ── Main Page ─────────────────────────────────────────────────
 function OrdersPage() {
+  // ✅ Handle unauthenticated access — save destination and redirect to home
+  const token = localStorage.getItem("token");
+  useEffect(() => {
+    if (!token) {
+      sessionStorage.setItem("redirectAfterLogin", window.location.pathname + window.location.search);
+      window.location.href = "/";
+    }
+  }, []);
+
+  if (!token) return null;
+
   const [orders, setOrders]           = useState([]);
   const [loading, setLoading]         = useState(true);
   const [reviewOrder, setReviewOrder] = useState(null);
@@ -303,13 +314,11 @@ function OrdersPage() {
   const [toast, setToast]             = useState({ visible: false, message: '' });
   const navigate = useNavigate();
 
-  // ✅ NEW — read ?reviewOrderId=123 from the email link
   const [searchParams] = useSearchParams();
   const reviewOrderIdFromEmail = searchParams.get('reviewOrderId')
     ? Number(searchParams.get('reviewOrderId'))
     : null;
 
-  // ✅ Ref so we can scroll to the highlighted card
   const highlightRef = useRef(null);
 
   useEffect(() => { fetchOrders(); }, []);
@@ -320,11 +329,9 @@ function OrdersPage() {
       const fetchedOrders = res.data;
       setOrders(fetchedOrders);
 
-      // ✅ If email link has a reviewOrderId, auto-open the ReviewModal for that order
       if (reviewOrderIdFromEmail) {
         const target = fetchedOrders.find(o => o.id === reviewOrderIdFromEmail);
         if (target && target.status === 'DELIVERED') {
-          // Small delay so the page renders first, then open modal + scroll
           setTimeout(() => {
             setReviewOrder(target);
             highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -393,7 +400,6 @@ function OrdersPage() {
         @keyframes drawerUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
         @keyframes slideIn  { from{opacity:0;transform:translateX(60px)} to{opacity:1;transform:translateX(0)} }
 
-        /* ✅ NEW — pulse glow on the card from the email link */
         @keyframes cardGlow {
           0%   { box-shadow: 0 0 0 0 rgba(192,57,43,0.4); border-color: #c0392b; }
           50%  { box-shadow: 0 0 0 8px rgba(192,57,43,0);  border-color: #c0392b; }
@@ -456,14 +462,11 @@ function OrdersPage() {
             const alreadyReviewed = reviewedIds.includes(order.id);
             const productNames  = order.items?.map(i => i.productName || i.product?.name).join(', ') || 'Order';
             const itemCount     = order.items?.length || 0;
-
-            // ✅ Is this the card the email link pointed to?
             const isEmailTarget = order.id === reviewOrderIdFromEmail;
 
             return (
               <div
                 key={order.id}
-                // ✅ Attach ref so we can scroll to this card
                 ref={isEmailTarget ? highlightRef : null}
                 className={isEmailTarget ? 'card-highlight' : ''}
                 style={{
@@ -474,7 +477,6 @@ function OrdersPage() {
                 onMouseEnter={(e) => { if (!isEmailTarget) { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.07)'; }}}
                 onMouseLeave={(e) => { if (!isEmailTarget) { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none'; }}}
               >
-                {/* Top: order id + status badge */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                   <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 600 }}>#{order.id}</span>
                   <span style={{
@@ -484,7 +486,6 @@ function OrdersPage() {
                   }}>{displaySt.label}</span>
                 </div>
 
-                {/* Product name */}
                 <p style={{
                   margin: '0 0 4px', fontSize: '16px', fontWeight: 700,
                   color: '#111', lineHeight: 1.3,
@@ -492,13 +493,11 @@ function OrdersPage() {
                   WebkitBoxOrient: 'vertical', overflow: 'hidden',
                 }}>{productNames}</p>
 
-                {/* Short info */}
                 <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#9ca3af' }}>
                   {itemCount} item{itemCount !== 1 ? 's' : ''} · ₹{order.totalAmount?.toFixed(2)} ·{' '}
                   {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </p>
 
-                {/* Action buttons */}
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button
                     className="ord-action-btn"
@@ -516,7 +515,6 @@ function OrdersPage() {
                   >{isCancelled ? 'Cancelled' : 'Track Order'}</button>
                 </div>
 
-                {/* Review section — only for delivered orders */}
                 {isDelivered && (
                   <div style={{
                     marginTop: '14px', paddingTop: '14px',
@@ -526,7 +524,6 @@ function OrdersPage() {
                     {alreadyReviewed
                       ? <span className="reviewed-badge">✓ Reviewed</span>
                       : <button className="review-btn" onClick={() => setReviewOrder(order)}>
-                          {/* ✅ Label changes if user came from the email */}
                           {isEmailTarget ? '✍️ Write Your Review →' : 'Write a Review'}
                         </button>
                     }
