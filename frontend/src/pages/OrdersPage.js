@@ -524,7 +524,7 @@ function OrdersPage() {
                     {alreadyReviewed
                       ? <span className="reviewed-badge">✓ Reviewed</span>
                       : <button className="review-btn" onClick={() => setReviewOrder(order)}>
-                          {isEmailTarget ? '✍️ Write Your Review →' : 'Write a Review'}
+                          {isEmailTarget ? 'Write Your Review' : 'Write a Review'}
                         </button>
                     }
                   </div>

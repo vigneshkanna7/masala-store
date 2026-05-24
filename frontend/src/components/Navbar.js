@@ -97,13 +97,17 @@ useEffect(() => {
           justifyContent: "space-between", gap: "12px",
         }}>
           <Link to="/" style={{ textDecoration: "none", flexShrink: 0 }} aria-label="Home">
-            <div style={{
-              width: "58px", height: "58px", background: red, borderRadius: "50%",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#fff", fontWeight: 900, fontSize: "11px",
-              letterSpacing: "0.05em", fontFamily: font,
-            }}>LOGO</div>
-          </Link>
+  <img
+    src="/logo.png"
+    alt="Kalki - The Cooking's Companion"
+    style={{
+      width: "58px",
+      height: "58px",
+      objectFit: "contain",
+      display: "block",
+    }}
+  />
+</Link>
 
           <ul style={{
             display: "flex", alignItems: "center", gap: "4px",
