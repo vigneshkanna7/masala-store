@@ -23,22 +23,18 @@ if (typeof document !== "undefined" && !document.getElementById("app-layout-css"
   const s = document.createElement("style");
   s.id = "app-layout-css";
   s.textContent = `
-    /* Standard pages: breathing room above and below content */
     .app-layout {
       padding-top: 40px;
       padding-bottom: 60px;
       background: #fff;
       box-sizing: border-box;
     }
-
-    /* HomePage: same top gap as all other pages, bottom gap before footer */
     .app-layout-home {
       padding-top: 40px;
       padding-bottom: 0px;
       background: #fff;
       box-sizing: border-box;
     }
-
     @media (max-width: 768px) {
       .app-layout {
         padding-top: 20px;
@@ -57,7 +53,6 @@ const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   const location = useLocation();
   if (!token) {
-    // Save full path+query to sessionStorage before redirecting
     sessionStorage.setItem("redirectAfterLogin", location.pathname + location.search);
     return <Navigate to="/" replace />;
   }
@@ -70,12 +65,10 @@ const AdminRoute = ({ children }) => {
   return (adminToken && role === "ADMIN") ? children : <Navigate to="/admin/login" />;
 };
 
-/* Standard layout — 40px top / 60px bottom gap */
 const Layout = ({ children }) => (
   <div className="app-layout">{children}</div>
 );
 
-/* Home layout — hero flush against navbar, no outer padding */
 const HomeLayout = ({ children }) => (
   <div className="app-layout-home">{children}</div>
 );
@@ -90,13 +83,11 @@ function AppContent() {
       {!isAdminPage && <CartDrawer />}
 
       <Routes>
-        {/* Home — no padding so hero banner sits flush under navbar */}
         <Route path="/" element={<HomeLayout><HomePage /></HomeLayout>} />
 
         <Route path="/login"    element={<Navigate to="/" />} />
         <Route path="/register" element={<Navigate to="/" />} />
 
-        {/* All other pages get standard top/bottom spacing */}
         <Route path="/cart"           element={<Layout><CartPage /></Layout>} />
         <Route path="/checkout"       element={<Layout><CheckoutPage /></Layout>} />
         <Route path="/order-success"  element={<Layout><OrderSuccessPage /></Layout>} />
