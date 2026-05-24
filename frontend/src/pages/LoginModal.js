@@ -113,15 +113,15 @@ const LoginModal = ({ isOpen, onClose, defaultMode = "login" }) => {
     return () => window.removeEventListener("keydown", h);
   }, [onClose]);
 
-  const doRedirect = () => {
-    const redirectTo = sessionStorage.getItem("redirectAfterLogin");
-    if (redirectTo) {
-      sessionStorage.removeItem("redirectAfterLogin");
-      navigate(redirectTo, { replace: true });
-    } else {
-      window.location.reload();
-    }
-  };
+const doRedirect = () => {
+  const params = new URLSearchParams(window.location.search);
+  const redirect = params.get("redirect");
+  if (redirect) {
+    navigate(decodeURIComponent(redirect), { replace: true });
+  } else {
+    window.location.reload();
+  }
+};
 
   const handleLogin = async (e) => {
     e.preventDefault();

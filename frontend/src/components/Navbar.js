@@ -67,12 +67,14 @@ const Navbar = () => {
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
   // Auto-open login modal if redirected from a protected route
-  useEffect(() => {
-    if (sessionStorage.getItem("redirectAfterLogin")) {
-      setModalMode("login");
-      setModalOpen(true);
-    }
-  }, []);
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const redirect = params.get("redirect");
+  if (redirect) {
+    setModalMode("login");
+    setModalOpen(true);
+  }
+}, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
