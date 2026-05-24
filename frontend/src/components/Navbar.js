@@ -69,8 +69,7 @@ const Navbar = () => {
   // Auto-open login modal if redirected from a protected route
 useEffect(() => {
   const params = new URLSearchParams(window.location.search);
-  const redirect = params.get("redirect");
-  if (redirect) {
+  if (params.get("redirect")) {
     setModalMode("login");
     setModalOpen(true);
   }
