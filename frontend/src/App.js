@@ -53,7 +53,8 @@ const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   const location = useLocation();
   if (!token) {
-    sessionStorage.setItem("redirectAfterLogin", location.pathname + location.search);
+sessionStorage.setItem("redirectAfterLogin", location.pathname + location.search);
+console.log("🔴 ProtectedRoute saving:", location.pathname + location.search);
     return <Navigate to="/" replace />;
   }
   return children;
