@@ -42,6 +42,7 @@ public class EmailService {
             // Deep-link to the Orders section on ProfilePage with orderId highlighted
             // Format: http://localhost:3000/profile?tab=orders&reviewOrderId=123
         	String reviewUrl = frontendUrl + "/orders?reviewOrderId=" + orderId;
+            System.out.println("📧 Review URL: " + reviewUrl); // ADD THIS LINE
             String htmlContent = buildReviewEmailHtml(customerName, orderId, reviewUrl);
 
             String escapedHtml = htmlContent
