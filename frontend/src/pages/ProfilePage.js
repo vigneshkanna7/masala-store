@@ -4,8 +4,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api/api';
 
 const font = "'DM Sans', sans-serif";
-import { brand } from "../theme";
-const red = brand;
+const red = '#c0392b';
+
 const inp = {
   width: '100%', padding: '13px 16px', border: '1px solid #e5e7eb',
   borderRadius: '8px', fontSize: '15px', fontFamily: font,

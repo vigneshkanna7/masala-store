@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import api from "../api/api";
 
 const font = "'Poppins', sans-serif";
-import { brand } from "../theme";
-const red = brand;
+const red = "#dc2626";
+
 if (typeof document !== "undefined" && !document.getElementById("poppins-font")) {
   const link = document.createElement("link");
   link.id = "poppins-font";

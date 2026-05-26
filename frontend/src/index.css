@@ -2,7 +2,3 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --brand: #7c3aed;
-  --brand-hover: #6d28d9;
-}

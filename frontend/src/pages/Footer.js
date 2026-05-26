@@ -2,8 +2,8 @@
 import React from "react";
 
 const font = "'Poppins', sans-serif";
-import { brand } from "../theme";
-const red = brand;
+const red = "#dc2626";
+
 const socialLinks = [
   {
     href: "https://www.instagram.com/melamfoods/",

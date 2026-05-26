@@ -3,6 +3,7 @@ import axios from "axios";
 import ProductDetailModal from "./ProductDetailModal";
 
 const font = "'Poppins', sans-serif";
+const red = "#dc2626";import { brand } from "../theme";
 import { brand } from "../theme";
 const red = brand;
 // ── Base URL from env — never hardcode localhost ──

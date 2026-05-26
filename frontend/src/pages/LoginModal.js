@@ -64,8 +64,8 @@ if (typeof document !== "undefined" && !document.getElementById("lm-styles")) {
 }
 
 const font = "'Poppins', sans-serif";
-import { brand } from "../theme";
-const red = brand;
+const red = "#dc2626";
+
 const Field = ({ icon: Icon, children }) => (
   <div className="lm-field">
     <span className="lm-field-icon"><Icon /></span>

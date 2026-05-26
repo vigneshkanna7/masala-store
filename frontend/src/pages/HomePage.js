@@ -224,8 +224,8 @@ const slides = [
 ];
 
 const font = "'Poppins', sans-serif";
-import { brand } from "../theme";
-const red = brand;
+const red = "#dc2626";
+
 /* ═══════════════════════════════════════════
    STAR DISPLAY
 ═══════════════════════════════════════════ */
