@@ -90,7 +90,7 @@ useEffect(() => {
 
   return (
     <>
-      <nav style={{ position: "relative", background: "#fff", borderBottom: "none", fontFamily: font }}>
+      <nav style={{ position: "relative", background: "#fff", fontFamily: font }}>
         <div style={{
           maxWidth: "1300px", margin: "0 auto", padding: "0 16px",
           height: "70px", display: "flex", alignItems: "center",
