@@ -97,16 +97,17 @@ useEffect(() => {
           justifyContent: "space-between", gap: "12px",
         }}>
           <Link to="/" style={{ textDecoration: "none", flexShrink: 0 }} aria-label="Home">
-  <img
-    src="/logo.png"
-    alt="Kalki"
-    style={{
-      height: "64px",
-      width: "auto",
-      objectFit: "contain",
-      display: "block",
-    }}
-  />
+ <img
+  src="/logo.png"
+  alt="Kalki"
+  style={{
+    height: "64px",
+    width: "auto",
+    objectFit: "contain",
+    display: "block",
+    mixBlendMode: "multiply",
+  }}
+/>
 </Link>
 
           <ul style={{
