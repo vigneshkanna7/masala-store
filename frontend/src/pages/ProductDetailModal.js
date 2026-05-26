@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import api from "../api/api";
 
 const font = "'Poppins', sans-serif";
-const red = "#dc2626";
-
+import { brand } from "../theme";
+const red = brand;
 /* ─── Mobile styles ─── */
 if (typeof document !== "undefined" && !document.getElementById("pdm-mobile-css")) {
   const s = document.createElement("style");

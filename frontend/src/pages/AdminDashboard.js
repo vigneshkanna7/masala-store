@@ -13,8 +13,8 @@ if (typeof document !== "undefined" && !document.getElementById("poppins-font"))
 const font = "'Poppins', sans-serif";
 const green = "#6abf5e";
 const dark = "#1f2937";
-const red = "#dc2626";
-
+import { brand } from "../theme";
+const red = brand;
 const statusColors = {
   PLACED:    { bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
   CONFIRMED: { bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },

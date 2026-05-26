@@ -3,8 +3,8 @@ import api from "../api/api";
 import ProductDetailModal from "./ProductDetailModal";
 
 const font = "'Poppins', sans-serif";
-const red = "#dc2626";
-
+import { brand } from "../theme";
+const red = brand;
 if (typeof document !== "undefined" && !document.getElementById("poppins-font")) {
   const link = document.createElement("link");
   link.id = "poppins-font";

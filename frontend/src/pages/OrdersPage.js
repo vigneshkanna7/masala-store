@@ -3,8 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../api/api";
 
 const font = "'DM Sans', sans-serif";
-const red = '#c0392b';
-
+import { brand } from "../theme";
+const red = brand;
 const statusConfig = {
   PLACED:    { bg: '#fff7ed', color: '#c2410c', label: 'Placed' },
   CONFIRMED: { bg: '#eff6ff', color: '#1d4ed8', label: 'Confirmed' },
