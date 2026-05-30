@@ -1,6 +1,9 @@
 package com.masala.backend.service;
 
 import com.masala.backend.dto.OrderRequest;
+import com.masala.backend.model.OrderStatusHistory;
+import com.masala.backend.repository.OrderStatusHistoryRepository;
+import java.time.LocalDateTime;
 import com.masala.backend.model.CartItem;
 import com.masala.backend.model.Order;
 import com.masala.backend.model.Product;
@@ -25,6 +28,8 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
     private final EmailService emailService;          // ✅ NEW — inject EmailService
+    private final OrderStatusHistoryRepository statusHistoryRepository;
+
 
     private static final double DELIVERY_CHARGE = 40.0;
 
@@ -139,18 +144,21 @@ public class OrderService {
     }
 
     // ── ✅ UPDATED: Send review email when admin marks order as DELIVERED ────
-    public Order updateOrderStatus(Long id, String status) {
-        Order order = getOrderById(id);
-        String previousStatus = order.getStatus();
+    public Order updateOrderStatus(Long orderId, String status) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new RuntimeException("Order not found"));
+
         order.setStatus(status);
-        Order savedOrder = orderRepository.save(order);
+        Order saved = orderRepository.save(order);
 
-        // Send review email only when status changes TO "DELIVERED"
-        if ("DELIVERED".equalsIgnoreCase(status) && !"DELIVERED".equalsIgnoreCase(previousStatus)) {
-            sendReviewEmailForOrder(savedOrder);
-        }
+        // ✅ Save timestamp history
+        OrderStatusHistory history = new OrderStatusHistory();
+        history.setOrder(saved);
+        history.setStatus(status);
+        history.setUpdatedAt(LocalDateTime.now());
+        statusHistoryRepository.save(history);
 
-        return savedOrder;
+        return saved;
     }
 
     // ── Helper: pick email + name from order (works for both guest & logged-in)

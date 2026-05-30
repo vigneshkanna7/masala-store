@@ -1,4 +1,6 @@
 package com.masala.backend.controller;
+import com.masala.backend.model.OrderStatusHistory;
+import com.masala.backend.repository.OrderStatusHistoryRepository;
 
 import com.masala.backend.model.Order;
 import com.masala.backend.service.OrderService;
@@ -22,6 +24,8 @@ public class AdminController {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final OrderService orderService;
+    private final OrderStatusHistoryRepository statusHistoryRepository;
+
 
     
     
@@ -70,5 +74,10 @@ public class AdminController {
     @GetMapping("/users")
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+    
+    @GetMapping("/orders/{id}/history")
+    public List<OrderStatusHistory> getOrderHistory(@PathVariable Long id) {
+        return statusHistoryRepository.findByOrderIdOrderByUpdatedAtAsc(id);
     }
 }

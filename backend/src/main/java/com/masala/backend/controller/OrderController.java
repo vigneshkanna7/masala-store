@@ -2,13 +2,14 @@ package com.masala.backend.controller;
 
 import com.masala.backend.dto.OrderRequest;
 import com.masala.backend.model.Order;
+import com.masala.backend.model.OrderStatusHistory;
+import com.masala.backend.repository.OrderStatusHistoryRepository;
 import com.masala.backend.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -17,6 +18,7 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final OrderStatusHistoryRepository statusHistoryRepository; // 👈 add this
 
     @PostMapping("/place/guest")
     public ResponseEntity<Order> placeGuestOrder(@RequestBody OrderRequest request) {
@@ -25,15 +27,15 @@ public class OrderController {
 
     @PostMapping("/place")
     public ResponseEntity<Order> placeOrder(
-            @AuthenticationPrincipal UserDetails userDetails,  // ← changed
+            @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody OrderRequest request) {
-        return ResponseEntity.ok(orderService.placeOrder(userDetails.getUsername(), request));  // ← .getUsername()
+        return ResponseEntity.ok(orderService.placeOrder(userDetails.getUsername(), request));
     }
 
     @GetMapping("/my")
     public ResponseEntity<List<Order>> getMyOrders(
-            @AuthenticationPrincipal UserDetails userDetails) {  // ← changed
-        return ResponseEntity.ok(orderService.getUserOrders(userDetails.getUsername()));  // ← .getUsername()
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(orderService.getUserOrders(userDetails.getUsername()));
     }
 
     @GetMapping("/{id}")
@@ -51,5 +53,10 @@ public class OrderController {
             @PathVariable Long id,
             @RequestParam String status) {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
+    }
+
+    @GetMapping("/{id}/history")
+    public ResponseEntity<List<OrderStatusHistory>> getHistory(@PathVariable Long id) {
+        return ResponseEntity.ok(statusHistoryRepository.findByOrderIdOrderByUpdatedAtAsc(id));
     }
 }
