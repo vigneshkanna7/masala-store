@@ -93,7 +93,7 @@ useEffect(() => {
       <nav style={{ position: "relative", background: "transparent", fontFamily: font }}>
           <div style={{
           maxWidth: "1300px", margin: "0 auto", padding: "0 16px",
-          height: "120px", display: "flex", alignItems: "center",
+          height: "110px", display: "flex", alignItems: "center",
           justifyContent: "space-between", gap: "12px",
         }}>
           <Link to="/" style={{ textDecoration: "none", flexShrink: 0 }} aria-label="Home">
@@ -101,7 +101,7 @@ useEffect(() => {
   src="/logo.png"
   alt="Kalki"
   style={{
-    height: "120px",
+    height: "110px",
     width: "auto",
     objectFit: "contain",
     display: "block",
