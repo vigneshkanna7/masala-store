@@ -332,6 +332,7 @@ useEffect(() => {
         cart.push({
           productId: product.id, productName: product.name,
           price: product.price, quantity: 1, weight: "250g",
+          imageUrl: product.imageUrl,
         });
       }
       localStorage.setItem("guestCart", JSON.stringify(cart));
