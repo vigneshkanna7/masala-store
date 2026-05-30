@@ -23,7 +23,7 @@ public class PaymentController {
     // POST /api/payment/create-order
     @PostMapping("/create-order")
     public Map<String, Object> createOrder(@RequestBody Map<String, Object> body) throws Exception {
-        int amount = (int) body.get("amount"); // in ₹
+    	int amount = ((Number) body.get("amount")).intValue();
 
         RazorpayClient client = new RazorpayClient(keyId, keySecret);
         JSONObject options = new JSONObject();
