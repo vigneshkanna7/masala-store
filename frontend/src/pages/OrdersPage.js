@@ -205,8 +205,30 @@ const DetailsDrawer = ({ order, onClose }) => {
 
 // ── Track Drawer ──────────────────────────────────────────────
 const TrackDrawer = ({ order, onClose }) => {
-  const currentIndex = STEPS.indexOf(order.status);
+  const [history, setHistory] = useState([]);
   const isCancelled = order.status === 'CANCELLED';
+
+  useEffect(() => {
+    api.get(`/orders/${order.id}/history`)
+      .then(res => setHistory(res.data))
+      .catch(() => {});
+  }, [order.id]);
+
+  const formatDate = (dt) => new Date(dt).toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'short', year: 'numeric',
+  });
+  const formatTime = (dt) => new Date(dt).toLocaleTimeString('en-IN', {
+    hour: '2-digit', minute: '2-digit',
+  });
+
+  const STEP_DESC = {
+    PLACED:    'Your order has been placed successfully.',
+    CONFIRMED: 'Seller has confirmed your order.',
+    PACKED:    'Your order has been packed and is ready to ship.',
+    SHIPPED:   'Your order is on the way.',
+    DELIVERED: 'Your order has been delivered.',
+    CANCELLED: 'Your order has been cancelled.',
+  };
 
   return (
     <div onClick={onClose} style={{
@@ -219,72 +241,99 @@ const TrackDrawer = ({ order, onClose }) => {
         padding: '28px 24px 40px', fontFamily: font,
         animation: 'drawerUp 0.28s ease',
         boxShadow: '0 -4px 32px rgba(0,0,0,0.12)',
+        maxHeight: '85vh', overflowY: 'auto',
       }}>
         <div style={{ width: '40px', height: '4px', background: '#e5e7eb', borderRadius: '99px', margin: '0 auto 20px' }} />
         <h3 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: '#111' }}>Track Order</h3>
         <p style={{ margin: '0 0 28px', fontSize: '13px', color: '#9ca3af' }}>#{order.id}</p>
+
         {isCancelled ? (
           <div style={{ textAlign: 'center', padding: '32px', background: '#fef2f2', borderRadius: '12px', border: '1px solid #fca5a5' }}>
             <p style={{ fontSize: '32px', margin: '0 0 8px' }}>❌</p>
             <p style={{ fontSize: '16px', fontWeight: 700, color: '#b91c1c', margin: 0 }}>Order Cancelled</p>
-            <p style={{ fontSize: '13px', color: '#9ca3af', margin: '4px 0 0' }}>This order has been cancelled.</p>
           </div>
         ) : (
           <div style={{ position: 'relative' }}>
-            <div style={{ position: 'absolute', left: '18px', top: '18px', width: '2px', height: 'calc(100% - 36px)', background: '#e5e7eb', zIndex: 0 }} />
+            {/* Vertical line */}
             <div style={{
-              position: 'absolute', left: '18px', top: '18px', width: '2px',
-              height: currentIndex <= 0 ? '0%' : `${(currentIndex / (STEPS.length - 1)) * 100}%`,
-              background: red, zIndex: 1, transition: 'height 0.6s ease',
+              position: 'absolute', left: '10px', top: '12px',
+              width: '2px', bottom: '12px',
+              background: '#e5e7eb', zIndex: 0,
             }} />
-            {STEPS.map((step, i) => {
-              const done = i <= currentIndex;
-              const active = i === currentIndex;
+
+            {history.map((h, i) => {
+              const isLast = i === history.length - 1;
               return (
-                <div key={step} style={{
-                  display: 'flex', alignItems: 'flex-start', gap: '16px',
-                  marginBottom: i < STEPS.length - 1 ? '28px' : '0',
+                <div key={h.id} style={{
+                  display: 'flex', gap: '20px',
+                  marginBottom: isLast ? '0' : '28px',
                   position: 'relative', zIndex: 2,
                 }}>
+                  {/* Dot */}
                   <div style={{
-                    width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
-                    background: done ? red : '#f3f4f6',
-                    border: active ? `3px solid ${red}` : done ? 'none' : '2px solid #e5e7eb',
+                    width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
+                    background: isLast ? red : '#16a34a',
+                    border: isLast ? `3px solid ${red}` : 'none',
+                    boxShadow: isLast ? `0 0 0 4px rgba(192,57,43,0.15)` : 'none',
+                    marginTop: '2px',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: done ? '14px' : '18px',
-                    boxShadow: active ? `0 0 0 4px rgba(192,57,43,0.15)` : 'none',
-                    transition: 'all 0.3s',
                   }}>
-                    {done
-                      ? <span style={{ color: '#fff', fontWeight: 700, fontSize: '14px' }}>✓</span>
-                      : <span style={{ opacity: 0.4 }}>{STEP_META[step].icon}</span>
-                    }
+                    <span style={{ color: '#fff', fontSize: '11px', fontWeight: 700 }}>✓</span>
                   </div>
-                  <div style={{ paddingTop: '6px' }}>
-                    <p style={{
-                      margin: 0, fontSize: '15px',
-                      fontWeight: active ? 800 : done ? 600 : 500,
-                      color: active ? '#111' : done ? '#374151' : '#9ca3af',
-                    }}>
-                      {STEP_META[step].label}
-                      {active && (
-                        <span style={{
-                          marginLeft: '8px', fontSize: '11px', fontWeight: 700,
-                          background: '#fff7ed', color: '#c2410c',
-                          border: '1px solid #fed7aa', borderRadius: '99px', padding: '2px 8px',
-                        }}>Current</span>
-                      )}
+
+                  {/* Content */}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <p style={{
+                        margin: 0, fontSize: '15px',
+                        fontWeight: isLast ? 800 : 600,
+                        color: isLast ? '#111' : '#374151',
+                      }}>
+                        {STEP_META[h.status]?.icon} {STEP_META[h.status]?.label || h.status}
+                        {isLast && (
+                          <span style={{
+                            marginLeft: '8px', fontSize: '11px', fontWeight: 700,
+                            background: '#fff7ed', color: '#c2410c',
+                            border: '1px solid #fed7aa', borderRadius: '99px', padding: '2px 8px',
+                          }}>Current</span>
+                        )}
+                      </p>
+                      <span style={{ fontSize: '11px', color: '#9ca3af', flexShrink: 0, marginLeft: '8px' }}>
+                        {formatDate(h.updatedAt)}
+                      </span>
+                    </div>
+                    <p style={{ margin: '3px 0 0', fontSize: '13px', color: '#6b7280' }}>
+                      {STEP_DESC[h.status]}
                     </p>
                     <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#9ca3af' }}>
-                      {order.status === 'DELIVERED' && done ? '✓ Completed'
-                        : done && !active ? '✓ Completed'
-                        : active ? 'In progress...'
-                        : 'Pending'}
+                      {formatTime(h.updatedAt)}
                     </p>
                   </div>
                 </div>
               );
             })}
+
+            {/* Show remaining steps grayed out */}
+            {STEPS.slice(history.length).map((step) => (
+              <div key={step} style={{
+                display: 'flex', gap: '20px', marginTop: '28px',
+                position: 'relative', zIndex: 2, opacity: 0.4,
+              }}>
+                <div style={{
+                  width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
+                  background: '#f3f4f6', border: '2px solid #e5e7eb', marginTop: '2px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontSize: '12px' }}>{STEP_META[step]?.icon}</span>
+                </div>
+                <div style={{ flex: 1, paddingTop: '2px' }}>
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 500, color: '#9ca3af' }}>
+                    {STEP_META[step]?.label}
+                  </p>
+                  <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#d1d5db' }}>Pending</p>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
