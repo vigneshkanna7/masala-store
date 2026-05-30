@@ -25,11 +25,11 @@ const getDisplayStatus = (status) => {
 
 const STEPS = ['PLACED', 'CONFIRMED', 'PACKED', 'SHIPPED', 'DELIVERED'];
 const STEP_META = {
-  PLACED:    { label: 'Placed',    icon: '🛒' },
-  CONFIRMED: { label: 'Confirmed', icon: '✅' },
-  PACKED:    { label: 'Packed',    icon: '📦' },
-  SHIPPED:   { label: 'Shipped',   icon: '🚚' },
-  DELIVERED: { label: 'Delivered', icon: '🏠' },
+  PLACED:    { label: 'Placed'},
+  CONFIRMED: { label: 'Confirmed'},
+  PACKED:    { label: 'Packed'},
+  SHIPPED:   { label: 'Shipped'},
+  DELIVERED: { label: 'Delivered'},
 };
 
 // ── Star Rating ───────────────────────────────────────────────
@@ -256,9 +256,9 @@ const TrackDrawer = ({ order, onClose }) => {
           <div style={{ position: 'relative' }}>
             {/* Vertical line */}
             <div style={{
-              position: 'absolute', left: '10px', top: '12px',
+              position: 'absolute', left: '6px', top: '12px',
               width: '2px', bottom: '12px',
-              background: '#e5e7eb', zIndex: 0,
+              background: red, zIndex: 0,
             }} />
 
             {history.map((h, i) => {
@@ -271,16 +271,11 @@ const TrackDrawer = ({ order, onClose }) => {
                 }}>
                   {/* Dot */}
                   <div style={{
-                    width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
-                    background: isLast ? red : '#16a34a',
-                    border: isLast ? `3px solid ${red}` : 'none',
-                    boxShadow: isLast ? `0 0 0 4px rgba(192,57,43,0.15)` : 'none',
-                    marginTop: '2px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <span style={{ color: '#fff', fontSize: '11px', fontWeight: 700 }}>✓</span>
-                  </div>
-
+                  width: '14px', height: '14px', borderRadius: '50%', flexShrink: 0,
+                  background: red,
+                  marginTop: '6px',
+                }} />
+              
                   {/* Content */}
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -290,13 +285,6 @@ const TrackDrawer = ({ order, onClose }) => {
                         color: isLast ? '#111' : '#374151',
                       }}>
                         {STEP_META[h.status]?.icon} {STEP_META[h.status]?.label || h.status}
-                        {isLast && (
-                          <span style={{
-                            marginLeft: '8px', fontSize: '11px', fontWeight: 700,
-                            background: '#fff7ed', color: '#c2410c',
-                            border: '1px solid #fed7aa', borderRadius: '99px', padding: '2px 8px',
-                          }}>Current</span>
-                        )}
                       </p>
                       <span style={{ fontSize: '11px', color: '#9ca3af', flexShrink: 0, marginLeft: '8px' }}>
                         {formatDate(h.updatedAt)}
@@ -319,13 +307,10 @@ const TrackDrawer = ({ order, onClose }) => {
                 display: 'flex', gap: '20px', marginTop: '28px',
                 position: 'relative', zIndex: 2, opacity: 0.4,
               }}>
-                <div style={{
-                  width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
-                  background: '#f3f4f6', border: '2px solid #e5e7eb', marginTop: '2px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <span style={{ fontSize: '12px' }}>{STEP_META[step]?.icon}</span>
-                </div>
+              <div style={{
+            width: '14px', height: '14px', borderRadius: '50%', flexShrink: 0,
+            background: '#fff', border: '2px solid #d1d5db', marginTop: '6px',
+          }} />
                 <div style={{ flex: 1, paddingTop: '2px' }}>
                   <p style={{ margin: 0, fontSize: '14px', fontWeight: 500, color: '#9ca3af' }}>
                     {STEP_META[step]?.label}
