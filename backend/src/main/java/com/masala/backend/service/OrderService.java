@@ -8,7 +8,6 @@ import com.masala.backend.model.CartItem;
 import com.masala.backend.model.Order;
 import com.masala.backend.model.Product;
 import com.masala.backend.model.User;
-import com.masala.backend.repository.CartItemRepository;
 import com.masala.backend.repository.OrderRepository;
 import com.masala.backend.repository.ProductRepository;
 import com.masala.backend.repository.UserRepository;
@@ -25,7 +24,6 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
-    private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
     private final EmailService emailService;          // ✅ NEW — inject EmailService
     private final OrderStatusHistoryRepository statusHistoryRepository;
@@ -72,7 +70,16 @@ public class OrderService {
 
         order.setTotalAmount(total + DELIVERY_CHARGE);
         order.setItems(cartItems);
-        return orderRepository.save(order);
+        Order savedGuestOrder = orderRepository.save(order);
+
+        // ✅ Record initial "PLACED" status in history
+        OrderStatusHistory placedHistory = new OrderStatusHistory();
+        placedHistory.setOrder(savedGuestOrder);
+        placedHistory.setStatus("PLACED");
+        placedHistory.setUpdatedAt(LocalDateTime.now());
+        statusHistoryRepository.save(placedHistory);
+
+        return savedGuestOrder;
     }
 
     // ── Logged-in user order ─────────────────────────────────────────────────
@@ -118,7 +125,16 @@ public class OrderService {
 
         order.setTotalAmount(total + DELIVERY_CHARGE);
         order.setItems(cartItems);
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+
+        // ✅ Record initial "PLACED" status in history
+        OrderStatusHistory placedHistory = new OrderStatusHistory();
+        placedHistory.setOrder(savedOrder);
+        placedHistory.setStatus("PLACED");
+        placedHistory.setUpdatedAt(LocalDateTime.now());
+        statusHistoryRepository.save(placedHistory);
+
+        return savedOrder;
     }
 
     // ── Link guest orders to user after registration ─────────────────────────
@@ -157,6 +173,11 @@ public class OrderService {
         history.setStatus(status);
         history.setUpdatedAt(LocalDateTime.now());
         statusHistoryRepository.save(history);
+
+        // ✅ Trigger review request email when order is marked DELIVERED
+        if ("DELIVERED".equals(status)) {
+            sendReviewEmailForOrder(saved);
+        }
 
         return saved;
     }
