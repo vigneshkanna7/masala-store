@@ -230,6 +230,41 @@ const TrackDrawer = ({ order, onClose }) => {
     CANCELLED: 'Your order has been cancelled.',
   };
 
+  // ── Build a complete timeline: every step in STEPS, marked done/pending ──
+  // If admin jumps straight to a later status (skipping steps), every step
+  // up to and including the current status shows as done/ticked. Skipped
+  // steps without their own history row borrow the timestamp of the next
+  // real entry, so they still show a sensible date/time.
+  const historyByStatus = {};
+  history.forEach(h => { historyByStatus[h.status] = h; });
+
+  const currentIndex = STEPS.indexOf(order.status);
+  const fallbackIndex = history.reduce((max, h) => {
+    const idx = STEPS.indexOf(h.status);
+    return idx > max ? idx : max;
+  }, -1);
+  const completedUpTo = currentIndex !== -1 ? currentIndex : fallbackIndex;
+
+  const findDisplayTimeForStep = (stepIdx) => {
+    const step = STEPS[stepIdx];
+    if (historyByStatus[step]) return historyByStatus[step].updatedAt;
+    for (let j = stepIdx + 1; j <= completedUpTo; j++) {
+      const nextStep = STEPS[j];
+      if (historyByStatus[nextStep]) return historyByStatus[nextStep].updatedAt;
+    }
+    return null;
+  };
+
+  const timeline = STEPS.map((step, idx) => {
+    const isDone = idx <= completedUpTo;
+    const realEntry = historyByStatus[step];
+    return {
+      step,
+      isDone,
+      updatedAt: isDone ? (realEntry ? realEntry.updatedAt : findDisplayTimeForStep(idx)) : null,
+    };
+  });
+
   return (
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
@@ -261,64 +296,59 @@ const TrackDrawer = ({ order, onClose }) => {
               background: red, zIndex: 0,
             }} />
 
-            {history.map((h, i) => {
-              const isLast = i === history.length - 1;
+            {timeline.map(({ step, isDone, updatedAt }, i) => {
+              const isLast = i === timeline.length - 1;
+              const isCurrent = i === completedUpTo;
               return (
-                <div key={h.id} style={{
+                <div key={step} style={{
                   display: 'flex', gap: '20px',
                   marginBottom: isLast ? '0' : '28px',
                   position: 'relative', zIndex: 2,
+                  opacity: isDone ? 1 : 0.4,
                 }}>
                   {/* Dot */}
                   <div style={{
-                  width: '14px', height: '14px', borderRadius: '50%', flexShrink: 0,
-                  background: red,
-                  marginTop: '6px',
-                }} />
-              
+                    width: '14px', height: '14px', borderRadius: '50%', flexShrink: 0,
+                    background: isDone ? red : '#fff',
+                    border: isDone ? 'none' : '2px solid #d1d5db',
+                    marginTop: '6px',
+                  }} />
+
                   {/* Content */}
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, paddingTop: isDone ? 0 : '2px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <p style={{
-                        margin: 0, fontSize: '15px',
-                        fontWeight: isLast ? 800 : 600,
-                        color: isLast ? '#111' : '#374151',
+                        margin: 0, fontSize: isDone ? '15px' : '14px',
+                        fontWeight: isDone ? (isCurrent ? 800 : 600) : 500,
+                        color: isDone ? (isCurrent ? '#111' : '#374151') : '#9ca3af',
                       }}>
-                        {STEP_META[h.status]?.icon} {STEP_META[h.status]?.label || h.status}
+                        {STEP_META[step]?.label}
                       </p>
-                      <span style={{ fontSize: '11px', color: '#9ca3af', flexShrink: 0, marginLeft: '8px' }}>
-                        {formatDate(h.updatedAt)}
-                      </span>
+                      {isDone && updatedAt && (
+                        <span style={{ fontSize: '11px', color: '#9ca3af', flexShrink: 0, marginLeft: '8px' }}>
+                          {formatDate(updatedAt)}
+                        </span>
+                      )}
                     </div>
-                    <p style={{ margin: '3px 0 0', fontSize: '13px', color: '#6b7280' }}>
-                      {STEP_DESC[h.status]}
-                    </p>
-                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#9ca3af' }}>
-                      {formatTime(h.updatedAt)}
-                    </p>
+
+                    {isDone ? (
+                      <>
+                        <p style={{ margin: '3px 0 0', fontSize: '13px', color: '#6b7280' }}>
+                          {STEP_DESC[step]}
+                        </p>
+                        {updatedAt && (
+                          <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#9ca3af' }}>
+                            {formatTime(updatedAt)}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#d1d5db' }}>Pending</p>
+                    )}
                   </div>
                 </div>
               );
             })}
-
-            {/* Show remaining steps grayed out */}
-            {STEPS.slice(history.length).map((step) => (
-              <div key={step} style={{
-                display: 'flex', gap: '20px', marginTop: '28px',
-                position: 'relative', zIndex: 2, opacity: 0.4,
-              }}>
-              <div style={{
-            width: '14px', height: '14px', borderRadius: '50%', flexShrink: 0,
-            background: '#fff', border: '2px solid #d1d5db', marginTop: '6px',
-          }} />
-                <div style={{ flex: 1, paddingTop: '2px' }}>
-                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 500, color: '#9ca3af' }}>
-                    {STEP_META[step]?.label}
-                  </p>
-                  <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#d1d5db' }}>Pending</p>
-                </div>
-              </div>
-            ))}
           </div>
         )}
       </div>
